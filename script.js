@@ -27,7 +27,7 @@ if (storage.isMobile) {
     document.getElementById('deviceToggle').innerText = '🖥️';
 }
 
-document.body.className += ' ' + (storage.theme || 'light') + '-theme';
+document.body.classList.add((storage.theme || 'light') + '-theme');
 document.getElementById('themeToggle').checked = (storage.theme === 'dark');
 
 function toggleDeviceMode() {
@@ -37,15 +37,86 @@ function toggleDeviceMode() {
 }
 
 function resetSidebarScroll() {
-    document.getElementById('mainScrollArea').scrollTo({top: 0, behavior: 'smooth'});
+    const area = document.getElementById('mainScrollArea');
+    if (area) area.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+/* HYBRID MOBILE DRAGGING AND CLICKING LOGIC */
+let startY = 0, startTop = 0, startTime = 0, isDragging = false;
+const mobileSidebar = document.getElementById('sidebar');
+const dragHandle = document.getElementById('mobileDragHandle');
+
+function triggerHaptic() {
+    if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(15);
+    }
+}
+
+function snapTo(state) {
+    mobileSidebar.style.transition = 'top 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+    if (state === 'open') {
+        mobileSidebar.classList.remove('half');
+        mobileSidebar.classList.add('open');
+        mobileSidebar.style.top = '6vh';
+    } else if (state === 'half') {
+        mobileSidebar.classList.remove('open');
+        mobileSidebar.classList.add('half');
+        mobileSidebar.style.top = '50vh';
+    } else {
+        mobileSidebar.classList.remove('open', 'half');
+        mobileSidebar.style.top = 'calc(100vh - 85px)';
+    }
+    triggerHaptic();
+    resetSidebarScroll();
 }
 
 function cycleMobileSheet() {
-    const sb = document.getElementById('sidebar');
-    if (sb.classList.contains('open')) { sb.classList.remove('open'); sb.classList.add('half'); }
-    else if (sb.classList.contains('half')) { sb.classList.remove('half'); }
-    else { sb.classList.add('open'); }
-    resetSidebarScroll(); 
+    if (mobileSidebar.classList.contains('open')) snapTo('bottom');
+    else if (mobileSidebar.classList.contains('half')) snapTo('open');
+    else snapTo('half');
+}
+
+if (dragHandle) {
+    dragHandle.addEventListener('touchstart', (e) => {
+        if (!document.body.classList.contains('mobile-mode')) return;
+        startY = e.touches[0].clientY;
+        startTop = mobileSidebar.offsetTop;
+        startTime = Date.now();
+        isDragging = false;
+        mobileSidebar.style.transition = 'none';
+    }, { passive: true });
+
+    dragHandle.addEventListener('touchmove', (e) => {
+        if (!document.body.classList.contains('mobile-mode')) return;
+        const touchY = e.touches[0].clientY;
+        const deltaY = touchY - startY;
+        if (Math.abs(deltaY) > 5) isDragging = true;
+        let newTop = startTop + deltaY;
+        const vh = window.innerHeight;
+        if (newTop < vh * 0.06) newTop = vh * 0.06;
+        if (newTop > vh - 85) newTop = vh - 85;
+        mobileSidebar.style.top = newTop + 'px';
+    }, { passive: true });
+
+    dragHandle.addEventListener('touchend', (e) => {
+        if (!document.body.classList.contains('mobile-mode')) return;
+        const duration = Date.now() - startTime;
+        if (!isDragging && duration < 200) {
+            cycleMobileSheet();
+            return;
+        }
+        const currentTop = mobileSidebar.offsetTop;
+        const vh = window.innerHeight;
+        if (currentTop < vh * 0.3) snapTo('open');
+        else if (currentTop < vh * 0.7) snapTo('half');
+        else snapTo('bottom');
+    });
+
+    dragHandle.addEventListener('click', (e) => {
+        if (document.body.classList.contains('mobile-mode')) {
+            cycleMobileSheet();
+        }
+    });
 }
 
 if (navigator.geolocation) {
@@ -82,7 +153,8 @@ function toggleLayerMenu() { const menu = document.getElementById('layer-popup')
 function setMapLayer(style) { storage.mapStyle = style; map.removeLayer(baseLayer); baseLayer = L.tileLayer(mapStyles[style], { maxZoom: 18 }).addTo(map); saveData(); document.getElementById('layer-popup').style.display = 'none'; }
 function isUIPressed(e) { return e.originalEvent.target.closest('#sidebar') || e.originalEvent.target.closest('#elevation-dock') || e.originalEvent.target.closest('.zoom-controls') || e.originalEvent.target.closest('#layer-popup') || e.originalEvent.target.closest('#expandBtn'); }
 
-document.getElementById('locateBtn').onclick = (e) => { L.DomEvent.stopPropagation(e); if (userPos) map.setView(userPos, 15); };
+const locateBtn = document.getElementById('locateBtn');
+if (locateBtn) locateBtn.onclick = (e) => { L.DomEvent.stopPropagation(e); if (userPos) map.setView(userPos, 15); };
 
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
@@ -102,13 +174,16 @@ function goBack() {
     document.getElementById('detail-view').style.display = 'none';
     document.getElementById('mainSearch').style.display = 'block'; 
     closeElevation(); switchTab('explore');
-    if(document.body.classList.contains('mobile-mode')) { document.getElementById('sidebar').classList.remove('half', 'hidden-sheet'); document.getElementById('sidebar').classList.add('open'); }
+    if(document.body.classList.contains('mobile-mode')) { 
+        snapTo('open');
+    }
     resetSidebarScroll();
 }
 
 function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(tab + 'Tab').classList.add('active');
+    const targetTab = document.getElementById(tab + 'Tab');
+    if (targetTab) targetTab.classList.add('active');
     document.getElementById('explore-panel').style.display = (tab === 'explore' ? 'block' : 'none');
     document.getElementById('add-panel').style.display = (tab === 'add' ? 'block' : 'none');
     document.getElementById('settings-panel').style.display = (tab === 'settings' ? 'block' : 'none');
@@ -128,8 +203,10 @@ function setMode(mode) {
     if(mode !== 'walk' && mode !== 'pin') { tempPath = []; tempPoly.setLatLngs([]); }
 }
 
-document.getElementById('pinModeBtn').onclick = () => { selectedColor = COLORS[0]; setupColorPickers(); setMode('pin'); };
-document.getElementById('walkModeBtn').onclick = () => { selectedColor = COLORS[0]; setupColorPickers(); setMode('walk'); };
+const pinModeBtn = document.getElementById('pinModeBtn');
+const walkModeBtn = document.getElementById('walkModeBtn');
+if (pinModeBtn) pinModeBtn.onclick = () => { selectedColor = COLORS[0]; setupColorPickers(); setMode('pin'); };
+if (walkModeBtn) walkModeBtn.onclick = () => { selectedColor = COLORS[0]; setupColorPickers(); setMode('walk'); };
 
 function updateHighlights() {
     const list = document.getElementById('highlights-list'); if (!list) return;
@@ -167,7 +244,8 @@ map.on('click', (e) => {
 
 function resetModal() { document.getElementById('itemName').value = ''; document.getElementById('itemDesc').value = ''; currentRating = 0; document.querySelectorAll('#modalStars .star').forEach(s => s.style.color = '#cbd5e1'); setupColorPickers(); }
 
-document.getElementById('confirmSaveBtn').onclick = async () => {
+const confirmSaveBtn = document.getElementById('confirmSaveBtn');
+if (confirmSaveBtn) confirmSaveBtn.onclick = async () => {
     const id = Date.now(), name = document.getElementById('itemName').value || "Untitled", desc = document.getElementById('itemDesc').value || "", rat = currentRating;
     let flat, flon;
     if (currentMode === 'pin') { flat = pendingCoords.lat; flon = pendingCoords.lng; const p = { id, name, desc, rating: rat, lat: flat, lng: flon, color: selectedColor }; storage.pins.push(p); addPin(p); }
@@ -186,13 +264,6 @@ async function fetchPhoto(lat, lon, id) {
         }
     } catch(e){}
 }
-
-document.getElementById('photoInput').onchange = function(e) {
-    const file = e.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(event) { const item = storage.pins.find(p=>p.id===activeSelectionId) || storage.walks.find(w=>w.id===activeSelectionId); if (item) { item.photo = event.target.result; saveData(); document.getElementById('detPhoto').src = item.photo; updateHighlights(); } };
-    reader.readAsDataURL(file);
-};
 
 function addPin(p) { const pinIcon = L.divIcon({ className: 'custom-pin-marker', html: `<div class="pin-wrapper"><div class="pin-shape" style="background:${p.color || '#2563eb'}"></div></div>`, iconSize: [30, 30], iconAnchor: [15, 30] }); L.marker([p.lat, p.lng], {icon: pinIcon, zIndexOffset: 1000}).addTo(mapItems).on('click', (e) => { L.DomEvent.stopPropagation(e); showDetails(p, false, e.target); }); }
 
@@ -217,7 +288,9 @@ function showDetails(item, isWalk, layer) {
     document.getElementById('editColorContainer').style.display = 'none'; document.getElementById('explore-panel').style.display = 'none'; document.getElementById('add-panel').style.display = 'none'; document.getElementById('settings-panel').style.display = 'none'; document.getElementById('mainTabs').style.display = 'none'; document.getElementById('mainSearch').style.display = 'none'; 
     document.getElementById('backBtn').style.display = 'flex'; document.getElementById('minimizeBtn').style.display = 'none';
     document.getElementById('detail-view').style.display = 'flex';
-    if(document.body.classList.contains('mobile-mode')) { const sb = document.getElementById('sidebar'); sb.classList.remove('open'); sb.classList.add('half'); }
+    if(document.body.classList.contains('mobile-mode')) { 
+        snapTo('half');
+    }
     const floatEdit = document.getElementById('floatEditBtn'); floatEdit.innerHTML = '🖋️'; floatEdit.classList.remove('is-editing');
     document.getElementById('floatDeleteBtn').style.display = 'none'; document.getElementById('floatUploadBtn').style.display = 'none';
     document.getElementById('detPhoto').src = item.photo || "https://placehold.co/500x300?text=No+Photo";
@@ -264,13 +337,7 @@ function renderStars(item) {
     const rDiv = document.getElementById('detRating'); rDiv.innerHTML = "";
     for(let i=1; i<=5; i++) { const s = document.createElement('span'); s.innerText = i <= item.rating ? '★' : '☆'; s.onclick = () => { if(isEditing) { item.rating = i; renderStars(item); saveData(); } }; rDiv.appendChild(s); }
 }
-function toggleTheme() {
-    document.body.classList.toggle('dark-mode');
-    
-    // BUG FIX: Ensure you aren't removing the 'mobile-ui' class here!
-    // Bad code often looks like: document.body.className = 'dark-mode'; 
-    // Which wipes out all other classes. Use classList instead.
-}
+
 function toggleEditingLogic() {
     isEditing = !isEditing; const editBtn = document.getElementById('floatEditBtn'); editBtn.innerHTML = isEditing ? '✅' : '🖋️'; editBtn.classList.toggle('is-editing', isEditing);
     document.getElementById('floatDeleteBtn').style.display = isEditing ? 'flex' : 'none'; document.getElementById('floatUploadBtn').style.display = isEditing ? 'flex' : 'none'; document.getElementById('editColorContainer').style.display = isEditing ? 'block' : 'none';
@@ -283,7 +350,8 @@ function toggleEditingLogic() {
     document.getElementById('editDesc').oninput = () => { item.desc = document.getElementById('editDesc').value; saveData(); };
 }
 
-document.getElementById('floatEditBtn').onclick = toggleEditingLogic;
+const floatEditBtn = document.getElementById('floatEditBtn');
+if (floatEditBtn) floatEditBtn.onclick = toggleEditingLogic;
 
 function createNodes(layer) {
     nodeHandles.forEach(h => map.removeLayer(h)); nodeHandles = []; const latlngs = layer.getLatLngs();
@@ -331,15 +399,33 @@ async function fetchElevation(path, forceOpen) {
     } catch(e) { if (e.name !== 'AbortError') console.error(e); }
 }
 
-document.getElementById('closeElevBtn').onclick = (e) => { L.DomEvent.stopPropagation(e); graphOpen = false; closeElevation(); updateWalkStats(); };
+const closeElevBtn = document.getElementById('closeElevBtn');
+if (closeElevBtn) closeElevBtn.onclick = (e) => { L.DomEvent.stopPropagation(e); graphOpen = false; closeElevation(); updateWalkStats(); };
+
 function closeElevation() { document.getElementById('elevation-dock').classList.remove('active'); if(document.body.classList.contains('mobile-mode')) { document.getElementById('sidebar').classList.remove('hidden-sheet'); } if(chartInstance) { chartInstance.destroy(); chartInstance = null; } if (elevationAbortController) { elevationAbortController.abort(); elevationAbortController = null; } const btn = document.querySelector('.elev-toggle-btn'); if(btn) btn.innerHTML = '📈 Show elevation graph'; }
 function saveData() { localStorage.setItem('geojournal_v11', JSON.stringify(storage)); }
 function deleteAction() { if(confirm("Delete this entry?")){ storage.pins = storage.pins.filter(p => p.id !== activeSelectionId); storage.walks = storage.walks.filter(w => w.id !== activeSelectionId); saveData(); refreshMapItems(); goBack(); } }
 
-document.getElementById('floatDeleteBtn').onclick = deleteAction;
-document.getElementById('themeToggle').onchange = (e) => { storage.theme = e.target.checked ? 'dark' : 'light'; document.body.className = storage.theme + '-theme'; saveData(); };
-document.getElementById('mainSearch').onkeypress = (e) => { if(e.key==='Enter') fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${e.target.value}`).then(r=>r.json()).then(d=>d.length && map.flyTo([d[0].lat, d[0].lon], 15)); };
-document.getElementById('modalStars').onclick = (e) => { if(e.target.dataset.value) { currentRating = parseInt(e.target.dataset.value); document.querySelectorAll('#modalStars .star').forEach(s => s.style.color = s.dataset.value <= currentRating ? '#fbbf24' : '#cbd5e1'); } };
-document.getElementById('finishWalkBtn').onclick = () => { selectedColor = COLORS[0]; setupColorPickers(); resetModal(); document.getElementById('modal-overlay').style.display = 'flex'; };
+const floatDeleteBtn = document.getElementById('floatDeleteBtn');
+if (floatDeleteBtn) floatDeleteBtn.onclick = deleteAction;
+
+const themeToggle = document.getElementById('themeToggle');
+if (themeToggle) themeToggle.onchange = (e) => { 
+    const newTheme = e.target.checked ? 'dark' : 'light';
+    const oldTheme = storage.theme;
+    storage.theme = newTheme; 
+    document.body.classList.remove(oldTheme + '-theme');
+    document.body.classList.add(newTheme + '-theme');
+    saveData(); 
+};
+
+const mainSearch = document.getElementById('mainSearch');
+if (mainSearch) mainSearch.onkeypress = (e) => { if(e.key==='Enter') fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${e.target.value}`).then(r=>r.json()).then(d=>d.length && map.flyTo([d[0].lat, d[0].lon], 15)); };
+
+const modalStars = document.getElementById('modalStars');
+if (modalStars) modalStars.onclick = (e) => { if(e.target.dataset.value) { currentRating = parseInt(e.target.dataset.value); document.querySelectorAll('#modalStars .star').forEach(s => s.style.color = s.dataset.value <= currentRating ? '#fbbf24' : '#cbd5e1'); } };
+
+const finishWalkBtn = document.getElementById('finishWalkBtn');
+if (finishWalkBtn) finishWalkBtn.onclick = () => { selectedColor = COLORS[0]; setupColorPickers(); resetModal(); document.getElementById('modal-overlay').style.display = 'flex'; };
 
 refreshMapItems(); updateHighlights(); switchTab('explore');
