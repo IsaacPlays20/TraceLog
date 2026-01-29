@@ -35,12 +35,11 @@ body, html {
     box-shadow: 10px 0 30px rgba(0,0,0,0.05);
 }
 
-/* MOBILE MODE OVERRIDES */
 body.mobile-mode #sidebar {
     width: 100vw;
     height: 100vh;
     max-height: calc(100% - 6vh); 
-    top: calc(100vh - 110px); /* Move closed position higher (was 85px) */
+    top: calc(100vh - 110px); 
     left: 0;
     border-right: none;
     border-top: 1px solid var(--border);
@@ -49,13 +48,12 @@ body.mobile-mode #sidebar {
     opacity: 1 !important;
     pointer-events: auto !important;
     padding-bottom: env(safe-area-inset-bottom);
-    touch-action: pan-y; /* Enable vertical swiping on the whole panel */
+    touch-action: pan-y;
 }
 
 body.mobile-mode #sidebar.open { top: 6vh; }
 body.mobile-mode #sidebar.half { top: 50vh; }
 body.mobile-mode #sidebar.hidden-sheet { top: 100vh !important; }
-
 body.mobile-mode #expandBtn { display: none !important; }
 
 .drag-handle {
@@ -69,13 +67,11 @@ body.mobile-mode #expandBtn { display: none !important; }
 body.mobile-mode .drag-handle { display: block; }
 
 #sidebar.minimized { transform: translateX(-100%); opacity: 0; pointer-events: none; }
-
 .sidebar-header { padding: 20px 20px 0 20px; flex-shrink: 0; position: relative; }
 body.mobile-mode .sidebar-header { padding-top: 0; }
-
 .logo-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; gap: 8px; }
 
-.icon-btn, .tab-btn, .filter-btn, .btn, .zoom-btn, .layer-item-btn {
+.icon-btn, .tab-btn, .filter-btn, .btn, .zoom-btn, .layer-item-btn, .elev-toggle-btn {
     background: var(--border); border: none; min-width: 34px; height: 34px; 
     border-radius: 10px; cursor: pointer; display: flex; align-items: center; 
     justify-content: center; color: var(--text); font-size: 14px; transition: 0.2s;
@@ -83,7 +79,7 @@ body.mobile-mode .sidebar-header { padding-top: 0; }
     padding: 0 10px; text-transform: uppercase;
 }
 
-.icon-btn:hover, .tab-btn:hover, .filter-btn:hover, .btn:hover, .zoom-btn:hover, .layer-item-btn:hover { 
+.icon-btn:hover, .tab-btn:hover, .filter-btn:hover, .btn:hover, .zoom-btn:hover, .layer-item-btn:hover, .elev-toggle-btn:hover { 
     background: var(--primary); color: white; transform: scale(1.05); 
 }
 
@@ -116,7 +112,7 @@ body.mobile-mode .sidebar-header { padding-top: 0; }
 .sidebar-scroll-area::-webkit-scrollbar { width: 4px; }
 .sidebar-scroll-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
-.scroll-spacer { height: 220px; flex-shrink: 0; pointer-events: none; }
+.scroll-spacer { height: 450px; flex-shrink: 0; pointer-events: none; }
 
 #map { width: 100vw; height: 100vh; z-index: 1; }
 
@@ -206,20 +202,20 @@ input:checked + .slider:before { transform: translateX(18px); }
 #editDesc.active { pointer-events: auto; }
 .info-card { background: rgba(0,0,0,0.02); padding: 10px; border-radius: 10px; border: 1px solid var(--border); }
 
-#explore-panel, #add-panel, #settings-panel, #detail-view { padding-bottom: 80px; }
+#explore-panel, #add-panel, #settings-panel, #detail-view { padding-bottom: 20px; }
 
 .zoom-controls { position: absolute; top: 20px; right: 20px; z-index: 3000; display: flex; flex-direction: column; gap: 8px; }
 .btn { width: 100%; height: 42px; margin-bottom: 10px; font-size: 12px; }
 
 #elevation-dock { 
-    position: absolute; bottom: -300px; left: calc(var(--sidebar) + 20px); 
-    right: 20px; height: 240px; background: var(--card); backdrop-filter: blur(10px);
+    position: absolute; bottom: -450px; left: calc(var(--sidebar) + 20px); 
+    right: 20px; height: 260px; background: var(--card); backdrop-filter: blur(10px);
     border-radius: 12px; border: 1px solid var(--border); z-index: 5000; 
-    padding: 10px; transition: bottom var(--transition), left var(--transition); 
+    padding: 15px; transition: bottom var(--transition), left var(--transition); 
     box-shadow: 0 -5px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;
 }
 #elevation-dock.active { bottom: 20px; }
-body.mobile-mode #elevation-dock { left: 10px; right: 10px; height: 200px; }
+body.mobile-mode #elevation-dock.active { bottom: 120px; left: 10px; right: 10px; height: 220px; }
 
 #elevContainer { flex: 1; min-height: 0; width: 100%; position: relative; }
 .walk-marker-icon { font-size: 16px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 50 !important; }
@@ -247,7 +243,23 @@ body.mobile-mode #elevation-dock { left: 10px; right: 10px; height: 200px; }
 .mid-handle-visible { background: white !important; border: 3px solid var(--accent) !important; border-radius: 50%; box-shadow: 0 0 8px rgba(0,0,0,0.3); opacity: 0.9 !important; }
 .node-handle-hidden { opacity: 0 !important; pointer-events: none; }
 
+.mode-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 10px; }
+.mode-btn {
+    background: rgba(0,0,0,0.03); border: 1px solid var(--border);
+    padding: 10px 0; border-radius: 10px; cursor: pointer;
+    transition: 0.2s; display: flex; flex-direction: column; align-items: center;
+    color: var(--text); height: 52px; justify-content: center;
+}
+.mode-btn span { font-size: 18px; margin-bottom: 1px; line-height: 1; }
+.mode-btn b { font-size: 9px; font-weight: 800; text-transform: uppercase; color: inherit; line-height: 1; }
+.mode-btn.active { background: var(--primary); color: white !important; border-color: var(--primary); }
+.mode-btn.active b { color: white !important; }
+
+.elev-toggle-btn { 
+    grid-column: span 2; width: 100%; height: 44px; margin-top: 5px; 
+    text-transform: uppercase; font-size: 12px; gap: 8px;
+}
+
 .color-row { display: flex; gap: 8px; margin: 10px 0; justify-content: center; }
 .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
 .color-dot.active { border-color: var(--text); transform: scale(1.1); }
-.elev-toggle-btn { grid-column: span 2; width: 100%; height: 40px; margin-top: 5px; text-transform: none; font-weight: 600; font-size: 13px; }
