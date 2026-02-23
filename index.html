@@ -11,7 +11,7 @@
 
     <style>
         :root {
-            --sidebar: 320px; 
+            --sidebar: 400px; 
             --primary: #2563eb; 
             --accent: #10b981;
             --danger: #ef4444;
@@ -270,9 +270,9 @@
 
         .loc-icon-inner { width: 16px; height: 16px; background: #2563eb; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
 
-        .highlight-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 12px; margin-bottom: 8px; cursor: pointer; border: 1px solid var(--border); transition: 0.2s; }
+        .highlight-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 12px; margin-bottom: 8px; cursor: pointer; border: 1px solid var(--border); transition: 0.2s; position: relative; }
         .highlight-item:hover { background: var(--border); transform: translateY(-2px); }
-        .highlight-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: #ddd; flex-shrink: 0; }
+        .highlight-thumb { width: 70px; height: 70px; border-radius: 8px; object-fit: cover; background: #ddd; flex-shrink: 0; }
         .type-label { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 5px; color: white; border-radius: 3px; display: inline-block; margin-bottom: 3px; }
 
         .list-divider { height: 1px; background: var(--border); margin: 15px 0; width: 100%; opacity: 0.5; }
@@ -494,6 +494,37 @@
         .facility-check { width: 14px; height: 14px; border: 1px solid currentColor; border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .facility-btn.active .facility-check::after { content: "✓"; font-size: 10px; font-weight: 900; }
         .facility-tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.05); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 11px; margin: 0 4px 4px 0; }
+
+        .segmented-control {
+            display: flex; background: rgba(0,0,0,0.05); padding: 4px;
+            border-radius: 10px; border: 1px solid var(--border); margin: 10px 0;
+        }
+        .seg-btn {
+            flex: 1; background: transparent; border: none; padding: 8px;
+            border-radius: 8px; font-size: 11px; font-weight: 800;
+            color: var(--text); cursor: pointer; transition: 0.2s; opacity: 0.6;
+        }
+        .seg-btn:hover { opacity: 1; }
+        .seg-btn.active {
+            background: var(--card); box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            color: var(--primary); opacity: 1;
+        }
+
+        .visited-check-corner {
+            position: absolute; bottom: 8px; right: 8px;
+            background: var(--accent); color: white; padding: 3px 6px;
+            border-radius: 6px; font-size: 9px; font-weight: 900;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-transform: uppercase; letter-spacing: 0.5px;
+            z-index: 5;
+        }
+
+        .desc-truncated {
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="dark-theme auth-active">
@@ -544,6 +575,18 @@
                 <span id="flyStatDist">0.00 km</span>
                 <span id="flyStatElev">-- m</span>
                 <span id="flyStatTime">00:00</span>
+            </div>
+            <div class="fly-control-row" style="justify-content: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+                <button class="fly-adjust-btn" onclick="rewindFlyover()" style="width:40px; height:36px; font-size:16px;" title="Rewind 10s">⏪</button>
+                <button class="fly-btn" id="flyPauseBtn" onclick="toggleFlyPause()" style="flex:1; max-width:100px;">⏸ PAUSE</button>
+                <select id="flyMapSelect" onchange="setMapLayer(this.value)" style="height:36px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:11px; font-weight:800; padding:0 5px; width: 90px;">
+                    <option value="voyager">Voyager</option>
+                    <option value="dark">Dark</option>
+                    <option value="sat">Satellite</option>
+                    <option value="topo">Topo</option>
+                    <option value="transit">Transit</option>
+                    <option value="hybrid">Hybrid</option>
+                </select>
             </div>
             <div class="fly-control-row">
                 <div class="fly-slider-group">
@@ -599,7 +642,7 @@
                 
                 <div class="tab-nav" id="mainTabs">
                     <button class="tab-btn active" id="exploreTab" onclick="switchTab('explore')">EXPLORE</button>
-                    <button class="tab-btn" id="addTab" onclick="switchTab('add')">ADD</button>
+                    <button class="tab-btn" id="addTab" onclick="switchTab('add')">YOU</button>
                     <button class="tab-btn" id="settingsTab" onclick="switchTab('settings')">SETTINGS</button>
                 </div>
             </div>
@@ -612,14 +655,19 @@
                             <button class="filter-btn active" onclick="setSort('rating', this)" style="flex:1">⭐ RATING</button>
                             <button class="filter-btn" onclick="setSort('dist', this)" style="flex:1">📍 DISTANCE</button>
                         </div>
-                        <button class="filter-btn" onclick="toggleMineFilter(this)" style="width:100%; font-weight:800; justify-content:center;">👤 YOUR LOG</button>
+                        
+                        <div class="segmented-control">
+                            <button class="seg-btn active" onclick="setFilterMode('all', this)">Both</button>
+                            <button class="seg-btn" onclick="setFilterMode('pins', this)">Pins</button>
+                            <button class="seg-btn" onclick="setFilterMode('walks', this)">Activities</button>
+                        </div>
 
-                        <div class="filter-section">
+                        <div class="filter-section" id="filterSectionPins">
                             <button class="toggle-btn-main" onclick="toggleFilterSection('pinGridReveal', this)" style="width:100%; justify-content: space-between; padding: 0 15px;"><span>📍 Pins</span> <span class="chevron" style="opacity:0.5; font-size:10px; transition:0.3s;">▼</span></button>
                             <div class="filter-grid-reveal" id="pinGridReveal" style="display:none;"></div>
                         </div>
 
-                        <div class="filter-section">
+                        <div class="filter-section" id="filterSectionActivities">
                             <button class="toggle-btn-main" onclick="toggleFilterSection('activityGridReveal', this)" style="width:100%; justify-content: space-between; padding: 0 15px;"><span>🏃 Activities</span> <span class="chevron" style="opacity:0.5; font-size:10px; transition:0.3s;">▼</span></button>
                             <div class="filter-grid-reveal" id="activityGridReveal" style="display:none;">
                                 <button class="sub-toggle-btn active" data-type="walk" onclick="toggleSubFilter(this, 'activity')"><span class="filter-icon">🚶</span>Walk</button>
@@ -636,11 +684,7 @@
                 </div>
 
                 <div id="add-panel" style="display:none;">
-                    <button id="pinModeBtn" class="btn btn-main">📍 Drop a Pin</button>
-                    <button id="walkModeBtn" class="btn btn-main">🏃 Draw Activity</button>
-                    <button id="recordModeBtn" class="btn btn-main" style="background: var(--primary); color: white;">🛰️ Record an Activity</button>
-
-                    <div id="walk-options" style="display:none; margin: 10px 0; padding: 12px; background: rgba(0,0,0,0.03); border-radius: 12px; border: 1px solid var(--border);">
+                    <div id="walk-options" style="display:none; margin: 0 0 10px 0; padding: 12px; background: rgba(0,0,0,0.03); border-radius: 12px; border: 1px solid var(--border);">
                         <div class="mode-selector" id="addModeSelector">
                             <button class="mode-btn active" data-mode="walk"><span>🚶</span><b>Walk</b></button>
                             <button class="mode-btn" data-mode="hike"><span>🥾</span><b>Hike</b></button>
@@ -657,13 +701,76 @@
                         </div>
                     </div>
 
-                    <div id="route-stats" style="display:none; background:rgba(0,0,0,0.05); padding:15px; border-radius:12px; margin-top: 5px;">
+                    <div id="route-stats" style="display:none; background:rgba(0,0,0,0.05); padding:15px; border-radius:12px; margin-bottom: 15px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <p id="liveDist" style="margin:0; font-weight:800; font-size: 1.2rem; color: var(--primary);">0.00 km</p>
                             <p id="liveTime" style="margin:0; font-weight:600; font-size: 0.9rem; opacity:0.7;">00m</p>
                         </div>
                         <button class="btn" id="drawGraphBtn" onclick="toggleGraph()" style="margin-top:8px; background:rgba(0,0,0,0.05); border:1px solid var(--border); font-size:11px;">📈 Show Height Graph</button>
                         <button class="btn btn-save-action" id="finishWalkBtn" style="margin-top:8px; width: 100%;">💾 Save Activity</button>
+                    </div>
+
+                    <button class="settings-header" onclick="toggleSettingsSection('addSectionContent', this)" style="margin-top:0;">
+                        <span>NEW UPLOAD</span> <span class="chevron">▼</span>
+                    </button>
+                    <div id="addSectionContent" class="settings-content">
+                        <button id="pinModeBtn" class="btn btn-main">📍 Log a Pin</button>
+                        <button id="walkModeBtn" class="btn btn-main">🏃 Trace Activity</button>
+                        <button id="recordModeBtn" class="btn btn-main" style="background: var(--primary); color: white;">🛰️ Record an Activity</button>
+                    </div>
+                    
+                    <div class="list-divider"></div>
+                    
+                    <button class="settings-header" onclick="toggleSettingsSection('myLogSectionContent', this)">
+                        <span>MY UPLOADS</span> <span class="chevron">▼</span>
+                    </button>
+                    <div id="myLogSectionContent" class="settings-content">
+                        <div class="filter-container">
+                            <div style="display:flex; gap:6px; margin-bottom:6px;">
+                                <select onchange="setMyLogPrivacy(this.value)" style="flex:1; padding:0 10px; height:34px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:11px; font-weight:800; font-family:inherit;">
+                                    <option value="all">👁️ ALL VISIBILITY</option>
+                                    <option value="public">🌍 PUBLIC</option>
+                                    <option value="private">🔒 PRIVATE</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-row" style="display:flex; gap:6px;">
+                                <button class="filter-btn" onclick="setMyLogSort('rating', this)" style="flex:1">⭐ RATING</button>
+                                <button class="filter-btn" onclick="setMyLogSort('dist', this)" style="flex:1">📍 DISTANCE</button>
+                                <button class="filter-btn active" onclick="setMyLogSort('date', this)" style="flex:1">📅 DATE</button>
+                            </div>
+
+                            <div class="segmented-control">
+                                <button class="seg-btn active" onclick="setMyLogFilterMode('all', this)">Both</button>
+                                <button class="seg-btn" onclick="setMyLogFilterMode('pins', this)">Pins</button>
+                                <button class="seg-btn" onclick="setMyLogFilterMode('walks', this)">Activities</button>
+                            </div>
+
+                            <div class="filter-section" id="myLogFilterSectionPins">
+                                <button class="toggle-btn-main" onclick="toggleFilterSection('myLogPinGridReveal', this)" style="width:100%; justify-content: space-between; padding: 0 15px;"><span>📍 Pins</span> <span class="chevron" style="opacity:0.5; font-size:10px; transition:0.3s;">▼</span></button>
+                                <div class="filter-grid-reveal" id="myLogPinGridReveal" style="display:none;"></div>
+                            </div>
+
+                            <div class="filter-section" id="myLogFilterSectionActivities">
+                                <button class="toggle-btn-main" onclick="toggleFilterSection('myLogActivityGridReveal', this)" style="width:100%; justify-content: space-between; padding: 0 15px;"><span>🏃 Activities</span> <span class="chevron" style="opacity:0.5; font-size:10px; transition:0.3s;">▼</span></button>
+                                <div class="filter-grid-reveal" id="myLogActivityGridReveal" style="display:none;">
+                                    <button class="sub-toggle-btn active" data-type="walk" onclick="toggleMyLogSubFilter(this, 'activity')"><span class="filter-icon">🚶</span>Walk</button>
+                                    <button class="sub-toggle-btn active" data-type="hike" onclick="toggleMyLogSubFilter(this, 'activity')"><span class="filter-icon">🥾</span>Hike</button>
+                                    <button class="sub-toggle-btn active" data-type="run" onclick="toggleMyLogSubFilter(this, 'activity')"><span class="filter-icon">⚡</span>Run</button>
+                                    <button class="sub-toggle-btn active" data-type="cycle" onclick="toggleMyLogSubFilter(this, 'activity')"><span class="filter-icon">🚲</span>Cycle</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="my-saved-list"></div>
+                    </div>
+                    
+                    <div class="list-divider"></div>
+                    <button class="settings-header" onclick="toggleSettingsSection('loggedSectionContent', this)">
+                        <span>MY LOGBOOK</span> <span class="chevron">▼</span>
+                    </button>
+                    <div id="loggedSectionContent" class="settings-content">
+                        <div id="my-logged-list"></div>
                     </div>
                     <div class="scroll-spacer"></div>
                 </div>
@@ -703,6 +810,7 @@
                                     <option value="sat">Satellite</option>
                                     <option value="topo">Topography</option>
                                     <option value="transit">Transport</option>
+                                    <option value="hybrid">Hybrid</option>
                                 </select>
                             </div>
                             <div class="settings-row-refined">
@@ -762,12 +870,13 @@
                         <button class="floating-action-btn btn-delete-float" id="floatDeleteBtn" onclick="deleteAction()" style="display:none;" title="Delete">🗑️</button>
                         <div id="detRating" style="display:none;"></div>
                         <div class="image-scrim">
-                            <textarea id="editTitle" class="edit-input" rows="2"></textarea>
+                            <textarea id="editTitle" class="edit-input" rows="1"></textarea>
                         </div>
                     </div>
                     <div id="detCreator" style="margin-bottom: 8px; padding: 0 5px;"></div>
                     <button class="btn" id="editAddPhotoBtn" onclick="openUrlUploadPopup('edit')" style="display:none; margin-bottom:10px; background:var(--bg); border:1px solid var(--border); color:var(--text); font-weight:600;">📷 Add Photo URL</button>
                     <div id="detTypeLabel" style="padding: 0 5px; margin-bottom: 10px;"></div>
+                    <button class="btn" id="markVisitedBtn" onclick="toggleVisited()" style="margin: 0 5px 10px 5px; width: calc(100% - 10px); font-weight:700; border:1px solid var(--border);">⭕ Mark Visited</button>
 
                     <div id="editWalkOptions" style="display:none; margin: 10px 0; padding: 12px; background: rgba(37, 99, 235, 0.05); border-radius: 12px; border: 1px solid var(--primary);">
                         <div class="mode-selector" id="editModeSelector">
@@ -800,7 +909,13 @@
                     </div>
 
                     <div id="detStats"></div>
-                    <div class="info-card"><textarea id="editDesc" class="edit-input" rows="4" placeholder="No notes added..."></textarea></div>
+                    <div class="info-card">
+                        <div id="viewDescContainer">
+                            <p id="viewDescText" style="margin:0; font-size:1.05rem; line-height:1.5; opacity:0.9; white-space: pre-wrap;"></p>
+                            <button id="viewDescShowMoreBtn" style="display:none; background:none; border:none; color:var(--primary); font-weight:700; font-size:11px; padding:0; margin-top:5px; cursor:pointer;">Show More</button>
+                        </div>
+                        <textarea id="editDesc" class="edit-input" rows="4" placeholder="No notes added..." style="display:none;"></textarea>
+                    </div>
                     <div id="commentsSection" class="comments-section"></div>
                     <div class="scroll-spacer"></div>
                 </div>
@@ -819,6 +934,7 @@
                 <button class="layer-item-btn" onclick="setMapLayer('sat')">🌍 Satellite</button>
                 <button class="layer-item-btn" onclick="setMapLayer('topo')">⛰️ Topography</button>
                 <button class="layer-item-btn" onclick="setMapLayer('transit')">🚌 Transport</button>
+                <button class="layer-item-btn" onclick="setMapLayer('hybrid')">🛰️ Hybrid</button>
             </div>
             <div id="elevation-dock">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
@@ -860,6 +976,10 @@
                 <div id="modalPhotoSection">
                     <div id="modalPhotoList" style="display:flex; gap:5px; overflow-x:auto; margin-bottom:5px;"></div>
                     <button class="btn" onclick="openUrlUploadPopup('create')" style="background:rgba(0,0,0,0.05); border:1px solid var(--border); font-size:11px; height:32px;">📷 Add Photo</button>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:0 5px;">
+                    <span class="settings-label" style="font-size:12px;">Mark as Visited</span>
+                    <label class="switch"><input type="checkbox" id="visitedToggle"><span class="slider"></span></label>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:0 5px;">
                     <span class="settings-label" style="font-size:12px;">Make Public</span>
@@ -1014,7 +1134,18 @@
             onlyMine: false,
             search: ''
         };
+        
+        let myLogFilters = {
+            showPins: true,
+            showWalks: true,
+            activities: ['walk', 'hike', 'run', 'cycle'],
+            categories: PIN_TYPES.map(t => t.name),
+            sort: 'date',
+            privacy: 'all',
+            visited: 'all'
+        };
 
+        let currentTab = 'explore';
         let mapItems = new L.FeatureGroup(), userPos = null, userMarker = null, nodeHandles = [], waypointMarkers = [], chartInstance = null;
         let elevationAbortController = null;
         let isFirstLocationLoad = true; 
@@ -1034,6 +1165,19 @@
         let currentFlySpeed = 1.0;
         let currentFlyZoom = 17.0;
         let flyStartTime = 0;
+        let isFlyPaused = false;
+        let flyPath = null;
+        let flyTotalDist = 0;
+        let flyCumDists = [];
+        let currentFlyDist = 0;
+        let flyCurrentBearing = 0;
+        let flyLastTime = 0;
+        let flySpeedKmH = 5;
+
+        function formatDate(ts) {
+            if (!ts) return '';
+            return new Date(ts).toLocaleDateString('en-GB');
+        }
 
         function adjustFlySpeed(delta) {
             currentFlySpeed = Math.max(0.5, Math.min(10, currentFlySpeed + delta));
@@ -1044,6 +1188,26 @@
             currentFlyZoom = Math.max(10, Math.min(20, currentFlyZoom + delta));
             document.getElementById('flyZoomDisplay').innerText = currentFlyZoom.toFixed(1);
         }
+        
+        function toggleFlyPause() {
+            isFlyPaused = !isFlyPaused;
+            const btn = document.getElementById('flyPauseBtn');
+            if(isFlyPaused) {
+                btn.innerText = "▶ RESUME";
+                btn.style.background = "var(--accent)";
+                btn.style.color = "white";
+            } else {
+                btn.innerText = "⏸ PAUSE";
+                btn.style.background = "var(--border)";
+                btn.style.color = "var(--text)";
+            }
+        }
+
+        function rewindFlyover() {
+            const distToRewind = 50 * currentFlySpeed * 10; 
+            currentFlyDist = Math.max(0, currentFlyDist - distToRewind);
+            if(isFlyPaused) updateFlyoverFrame();
+        }
 
         const map = L.map('map', { zoomControl: false, zoomSnap: 0.1 }).setView([51.505, -0.09], 3);
         mapItems.addTo(map);
@@ -1053,7 +1217,8 @@
             dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
             sat: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
             topo: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-            transit: 'https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png'
+            transit: 'https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png',
+            hybrid: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
         };
 
         let baseLayer = L.tileLayer(mapStyles[storage.mapStyle] || mapStyles.voyager).addTo(map);
@@ -1098,6 +1263,8 @@
                 storage.walks = Array.from(walkMap.values());
                 
                 initFiltersUI();
+                initMyLogFiltersUI();
+                applyVisitedStatus();
                 refreshMapItems();
                 updateHighlights();
             } catch (e) { console.error("Database load error:", e); }
@@ -1126,6 +1293,28 @@
             } catch (e) { console.error("Cloud save error:", e); }
         }
 
+        function applyVisitedStatus() {
+            if (!currentUser) return;
+            const visitedSet = new Set(currentUser.visitedItems || []);
+            const visitedMap = currentUser.visitedData || {};
+            
+            const process = (item) => {
+                if (visitedMap[item.id]) {
+                    item.visited = true;
+                    item.visitedDate = visitedMap[item.id];
+                } else if (visitedSet.has(item.id)) {
+                    item.visited = true;
+                    item.visitedDate = null;
+                } else {
+                    item.visited = false;
+                    item.visitedDate = null;
+                }
+            };
+            
+            storage.pins.forEach(process);
+            storage.walks.forEach(process);
+        }
+
         // --- NEW REDESIGNED FILTER LOGIC ---
         function initFiltersUI() {
             const pinGrid = document.getElementById('pinGridReveal');
@@ -1145,6 +1334,36 @@
 
             // Initialize Activity Buttons Colors
             document.querySelectorAll('#activityGridReveal .sub-toggle-btn').forEach(btn => {
+                const type = btn.dataset.type;
+                const color = ACTIVITY_COLORS[type];
+                if(color) {
+                    btn.dataset.color = color;
+                    btn.style.borderColor = color;
+                    if(btn.classList.contains('active')) {
+                        btn.style.backgroundColor = color;
+                        btn.style.color = 'white';
+                    }
+                }
+            });
+        }
+        
+        function initMyLogFiltersUI() {
+            const pinGrid = document.getElementById('myLogPinGridReveal');
+            pinGrid.innerHTML = '';
+            PIN_TYPES.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'sub-toggle-btn active';
+                btn.dataset.cat = cat.name;
+                btn.dataset.color = cat.color;
+                btn.style.borderColor = cat.color;
+                btn.style.backgroundColor = cat.color;
+                btn.style.color = 'white';
+                btn.innerHTML = `<span class="filter-icon">${cat.icon}</span>${cat.name}`;
+                btn.onclick = () => toggleMyLogSubFilter(btn, 'category');
+                pinGrid.appendChild(btn);
+            });
+            
+            document.querySelectorAll('#myLogActivityGridReveal .sub-toggle-btn').forEach(btn => {
                 const type = btn.dataset.type;
                 const color = ACTIVITY_COLORS[type];
                 if(color) {
@@ -1194,10 +1413,103 @@
             updateHighlights();
         }
 
-        function toggleMineFilter(btn) {
-            activeFilters.onlyMine = !activeFilters.onlyMine;
-            btn.classList.toggle('active', activeFilters.onlyMine);
+        function setFilterMode(mode, btn) {
+            btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            if (mode === 'all') {
+                activeFilters.showPins = true; activeFilters.showWalks = true;
+                document.getElementById('filterSectionPins').style.display = 'flex';
+                document.getElementById('filterSectionActivities').style.display = 'flex';
+            } else if (mode === 'pins') {
+                activeFilters.showPins = true; activeFilters.showWalks = false;
+                document.getElementById('filterSectionPins').style.display = 'flex';
+                document.getElementById('filterSectionActivities').style.display = 'none';
+            } else if (mode === 'walks') {
+                activeFilters.showPins = false; activeFilters.showWalks = true;
+                document.getElementById('filterSectionPins').style.display = 'none';
+                document.getElementById('filterSectionActivities').style.display = 'flex';
+            }
             updateHighlights();
+        }
+
+        function setMyLogSort(type, btn) {
+            myLogFilters.sort = type;
+            btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateMyLogList();
+        }
+        
+        function setMyLogPrivacy(val) {
+            myLogFilters.privacy = val;
+            updateMyLogList();
+        }
+
+        async function toggleVisited() {
+            if(!activeSelectionId) return;
+            const item = storage.pins.find(p=>p.id===activeSelectionId) || storage.walks.find(w=>w.id===activeSelectionId);
+            if(!item) return;
+            
+            item.visited = !item.visited;
+            
+            if (!currentUser.visitedData) currentUser.visitedData = {};
+            if (!currentUser.visitedItems) currentUser.visitedItems = []; // Legacy support
+            
+            const idStr = item.id.toString();
+            
+            if (item.visited) {
+                item.visitedDate = Date.now();
+                currentUser.visitedData[idStr] = item.visitedDate;
+                if (!currentUser.visitedItems.includes(item.id)) currentUser.visitedItems.push(item.id);
+            } else {
+                delete currentUser.visitedData[idStr];
+                item.visitedDate = null;
+                currentUser.visitedItems = currentUser.visitedItems.filter(id => id !== item.id);
+            }
+
+            // Save to User Profile instead of Item
+            db.collection('users').doc(currentUser.uid).set({ visitedItems: currentUser.visitedItems, visitedData: currentUser.visitedData }, { merge: true });
+
+            updateVisitedButton(item);
+            refreshMapItems();
+        }
+
+        function setMyLogVisited(val, btn) {
+            myLogFilters.visited = val;
+            btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateMyLogList();
+        }
+        
+        function setMyLogFilterMode(mode, btn) {
+            btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (mode === 'all') {
+                myLogFilters.showPins = true; myLogFilters.showWalks = true;
+                document.getElementById('myLogFilterSectionPins').style.display = 'flex';
+                document.getElementById('myLogFilterSectionActivities').style.display = 'flex';
+            } else if (mode === 'pins') {
+                myLogFilters.showPins = true; myLogFilters.showWalks = false;
+                document.getElementById('myLogFilterSectionPins').style.display = 'flex';
+                document.getElementById('myLogFilterSectionActivities').style.display = 'none';
+            } else if (mode === 'walks') {
+                myLogFilters.showPins = false; myLogFilters.showWalks = true;
+                document.getElementById('myLogFilterSectionPins').style.display = 'none';
+                document.getElementById('myLogFilterSectionActivities').style.display = 'flex';
+            }
+            updateMyLogList();
+        }
+        
+        function toggleMyLogSubFilter(btn, filterType) {
+            btn.classList.toggle('active');
+            const isActive = btn.classList.contains('active');
+            const color = btn.dataset.color;
+            if (color) { btn.style.backgroundColor = isActive ? color : ''; btn.style.color = isActive ? 'white' : ''; }
+            
+            const val = filterType === 'activity' ? btn.dataset.type : btn.dataset.cat;
+            if (isActive) { if(filterType==='activity') myLogFilters.activities.push(val); else myLogFilters.categories.push(val); }
+            else { if(filterType==='activity') myLogFilters.activities = myLogFilters.activities.filter(a=>a!==val); else myLogFilters.categories = myLogFilters.categories.filter(c=>c!==val); }
+            updateMyLogList();
         }
 
         function toggleSettingsSection(id, btn) {
@@ -1497,9 +1809,12 @@
             let ownerHtml = '';
             if (isOwner) {
                 ownerHtml = `
-                    <button class="btn" id="bigEditBtn" onclick="toggleEditingLogic()" style="width:100%; height:44px; font-size:13px; background:var(--primary); border:none; color:white; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-bottom:8px;">
-                        🖋️ Edit Entry
-                    </button>
+                    <div style="display:flex; gap:8px; margin-bottom:8px;">
+                        <button class="btn" id="bigEditBtn" onclick="toggleEditingLogic()" style="flex:1; height:44px; font-size:13px; background:var(--primary); border:none; color:white; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                            🖋️ Edit Entry
+                        </button>
+                        <button class="btn" id="bigDeleteBtn" onclick="deleteAction()" style="display:none; width:44px; height:44px; background:var(--danger); border:none; color:white; align-items:center; justify-content:center; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">🗑️</button>
+                    </div>
                 `;
             }
 
@@ -1549,6 +1864,10 @@
             baseLayer = L.tileLayer(mapStyles[style], { maxZoom: 18 }).addTo(map); 
             saveData(); 
             document.getElementById('layer-popup').style.display = 'none';
+            
+            const flySel = document.getElementById('flyMapSelect');
+            if(flySel) flySel.value = style;
+            
             const sel = document.getElementById('settingsMapSelect');
             if(sel) sel.value = style;
         }
@@ -1582,6 +1901,7 @@
         }
 
         function switchTab(tab) {
+            currentTab = tab;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             const targetTab = document.getElementById(tab + 'Tab');
             if (targetTab) targetTab.classList.add('active');
@@ -1592,6 +1912,7 @@
             document.getElementById('editWalkOptions').style.display = 'none';
             document.getElementById('mainSearch').style.display = 'block'; 
             closeElevation(); setMode(tab === 'explore' ? 'explore' : 'ready');
+            refreshMapItems();
             resetSidebarScroll();
         }
 
@@ -1732,6 +2053,9 @@
                 ...storage.walks.map(w => ({...w, type:'WALK', lat:w.path[0][0], lng:w.path[0][1]}))
             ];
             
+            // Explore Tab: Only show Public items
+            all = all.filter(i => i.isPublic === true);
+            
             all = all.filter(i => {
                 if (i.type === 'PIN') {
                     if (!activeFilters.showPins) return false;
@@ -1745,10 +2069,6 @@
                 return true;
             });
 
-            if (activeFilters.onlyMine && currentUser) {
-                all = all.filter(i => i.userId === currentUser.uid);
-            }
-
             if (activeFilters.search) {
                 const term = activeFilters.search.toLowerCase();
                 all = all.filter(i => i.name.toLowerCase().includes(term) || 
@@ -1756,15 +2076,17 @@
                     (i.comments && i.comments.some(c => c.displayName && c.displayName.toLowerCase().includes(term))));
             }
 
-            // Update Map to match filters
-            mapItems.clearLayers();
-            all.forEach(i => {
-                if (i.type === 'PIN') addPin(i);
-                else if (i.type === 'WALK') addWalk(i);
-            });
+            // Update Map if on Explore Tab
+            if (currentTab === 'explore') {
+                mapItems.clearLayers();
+                all.forEach(i => {
+                    if (i.type === 'PIN') addPin(i);
+                    else if (i.type === 'WALK') addWalk(i);
+                });
+            }
 
             if (userPos) all.forEach(i => i.d = L.latLng(i.lat, i.lng).distanceTo(userPos) / 1000);
-            if (activeFilters.sort === 'rating') all.sort((a,b) => b.rating - a.rating); else all.sort((a,b) => (a.d || 0) - (b.d || 0));
+            if (activeFilters.sort === 'rating') all.sort((a,b) => (b.rating || 0) - (a.rating || 0)); else all.sort((a,b) => (a.d || 0) - (b.d || 0));
             
             list.innerHTML = all.length ? '' : '<p style="font-size:12px;opacity:0.5;text-align:center;margin-top:20px;">No items match filters.</p>';
             all.forEach(i => {
@@ -1784,19 +2106,12 @@
                     iconChar = category ? category.icon : '📍';
                 }
 
-                let visibilityLabel = '';
-                if (activeFilters.onlyMine) {
-                    visibilityLabel = i.isPublic ? 
-                        `<span class="type-label" style="background:#10b981;">PUBLIC</span>` : 
-                        `<span class="type-label" style="background:#ef4444;">PRIVATE</span>`;
-                }
-
                 let ratingHtml = '';
-                if (i.comments && i.comments.length > 0) {
+                if (i.rating > 0) {
                     ratingHtml = `<span style="display:inline-block; background:rgba(251, 191, 36, 0.15); color:#fbbf24; font-weight:800; padding:2px 6px; border-radius:4px; font-size:10px;">★ ${i.rating.toFixed(1)}</span>`;
                 }
                 
-                const distHtml = (i.d !== undefined && i.d !== null) ? `<span style="font-weight:600;">${formatDist(i.d)} away</span>` : '';
+                const distHtml = (i.d !== undefined && i.d !== null) ? `<span style="font-weight:600; opacity:0.7;">${formatDist(i.d)} away</span>` : '';
 
                 const thumb = (i.photos && i.photos.length > 0) ? i.photos[0] : (i.photo || 'https://placehold.co/100x100?text=No+Photo');
                 
@@ -1805,14 +2120,13 @@
                     <div style="flex:1; min-width:0;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                             <span class="type-label" style="background:${labelColor}">${iconChar} ${labelText}</span>
-                            ${visibilityLabel}
                         </div>
                         <p style="font-weight:bold; font-size:13px; margin:0 0 6px 0; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${i.name}</p>
                         <div style="display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text); opacity:0.8;">
                             ${ratingHtml}
                             ${distHtml}
                         </div>
-                    </div>`;
+                    </div>${i.visited ? '<div class="visited-check-corner">✓</div>' : ''}`;
                 div.onclick = () => { 
                     const obj = i.type === 'PIN' ? storage.pins.find(p=>p.id===i.id) : storage.walks.find(w=>w.id===i.id); 
                     if(i.type === 'WALK' && obj.path) {
@@ -1935,13 +2249,30 @@
             const facilities = getSelectedFacilities('modalFacilityPicker');
             const activityMode = document.querySelector('#addModeSelector .mode-btn.active').dataset.mode;
             const isPublic = document.getElementById('publicToggle').checked;
+            const isVisited = document.getElementById('visitedToggle').checked;
+            
+            // Handle Visited State
+            const visitedState = isVisited;
+            const visitedDate = isVisited ? Date.now() : null;
+            
+            if (isVisited) {
+                if (!currentUser.visitedData) currentUser.visitedData = {};
+                if (!currentUser.visitedItems) currentUser.visitedItems = [];
+                currentUser.visitedData[id.toString()] = visitedDate;
+                currentUser.visitedItems.push(id);
+                // Update user profile immediately
+                db.collection('users').doc(currentUser.uid).set({ 
+                    visitedItems: currentUser.visitedItems, 
+                    visitedData: currentUser.visitedData 
+                }, { merge: true });
+            }
             
             let flat, flon, entry;
 
             if (tempPath.length < 2) { 
                 flat = pendingCoords.lat; 
                 flon = pendingCoords.lng; 
-                entry = { id, name, desc, rating: 0, lat: flat, lng: flon, color: selectedColor, type: 'PIN', userId: currentUser.uid, creatorName: currentUser.displayName || "User", isPublic: isPublic, photos: [...tempCreationPhotos], facilities: facilities };
+                entry = { id, name, desc, rating: 0, lat: flat, lng: flon, color: selectedColor, type: 'PIN', userId: currentUser.uid, creatorName: currentUser.displayName || "User", isPublic: isPublic, photos: [...tempCreationPhotos], facilities: facilities, visited: visitedState, visitedDate: visitedDate };
                 storage.pins.push(entry); 
                 addPin(entry);
                 await saveToCloud('pins', entry);
@@ -1966,7 +2297,9 @@
                     isPublic: isPublic,
                     creatorName: currentUser.displayName || "User",
                     photos: [...tempCreationPhotos],
-                    facilities: facilities
+                    facilities: facilities,
+                    visited: visitedState,
+                    visitedDate: visitedDate
                 }; 
                 storage.walks.push(entry); 
                 addWalk(entry); 
@@ -2024,7 +2357,10 @@
                 showDetails(w, true, e.target); 
             }); 
         }
-        function refreshMapItems() { updateHighlights(); }
+        function refreshMapItems() { 
+            updateHighlights(); 
+            updateMyLogList();
+        }
 
         function showDetails(item, isWalk, layer) {
             if (!item) return;
@@ -2053,6 +2389,10 @@
             if(slideshowInterval) { clearInterval(slideshowInterval); slideshowInterval = null; }
             const imgEl = document.getElementById('detPhoto');
             const imgBackEl = document.getElementById('detPhotoBack');
+            
+            imgEl.style.transition = 'none';
+            imgEl.style.opacity = '1';
+            
             let photos = [];
             if(item.photos && item.photos.length > 0) photos = item.photos;
             else if(item.photo) photos = [item.photo];
@@ -2061,7 +2401,6 @@
                 currentPhotoIndex = 0;
                 imgEl.src = photos[0];
                 imgBackEl.src = photos[0];
-                imgEl.style.opacity = '1';
                 imgEl.style.cursor = 'pointer';
                 imgEl.onclick = () => openLightbox(currentPhotoIndex, photos);
                 if(photos.length > 1) {
@@ -2079,10 +2418,39 @@
                         }, 1000);
                     }, 5000);
                 }
-            } else { imgEl.src = "https://placehold.co/500x300?text=No+Photo"; imgEl.onclick = null; }
+            } else { 
+                imgEl.src = "https://placehold.co/500x300?text=No+Photo"; 
+                imgBackEl.src = "https://placehold.co/500x300?text=No+Photo";
+                imgEl.onclick = null; 
+            }
 
-            document.getElementById('editTitle').value = item.name; document.getElementById('editDesc').value = item.desc || "";
+            const titleEl = document.getElementById('editTitle');
+            titleEl.value = item.name; 
+            titleEl.style.height = 'auto';
+            titleEl.style.height = titleEl.scrollHeight + 'px';
+            
+            document.getElementById('editDesc').value = item.desc || "";
+            
+            // Description View Logic
+            const descText = item.desc || "No notes added...";
+            const viewContainer = document.getElementById('viewDescContainer');
+            const viewText = document.getElementById('viewDescText');
+            const showMoreBtn = document.getElementById('viewDescShowMoreBtn');
+            
+            viewText.innerText = descText;
+            viewText.classList.remove('desc-truncated');
+            showMoreBtn.style.display = 'none';
+            showMoreBtn.innerText = 'Show More';
+            
+            if (descText.length > 150 || (descText.match(/\n/g) || []).length > 3) {
+                 viewText.classList.add('desc-truncated');
+                 showMoreBtn.style.display = 'block';
+                 showMoreBtn.onclick = () => { const isTrunc = viewText.classList.toggle('desc-truncated'); showMoreBtn.innerText = isTrunc ? 'Show More' : 'Show Less'; };
+            }
+
             document.querySelectorAll('.edit-input').forEach(i=>i.classList.remove('active'));
+            document.getElementById('editDesc').style.display = 'none';
+            document.getElementById('viewDescContainer').style.display = 'block';
             
             const creatorDiv = document.getElementById('detCreator');
             let creatorName = item.creatorName || 'Unknown';
@@ -2095,8 +2463,7 @@
                 creatorAvatar = currentUser.avatarText || creatorAvatar;
             }
             
-            const dateObj = new Date(item.id);
-            const dateStr = dateObj.toLocaleDateString('en-GB');
+            const dateStr = formatDate(item.id);
             
             const renderCreator = (name, color, avatar) => {
                 return `<div style="display:flex; align-items:center; gap:10px; padding:5px 0;"><div class="comment-avatar" style="width:32px; height:32px; font-size:14px; background:${color}">${avatar}</div><div style="display:flex; flex-direction:column; justify-content:center;"><span style="font-weight:700; font-size:13px;">${name}</span><span style="font-size:11px; opacity:0.6;">Uploaded on ${dateStr}</span></div></div>`;
@@ -2105,12 +2472,15 @@
             creatorDiv.innerHTML = renderCreator(creatorName, creatorColor, creatorAvatar);
 
             if(item.userId && (item.userId !== currentUser?.uid)) {
+                const reqId = item.id;
                 db.collection('users').doc(item.userId).get().then(doc => {
+                    if(activeSelectionId !== reqId) return;
                     if(doc.exists) { const d = doc.data(); creatorDiv.innerHTML = renderCreator(d.displayName || 'Unknown', d.color || creatorColor, d.avatarText || creatorAvatar); }
                 }).catch(()=>{});
             }
 
             renderTypeLabel(item);
+            updateVisitedButton(item);
 
             const facilitiesDiv = document.getElementById('detFacilities');
             facilitiesDiv.innerHTML = '';
@@ -2136,6 +2506,24 @@
             else { document.getElementById('detStats').innerHTML = ``; closeElevation(); window.currentActiveLayer = null; }
             nodeHandles.forEach(h=>map.removeLayer(h));
             resetSidebarScroll();
+        }
+
+        function updateVisitedButton(item) {
+            const btn = document.getElementById('markVisitedBtn');
+            if(!btn) return;
+            
+            const isWalk = (item.path !== undefined);
+            const isVisited = item.visited === true;
+            let label = isWalk ? (isVisited ? '✅ Completed' : '⭕ Mark Completed') : (isVisited ? '✅ Visited' : '⭕ Mark Visited');
+            
+            if (isVisited && item.visitedDate) {
+                const dateStr = formatDate(item.visitedDate);
+                label += ` (${dateStr})`;
+            }
+            
+            btn.innerText = label;
+            btn.style.background = isVisited ? 'var(--accent)' : 'var(--bg)';
+            btn.style.color = isVisited ? 'white' : 'var(--text)';
         }
 
         function updateDetailRating(item) {
@@ -2173,7 +2561,7 @@
                     if(currentUser && b.userId === currentUser.uid && a.userId !== currentUser.uid) return 1;
                     return b.timestamp - a.timestamp;
                 }).forEach(c => {
-                    const date = new Date(c.timestamp).toLocaleDateString('en-GB');
+                    const date = formatDate(c.timestamp);
                     let actions = '';
                     if(currentUser && c.userId === currentUser.uid) {
                         actions = `<div class="comment-actions"><button class="comment-action-btn" onclick="editComment(${item.id}, ${c.id})">Edit</button><button class="comment-action-btn" onclick="deleteComment(${item.id}, ${c.id})" style="color:var(--danger); border-color:var(--danger);">Delete</button></div>`;
@@ -2305,6 +2693,7 @@
             renderComments(item); updateHighlights();
             updateDetailRating(item);
             tempReviewPhotos = [];
+            updateMyLogList();
         }
 
         function editComment(itemId, commentId) {
@@ -2328,6 +2717,7 @@
             saveData(); await saveToCloud(item.path ? 'walks' : 'pins', item);
             renderComments(item); updateHighlights();
             updateDetailRating(item);
+            updateMyLogList();
         }
 
         function updateWalkWaypoints() { 
@@ -2444,6 +2834,7 @@
             document.getElementById('detStats').innerHTML = `<div class="stats-grid"><div class="stat-card"><span class="stat-label">Length</span><span class="stat-value">${formatDist(item.dist)}</span></div><div class="stat-card"><span class="stat-label">${timeLabel}</span><span class="stat-value">${hours > 0 ? hours + 'h ' : ''}${mins}m</span></div><div class="stat-card-dual"><div class="dual-row"><span class="stat-sub-label">Total Climb</span><span class="stat-sub-value">${formatElev(ascent)}</span></div><div class="dual-divider"></div><div class="dual-row"><span class="stat-sub-label">Total Descent</span><span class="stat-sub-value">${formatElev(descent)}</span></div></div><div class="stat-card-dual"><div class="dual-row"><span class="stat-sub-label">Min Height</span><span class="stat-sub-value">${formatElev(minE)}</span></div><div class="dual-divider"></div><div class="dual-row"><span class="stat-sub-label">Max Height</span><span class="stat-sub-value">${formatElev(maxE)}</span></div></div><button class="elev-toggle-btn" onclick="startFlyover()" style="margin-bottom:5px;">✈️ Flyover</button><button id="toggleGraphBtn" class="elev-toggle-btn" onclick="toggleGraph()"><span>${graphOpen ? '📉' : '📈'}</span> ${graphOpen ? 'Hide Height Graph' : 'Show Height Graph'}</button></div>`;
             updateWalkWaypoints(); saveData();
             saveToCloud('walks', item);
+            updateMyLogList();
         }
 
         function toggleEditingLogic() {
@@ -2458,12 +2849,17 @@
             isEditing = !isEditing; const editBtn = document.getElementById('floatEditBtn'); editBtn.innerHTML = isEditing ? '✅' : '🖋️'; editBtn.classList.toggle('is-editing', isEditing);
             
             const bigBtn = document.getElementById('bigEditBtn');
+            const bigDelBtn = document.getElementById('bigDeleteBtn');
             if(bigBtn) {
                 bigBtn.innerHTML = isEditing ? '✅ Finish Editing' : '🖋️ Edit Entry';
                 bigBtn.style.background = isEditing ? 'var(--accent)' : 'var(--primary)';
             }
+            
+            if(bigDelBtn) {
+                bigDelBtn.style.display = isEditing ? 'flex' : 'none';
+            }
 
-            document.getElementById('floatDeleteBtn').style.display = isEditing ? 'flex' : 'none'; 
+            document.getElementById('floatDeleteBtn').style.display = 'none'; 
             document.getElementById('editAddPhotoBtn').style.display = isEditing ? 'block' : 'none'; 
             
             const isWalk = (item.path !== undefined);
@@ -2480,6 +2876,28 @@
                         if(f) facilitiesDiv.innerHTML += `<div class="facility-tag">${f.icon} ${f.label}</div>`;
                     });
                 }
+                
+                // Update Description View
+                const descText = item.desc || "No notes added...";
+                const viewText = document.getElementById('viewDescText');
+                const showMoreBtn = document.getElementById('viewDescShowMoreBtn');
+                
+                viewText.innerText = descText;
+                viewText.classList.remove('desc-truncated');
+                showMoreBtn.style.display = 'none';
+                showMoreBtn.innerText = 'Show More';
+                
+                if (descText.length > 150 || (descText.match(/\n/g) || []).length > 3) {
+                     viewText.classList.add('desc-truncated');
+                     showMoreBtn.style.display = 'block';
+                     showMoreBtn.onclick = () => { const isTrunc = viewText.classList.toggle('desc-truncated'); showMoreBtn.innerText = isTrunc ? 'Show More' : 'Show Less'; };
+                }
+
+                saveData();
+                saveToCloud(item.path ? 'walks' : 'pins', item);
+                updateHighlights();
+                updateMyLogList();
+                renderTypeLabel(item);
             }
 
             document.getElementById('detFacilities').style.display = (isEditing || (!item.facilities || item.facilities.length === 0)) ? 'none' : 'flex';
@@ -2487,11 +2905,23 @@
             if(isEditing) renderFacilityPicker('editFacilityPicker', item.facilities || [], true);
             
             if(isEditing) { setupTypePickers(); walkHistory = []; }
+            
             document.querySelectorAll('.edit-input').forEach(inp => inp.classList.toggle('active', isEditing));
+            document.getElementById('editDesc').style.display = isEditing ? 'block' : 'none';
+            document.getElementById('viewDescContainer').style.display = isEditing ? 'none' : 'block';
+            
             if(isEditing && window.currentActiveLayer instanceof L.Polyline) { createNodes(window.currentActiveLayer); } 
             else { nodeHandles.forEach(h=>map.removeLayer(h)); nodeHandles = []; }
-            document.getElementById('editTitle').oninput = () => { item.name = document.getElementById('editTitle').value; saveData(); updateHighlights(); saveToCloud(item.path ? 'walks' : 'pins', item); };
-            document.getElementById('editDesc').oninput = () => { item.desc = document.getElementById('editDesc').value; saveData(); saveToCloud(item.path ? 'walks' : 'pins', item); };
+            document.getElementById('editTitle').oninput = function() { 
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+                item.name = this.value; 
+                saveData(); 
+                updateHighlights(); 
+                updateMyLogList(); 
+                saveToCloud(item.path ? 'walks' : 'pins', item); 
+            };
+            document.getElementById('editDesc').oninput = () => { item.desc = document.getElementById('editDesc').value; saveData(); updateMyLogList(); saveToCloud(item.path ? 'walks' : 'pins', item); };
             
             if(isEditing) {
                 const pubToggle = document.getElementById('editPublicToggle');
@@ -2501,6 +2931,7 @@
                     saveData();
                     saveToCloud(item.path ? 'walks' : 'pins', item);
                     updateHighlights();
+                    updateMyLogList();
                 };
             }
         }
@@ -2575,6 +3006,7 @@
             saveData(); 
             await saveToCloud(item.path ? 'walks' : 'pins', item);
             showDetails(item, item.path !== undefined, null);
+            updateMyLogList();
             cancelUpload();
         }
 
@@ -2603,10 +3035,8 @@
         function updateLightboxImage() { 
             const img = document.getElementById('lightbox-img'); 
             if (activeLightboxPhotos[currentLightboxIndex]) {
-                const lowRes = activeLightboxPhotos[currentLightboxIndex];
-                const highRes = getHighResUrl(lowRes);
-                img.src = lowRes;
-                if(highRes !== lowRes) { const temp = new Image(); temp.onload = () => img.src = highRes; temp.src = highRes; }
+                // Force high resolution URL immediately to prevent blurry upscaling
+                img.src = getHighResUrl(activeLightboxPhotos[currentLightboxIndex]);
             }
         }
 
@@ -2657,6 +3087,14 @@
             document.getElementById('sidebar').classList.add('minimized');
             document.getElementById('expandBtn').style.display = 'flex';
             document.body.classList.add('is-flying');
+            
+            isFlyPaused = false;
+            document.getElementById('flyPauseBtn').innerText = "⏸ PAUSE";
+            document.getElementById('flyPauseBtn').style.background = "var(--border)";
+            document.getElementById('flyPauseBtn').style.color = "var(--text)";
+            
+            const flySel = document.getElementById('flyMapSelect');
+            if(flySel) flySel.value = storage.mapStyle;
 
             if(!graphOpen) toggleGraph();
 
@@ -2665,21 +3103,23 @@
             
             // Use actual average speed if it was a recorded activity
             if(item.recordedTime && item.recordedTime > 0 && parseFloat(item.dist) > 0) {
-                speedKmH = parseFloat(item.dist) / (item.recordedTime / 60);
+                flySpeedKmH = parseFloat(item.dist) / (item.recordedTime / 60);
+            } else {
+                flySpeedKmH = storage.speeds[item.activity || 'walk'] || 5;
             }
 
             // Pre-calculate distances for optimization
-            const path = item.path;
-            let totalDist = 0;
-            const cumDists = [];
-            for(let i=0; i<path.length-1; i++) {
-                totalDist += L.latLng(path[i]).distanceTo(L.latLng(path[i+1]));
-                cumDists.push(totalDist);
+            flyPath = item.path;
+            flyTotalDist = 0;
+            flyCumDists = [];
+            for(let i=0; i<flyPath.length-1; i++) {
+                flyTotalDist += L.latLng(flyPath[i]).distanceTo(L.latLng(flyPath[i+1]));
+                flyCumDists.push(flyTotalDist);
             }
             
             // Add Fly Marker
             if(flyMarker) map.removeLayer(flyMarker);
-            flyMarker = L.marker(path[0], {
+            flyMarker = L.marker(flyPath[0], {
                 icon: L.divIcon({ className: '', html: '<div class="gps-indicator-wrapper" style="transform:scale(0.6);"><div class="gps-indicator"></div><div class="gps-pulse"></div></div>', iconSize: [10, 10], iconAnchor: [5, 5] }),
                 zIndexOffset: 9999
             }).addTo(map);
@@ -2691,29 +3131,46 @@
             document.getElementById('flyZoomDisplay').innerText = currentFlyZoom.toFixed(1);
             document.getElementById('flySpeedDisplay').innerText = '1.0x';
 
-            let currentDist = 0;
-            let lastTime = 0;
-            let currentBearing = getBearing(path[0][0], path[0][1], path[1][0], path[1][1]);
+            currentFlyDist = 0;
+            flyLastTime = 0;
+            flyCurrentBearing = getBearing(flyPath[0][0], flyPath[0][1], flyPath[1][0], flyPath[1][1]);
             
             // Base speed: 50 meters per second (180 km/h) as base 1x
             const baseSpeedMPS = 50; 
 
             function animate(time) {
                 if (!isFlying) return;
-                if (!lastTime) lastTime = time;
-                const dt = time - lastTime;
-                lastTime = time;
+                if (!flyLastTime) flyLastTime = time;
+                const dt = time - flyLastTime;
+                flyLastTime = time;
 
-                const speedMult = currentFlySpeed;
-                const moveDist = baseSpeedMPS * speedMult * (dt / 1000);
-                currentDist += moveDist;
+                if (!isFlyPaused) {
+                    const moveDist = baseSpeedMPS * currentFlySpeed * (dt / 1000);
+                    currentFlyDist += moveDist;
+                }
+                
+                updateFlyoverFrame();
 
+                if (currentFlyDist >= flyTotalDist) {
+                    stopFlyover();
+                    return;
+                }
+                
+                flyAnimationId = requestAnimationFrame(animate);
+            }
+            
+            flyAnimationId = requestAnimationFrame(animate);
+        }
+        
+        function updateFlyoverFrame() {
+                const item = storage.walks.find(w=>w.id===activeSelectionId);
+                
                 // Update Stats
-                document.getElementById('flyStatDist').innerText = formatDist(currentDist / 1000);
+                document.getElementById('flyStatDist').innerText = formatDist(currentFlyDist / 1000);
                 
                 // Estimated Time based on activity speed
-                const distKm = currentDist / 1000;
-                const totalSeconds = (distKm / speedKmH) * 3600;
+                const distKm = currentFlyDist / 1000;
+                const totalSeconds = (distKm / flySpeedKmH) * 3600;
                 
                 const hrs = Math.floor(totalSeconds / 3600);
                 const mins = Math.floor((totalSeconds % 3600) / 60);
@@ -2724,43 +3181,33 @@
 
                 // Elevation
                 if (item.elevData && item.elevData.length > 0) {
-                    const elevIndex = Math.min(item.elevData.length - 1, Math.floor((currentDist / totalDist) * item.elevData.length));
+                    const elevIndex = Math.min(item.elevData.length - 1, Math.floor((currentFlyDist / flyTotalDist) * item.elevData.length));
                     document.getElementById('flyStatElev').innerText = formatElev(item.elevData[elevIndex]);
                 }
 
-                window.flyoverDistance = currentDist / 1000;
+                window.flyoverDistance = currentFlyDist / 1000;
                 if(chartInstance) chartInstance.draw();
 
-                if (currentDist >= totalDist) {
-                    stopFlyover();
-                    return;
-                }
-
                 // Get current position
-                const pos = getPointAtDistance(path, currentDist, totalDist, cumDists);
+                const pos = getPointAtDistance(flyPath, currentFlyDist, flyTotalDist, flyCumDists);
                 
                 // Look ahead 40 meters for smooth bearing
                 const lookAheadDist = 100; // Increased look-ahead for smoother turns
-                const lookAheadPos = getPointAtDistance(path, currentDist + lookAheadDist, totalDist, cumDists);
+                const lookAheadPos = getPointAtDistance(flyPath, currentFlyDist + lookAheadDist, flyTotalDist, flyCumDists);
 
                 const targetBearing = getBearing(pos[0], pos[1], lookAheadPos[0], lookAheadPos[1]);
-                let diff = targetBearing - currentBearing;
+                let diff = targetBearing - flyCurrentBearing;
                 while (diff < -180) diff += 360;
                 while (diff > 180) diff -= 360;
-                currentBearing += diff * 0.02; // Very smooth turn rate
+                flyCurrentBearing += diff * 0.02; // Very smooth turn rate
 
                 const zoomLevel = currentFlyZoom;
                 map.setView(pos, zoomLevel, { animate: false });
                 
                 // Scale 2.5 to ensure map covers screen during rotation
-                document.getElementById('map').style.transform = `rotateZ(-${currentBearing}deg) scale(2.5)`;
+                document.getElementById('map').style.transform = `rotateZ(-${flyCurrentBearing}deg) scale(2.5)`;
                 
                 if(flyMarker) flyMarker.setLatLng(pos);
-
-                flyAnimationId = requestAnimationFrame(animate);
-            }
-            
-            flyAnimationId = requestAnimationFrame(animate);
         }
 
         function stopFlyover() {
@@ -2884,6 +3331,7 @@
             
             saveData();
             updateHighlights();
+            updateMyLogList();
             alert("All items set to private.");
         }
 
@@ -2978,10 +3426,13 @@
                 if (userDoc.exists && userDoc.data().displayName) {
                     currentUser.displayName = userDoc.data().displayName;
                     document.getElementById('settingsDisplayName').value = currentUser.displayName;
+                        if(userDoc.data().visitedData) currentUser.visitedData = userDoc.data().visitedData;
+                        if(userDoc.data().visitedItems) currentUser.visitedItems = userDoc.data().visitedItems;
                         if(userDoc.data().color) currentUser.color = userDoc.data().color;
                         if(userDoc.data().avatarText) currentUser.avatarText = userDoc.data().avatarText;
                         updateProfileSettingsUI();
                     updateHighlights();
+                    updateMyLogList();
                 } else {
                     document.getElementById('dn-overlay').style.display = 'flex';
                 }
@@ -3104,6 +3555,7 @@
 
             currentUser.displayName = name;
             updateHighlights();
+            updateMyLogList();
             if(activeSelectionId) {
                 const item = storage.pins.find(p=>p.id===activeSelectionId) || storage.walks.find(w=>w.id===activeSelectionId);
                 if(item) { 
@@ -3136,6 +3588,109 @@
 
         document.getElementById('saveDNBtn').onclick = () => saveDisplayName(true);
         document.getElementById('updateDNBtn').onclick = () => saveDisplayName(false);
+
+        function updateMyLogList() {
+            const savedList = document.getElementById('my-saved-list');
+            const loggedList = document.getElementById('my-logged-list');
+            if (!savedList || !loggedList) return;
+            if (!currentUser) { savedList.innerHTML = '<p style="font-size:12px;opacity:0.5;text-align:center;margin-top:20px;">Please log in to view your log.</p>'; loggedList.innerHTML = '<p style="font-size:12px;opacity:0.5;text-align:center;margin-top:20px;">Please log in to view your log.</p>'; return; }
+            
+            // 1. Created Items (My Log)
+            let createdItems = [
+                ...storage.pins.filter(p => p.userId === currentUser.uid).map(p => ({...p, type:'PIN'})), 
+                ...storage.walks.filter(w => w.userId === currentUser.uid).map(w => ({...w, type:'WALK', lat:w.path[0][0], lng:w.path[0][1]}))
+            ];
+            
+            createdItems = createdItems.filter(i => {
+                if (myLogFilters.privacy !== 'all') {
+                    if (myLogFilters.privacy === 'public' && !i.isPublic) return false;
+                    if (myLogFilters.privacy === 'private' && i.isPublic) return false;
+                }
+
+                if (i.type === 'PIN') {
+                    if (!myLogFilters.showPins) return false;
+                    const cat = PIN_TYPES.find(t => t.color === i.color);
+                    return cat && myLogFilters.categories.includes(cat.name);
+                }
+                if (i.type === 'WALK') {
+                    if (!myLogFilters.showWalks) return false;
+                    return myLogFilters.activities.includes(i.activity || 'walk');
+                }
+                return true;
+            });
+
+            if (userPos) createdItems.forEach(i => i.d = L.latLng(i.lat, i.lng).distanceTo(userPos) / 1000);
+            
+            if (myLogFilters.sort === 'rating') createdItems.sort((a,b) => (b.rating || 0) - (a.rating || 0));
+            else if (myLogFilters.sort === 'dist') createdItems.sort((a,b) => (a.d || 0) - (b.d || 0));
+            else if (myLogFilters.sort === 'date') createdItems.sort((a,b) => b.id - a.id);
+            
+            // Update Map if on You Tab
+            if (currentTab === 'add') {
+                mapItems.clearLayers();
+                createdItems.forEach(i => {
+                    if (i.type === 'PIN') addPin(i);
+                    else if (i.type === 'WALK') addWalk(i);
+                });
+            }
+
+            // 2. Visited Items (Logged) - Can include items not created by me
+            let loggedItems = [
+                ...storage.pins.filter(p => p.visited).map(p => ({...p, type:'PIN'})),
+                ...storage.walks.filter(w => w.visited).map(w => ({...w, type:'WALK', lat:w.path[0][0], lng:w.path[0][1]}))
+            ];
+            loggedItems.sort((a,b) => (b.visitedDate || 0) - (a.visitedDate || 0));
+
+            renderLogList(createdItems, savedList, "No created items.", false, false);
+            renderLogList(loggedItems, loggedList, "No logged items.", true, true);
+        }
+
+        function renderLogList(all, list, emptyMsg, hideVisibility = false, showVisitedDate = true) {
+            list.innerHTML = all.length ? '' : `<p style="font-size:12px;opacity:0.5;text-align:center;margin-top:10px;margin-bottom:10px;">${emptyMsg}</p>`;
+            all.forEach(i => {
+                const div = document.createElement('div'); div.className = 'highlight-item'; div.style.borderLeft = `4px solid ${i.color || '#2563eb'}`;
+                let labelText = '', labelColor = i.color || '#2563eb', iconChar = '📍';
+                if (i.type === 'WALK') {
+                    iconChar = i.activity === 'cycle' ? '🚲' : (i.activity === 'run' ? '⚡' : (i.activity === 'hike' ? '🥾' : '🚶'));
+                    labelText = i.activity ? i.activity.toUpperCase() : 'WALK';
+                    labelColor = ACTIVITY_COLORS[i.activity] || '#2563eb';
+                } else {
+                    const category = PIN_TYPES.find(t => t.color === i.color);
+                    labelText = category ? category.name.toUpperCase() : 'PIN';
+                    iconChar = category ? category.icon : '📍';
+                }
+                
+                let visibilityLabel = '';
+                if (!hideVisibility) {
+                    visibilityLabel = i.isPublic ? `<span class="type-label" style="background:#10b981;">PUBLIC</span>` : `<span class="type-label" style="background:#ef4444;">PRIVATE</span>`;
+                }
+                
+                const thumb = (i.photos && i.photos.length > 0) ? i.photos[0] : (i.photo || 'https://placehold.co/100x100?text=No+Photo');
+                const dateStr = formatDate(i.id);
+                const visitedDateStr = i.visitedDate ? formatDate(i.visitedDate) : '';
+
+                let ratingHtml = '';
+                if (i.rating > 0) {
+                    ratingHtml = `<span style="display:inline-block; background:rgba(251, 191, 36, 0.15); color:#fbbf24; font-weight:800; padding:2px 6px; border-radius:4px; font-size:10px;">★ ${i.rating.toFixed(1)}</span>`;
+                }
+
+                const visitedLabel = i.visited ? `<div class="visited-check-corner">✓</div>` : '';
+                const dateDisplay = (showVisitedDate && i.visited && i.visitedDate) ? `<span style="color:var(--accent); font-weight:700;">Visited on: ${visitedDateStr}</span>` : `<span style="opacity:0.7;">${dateStr}</span>`;
+
+                div.innerHTML = `<img class="highlight-thumb" src="${thumb}"><div style="flex:1; min-width:0;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><span class="type-label" style="background:${labelColor}">${iconChar} ${labelText}</span>${visibilityLabel}</div><p style="font-weight:bold; font-size:13px; margin:0 0 6px 0; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${i.name}</p><div style="display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text); opacity:0.8;">${ratingHtml}${dateDisplay}${i.d ? ` • ${formatDist(i.d)}` : ''}</div></div>${visitedLabel}`;
+                div.onclick = () => { 
+                    const obj = i.type === 'PIN' ? storage.pins.find(p=>p.id===i.id) : storage.walks.find(w=>w.id===i.id); 
+                    if(i.type === 'WALK' && obj.path) {
+                        const poly = L.polyline(obj.path);
+                        const sidePadding = document.body.classList.contains('mobile-mode') ? 20 : (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar')) + 40);
+                        const bottomPadding = document.body.classList.contains('mobile-mode') ? (window.innerHeight / 2) : 40;
+                        map.flyToBounds(poly.getBounds(), { paddingBottomRight: [sidePadding, bottomPadding], paddingTopLeft: [20, 20], duration: 1.5 });
+                        showDetails(obj, true, null); 
+                    } else { map.flyTo([i.lat, i.lng], 15); showDetails(obj, false, null); }
+                };
+                list.appendChild(div);
+            });
+        }
 
         switchTab('explore');
     </script>
