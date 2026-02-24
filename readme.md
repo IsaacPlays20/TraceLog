@@ -1,42 +1,25 @@
-#**TraceLog**
+# 🌐 TraceLog
+## Map your journey
 
-Map your journey
+TraceLog is a website for logging, sharing and discovering your intresting natural places and activities, Log pins, hikes and other activities. Discover, review and create a collection of visited hidden gems.
+
+[Visit TraceLog](https://tracelog.world/)
+
+---
 
 <img width="1919" height="991" alt="TraceLog Home" src="https://github.com/user-attachments/assets/c1e39a23-aabe-4e9b-b088-e5ea21a008e2" />
-
-Visit: https://tracelog.world/
-
-# 🌐 Project Title
-
-A brief, one-sentence description of what your website does (e.g., "A minimalist portfolio built to showcase my photography and design work.")
-
-[View Live Demo](https://your-link-here.com)
 
 ---
 
 ## 🚀 Features
 
-* **Responsive Design:** Optimized for desktop, tablet, and mobile.
-* **Dark Mode:** Support for system-wide dark/light themes.
-* **Fast Performance:** Optimized images and minimal dependencies.
-* **Contact Form:** Integrated with [Service Name, e.g., Formspree].
+* **Modern Design:** Optimized for desktop, tablet, and mobile.
+* **Discovery:** Sorts highly rated and local pins and activities
+* **Customisation:** Dark mode, profile pictures, custom activity profiles.
+* **Logging:** Live tracking, map plotting and pin plotting.
+* **saving:** Save your pins and activities and save a list of places ticked off you bucket list.
 
 ## 🛠️ Built With
 
-* **Frontend:** HTML5, CSS3, JavaScript (or React, Vue, etc.)
-* **Styling:** Tailwind CSS / Sass
-* **Deployment:** Vercel / Netlify / GitHub Pages
-
-## 📦 Getting Started
-
-To get a local copy up and running, follow these steps:
-
-### Prerequisites
-* A web browser
-* A local server (like Live Server for VS Code) or Node.js (if using a framework)
-
-### Installation
-
-1. **Clone the repo**
-   ```bash
-   git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
+* **Frontend:** HTML5, CSS3, JavaScript
+* **Deployment:** GitHub Pages
