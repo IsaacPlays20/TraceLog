@@ -184,8 +184,12 @@
         input:checked + .slider:before { transform: translateX(18px); }
 
         .detail-header-container { position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 12px; height: 180px; background: #ddd; flex-shrink: 0; }
-        #detPhoto { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 1s ease-in-out; position: absolute; inset: 0; z-index: 1; }
+        #detPhoto { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 1s ease-in-out; position: absolute; inset: 0; z-index: 1; opacity: 0; }
+        #detPhoto.active { opacity: 1; z-index: 2; }
         #detPhotoBack { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; z-index: 0; }
+        #detMiniMap { width: 100%; height: 100%; position: absolute; inset: 0; z-index: 1; background: #eee; opacity: 0; transition: opacity 1s ease-in-out; }
+        #detMiniMap.active { opacity: 1; z-index: 2; }
+        #detMiniMap .leaflet-control-container { display: none; }
 
         #detRating, .floating-action-btn, #detTypeOverlay { 
             position: absolute; background: rgba(15, 23, 42, 0.7); 
@@ -863,6 +867,7 @@
 
                 <div id="detail-view">
                     <div class="detail-header-container">
+                        <div id="detMiniMap"></div>
                         <img id="detPhotoBack" src="">
                         <img id="detPhoto" src="">
                         <div id="detTypeOverlay"></div>
@@ -875,7 +880,7 @@
                     </div>
                     <div id="detCreator" style="margin-bottom: 8px; padding: 0 5px;"></div>
                     <button class="btn" id="editAddPhotoBtn" onclick="openUrlUploadPopup('edit')" style="display:none; margin-bottom:10px; background:var(--bg); border:1px solid var(--border); color:var(--text); font-weight:600;">📷 Add Photo URL</button>
-                    <div id="detTypeLabel" style="padding: 0 5px; margin-bottom: 10px;"></div>
+                    <div id="detTypeLabel" style="padding: 0 5px; margin-bottom: 4px;"></div>
                     <button class="btn" id="markVisitedBtn" onclick="toggleVisited()" style="margin: 0 5px 10px 5px; width: calc(100% - 10px); font-weight:700; border:1px solid var(--border);">⭕ Mark Visited</button>
 
                     <div id="editWalkOptions" style="display:none; margin: 10px 0; padding: 12px; background: rgba(37, 99, 235, 0.05); border-radius: 12px; border: 1px solid var(--primary);">
@@ -1148,6 +1153,7 @@
         let currentTab = 'explore';
         let mapItems = new L.FeatureGroup(), userPos = null, userMarker = null, nodeHandles = [], waypointMarkers = [], chartInstance = null;
         let elevationAbortController = null;
+        let miniMap = null, miniMapLayer = null, miniMapPoly = null;
         let isFirstLocationLoad = true; 
         let walkHistory = [];
 
@@ -1809,7 +1815,7 @@
             let ownerHtml = '';
             if (isOwner) {
                 ownerHtml = `
-                    <div style="display:flex; gap:8px; margin-bottom:8px;">
+                    <div style="display:flex; gap:8px; margin-bottom:4px;">
                         <button class="btn" id="bigEditBtn" onclick="toggleEditingLogic()" style="flex:1; height:44px; font-size:13px; background:var(--primary); border:none; color:white; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
                             🖋️ Edit Entry
                         </button>
@@ -2086,7 +2092,18 @@
             }
 
             if (userPos) all.forEach(i => i.d = L.latLng(i.lat, i.lng).distanceTo(userPos) / 1000);
-            if (activeFilters.sort === 'rating') all.sort((a,b) => (b.rating || 0) - (a.rating || 0)); else all.sort((a,b) => (a.d || 0) - (b.d || 0));
+            
+            if (activeFilters.sort === 'rating') {
+                all.sort((a,b) => {
+                    const r = (b.rating || 0) - (a.rating || 0);
+                    return r !== 0 ? r : (b.id - a.id);
+                });
+            } else {
+                all.sort((a,b) => {
+                    const dist = (a.d || 0) - (b.d || 0);
+                    return dist !== 0 ? dist : (b.id - a.id);
+                });
+            }
             
             list.innerHTML = all.length ? '' : '<p style="font-size:12px;opacity:0.5;text-align:center;margin-top:20px;">No items match filters.</p>';
             all.forEach(i => {
@@ -2115,8 +2132,13 @@
 
                 const thumb = (i.photos && i.photos.length > 0) ? i.photos[0] : (i.photo || 'https://placehold.co/100x100?text=No+Photo');
                 
+                let thumbHtml = `<img class="highlight-thumb" src="${thumb}">`;
+                if (i.type === 'WALK' && i.path) {
+                    thumbHtml = getRouteThumbnail(i.path, i.color || '#2563eb');
+                }
+                
                 div.innerHTML = `
-                    <img class="highlight-thumb" src="${thumb}">
+                    ${thumbHtml}
                     <div style="flex:1; min-width:0;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                             <span class="type-label" style="background:${labelColor}">${iconChar} ${labelText}</span>
@@ -2131,12 +2153,14 @@
                     const obj = i.type === 'PIN' ? storage.pins.find(p=>p.id===i.id) : storage.walks.find(w=>w.id===i.id); 
                     if(i.type === 'WALK' && obj.path) {
                         const poly = L.polyline(obj.path);
-                        const sidePadding = document.body.classList.contains('mobile-mode') ? 20 : (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar')) + 40);
-                        const bottomPadding = document.body.classList.contains('mobile-mode') ? (window.innerHeight / 2) : 40;
-                        map.flyToBounds(poly.getBounds(), { paddingBottomRight: [sidePadding, bottomPadding], paddingTopLeft: [20, 20], duration: 1.5 });
+                        const isMobile = document.body.classList.contains('mobile-mode');
+                        const sidebarW = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar')) || 400;
+                        const leftPad = isMobile ? 20 : (sidebarW + 30);
+                        const bottomPad = isMobile ? (window.innerHeight / 2) : 40;
+                        map.flyToBounds(poly.getBounds(), { paddingTopLeft: [leftPad, 20], paddingBottomRight: [20, bottomPad], duration: 0.8 });
                         showDetails(obj, true, null); 
                     } else { 
-                        map.flyTo([i.lat, i.lng], 15);
+                        map.flyTo([i.lat, i.lng], 18, { duration: 0.8 });
                         showDetails(obj, false, null);
                     }
                 };
@@ -2341,7 +2365,8 @@
         function addPin(p) { 
             const pinIcon = L.divIcon({ className: 'custom-pin-marker', html: `<div class="pin-wrapper"><div class="pin-shape" style="background:${p.color || '#2563eb'}"></div></div>`, iconSize: [40, 40], iconAnchor: [20, 40] }); 
             L.marker([p.lat, p.lng], {icon: pinIcon, zIndexOffset: 1000}).addTo(mapItems).on('click', (e) => { 
-                L.DomEvent.stopPropagation(e); 
+                L.DomEvent.stopPropagation(e);
+                map.flyTo([p.lat, p.lng], 18, { duration: 0.8 });
                 showDetails(p, false, e.target); 
             }); 
         }
@@ -2351,9 +2376,11 @@
             poly.on('mouseout', () => poly.setStyle({weight: 5}));
             poly.on('click', (e) => { 
                 L.DomEvent.stopPropagation(e); 
-                const sidePadding = document.body.classList.contains('mobile-mode') ? 20 : (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar')) + 40); 
-                const bottomPadding = document.body.classList.contains('mobile-mode') ? (window.innerHeight / 2) : 40; 
-                map.flyToBounds(e.target.getBounds(), { paddingBottomRight: [sidePadding, bottomPadding], paddingTopLeft: [20, 20], duration: 1.5 }); 
+                const isMobile = document.body.classList.contains('mobile-mode');
+                const sidebarW = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar')) || 400;
+                const leftPad = isMobile ? 20 : (sidebarW + 30);
+                const bottomPad = isMobile ? (window.innerHeight / 2) : 40;
+                map.flyToBounds(e.target.getBounds(), { paddingTopLeft: [leftPad, 20], paddingBottomRight: [20, bottomPad], duration: 0.8 });
                 showDetails(w, true, e.target); 
             }); 
         }
@@ -2390,32 +2417,67 @@
             const imgEl = document.getElementById('detPhoto');
             const imgBackEl = document.getElementById('detPhotoBack');
             
-            imgEl.style.transition = 'none';
-            imgEl.style.opacity = '1';
+            const miniMapEl = document.getElementById('detMiniMap');
+            miniMapEl.classList.remove('active');
+            imgEl.classList.add('active');
             
             let photos = [];
-            if(item.photos && item.photos.length > 0) photos = item.photos;
+            if(item.photos && item.photos.length > 0) photos = [...item.photos];
             else if(item.photo) photos = [item.photo];
 
-            if(photos.length > 0) {
+            const showMapPreview = isWalk && item.path && item.path.length > 0;
+            const slideCount = photos.length + (showMapPreview ? 1 : 0);
+
+            if(slideCount > 0) {
                 currentPhotoIndex = 0;
-                imgEl.src = photos[0];
-                imgBackEl.src = photos[0];
-                imgEl.style.cursor = 'pointer';
-                imgEl.onclick = () => openLightbox(currentPhotoIndex, photos);
-                if(photos.length > 1) {
+                
+                const updateSlide = () => {
+                    const isMapSlide = showMapPreview && currentPhotoIndex === 0;
+                    
+                    if (isMapSlide) {
+                        imgEl.classList.remove('active');
+                        miniMapEl.classList.add('active');
+                        
+                        if (!miniMap) {
+                            miniMap = L.map('detMiniMap', { zoomControl: false, attributionControl: false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false });
+                        }
+                        if (miniMapLayer) miniMap.removeLayer(miniMapLayer);
+                        miniMapLayer = L.tileLayer(mapStyles.sat).addTo(miniMap);
+                        
+                        if (miniMapPoly) miniMap.removeLayer(miniMapPoly);
+                        miniMapPoly = L.polyline(item.path, { color: item.color || '#2563eb', weight: 4 }).addTo(miniMap);
+                        
+                        miniMap.invalidateSize();
+                        miniMap.fitBounds(miniMapPoly.getBounds(), { paddingTopLeft: [20, 20], paddingBottomRight: [20, 80] });
+                    } else {
+                        miniMapEl.classList.remove('active');
+                        
+                        const pIndex = showMapPreview ? currentPhotoIndex - 1 : currentPhotoIndex;
+                        if (photos[pIndex]) {
+                            if (!imgEl.src || imgEl.style.opacity === '0' || miniMapEl.classList.contains('active')) {
+                                imgEl.src = photos[pIndex];
+                                imgBackEl.src = photos[pIndex];
+                                imgEl.classList.add('active');
+                            } else {
+                                imgBackEl.src = imgEl.src;
+                                imgEl.style.transition = 'none';
+                                imgEl.classList.remove('active');
+                                imgEl.src = photos[pIndex];
+                                void imgEl.offsetWidth; 
+                                imgEl.style.transition = 'opacity 1s ease-in-out';
+                                imgEl.classList.add('active');
+                            }
+                            imgEl.onclick = () => openLightbox(pIndex, photos);
+                        }
+                    }
+                };
+
+                updateSlide();
+
+                if(slideCount > 1) {
                     slideshowInterval = setInterval(() => {
-                        const nextIndex = (currentPhotoIndex + 1) % photos.length;
-                        imgBackEl.src = photos[nextIndex];
-                        imgEl.style.opacity = '0';
-                        setTimeout(() => {
-                            currentPhotoIndex = nextIndex;
-                            imgEl.src = photos[currentPhotoIndex];
-                            imgEl.style.transition = 'none';
-                            imgEl.style.opacity = '1';
-                            void imgEl.offsetWidth; // Force reflow
-                            imgEl.style.transition = 'opacity 1s ease-in-out';
-                        }, 1000);
+                        currentPhotoIndex = (currentPhotoIndex + 1) % slideCount;
+                        updateSlide();
                     }, 5000);
                 }
             } else { 
@@ -3055,6 +3117,54 @@
             return (brng * 180 / Math.PI + 360) % 360;
         }
 
+        function getRouteThumbnail(path, color) {
+            if (!path || path.length < 2) return '<div class="highlight-thumb" style="background:#eee; display:flex; align-items:center; justify-content:center;">🗺️</div>';
+            
+            let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+            path.forEach(p => {
+                const lat = p[0], lng = p[1];
+                if(lat < minLat) minLat = lat;
+                if(lat > maxLat) maxLat = lat;
+                if(lng < minLng) minLng = lng;
+                if(lng > maxLng) maxLng = lng;
+            });
+
+            const centerLat = (minLat + maxLat) / 2;
+            const centerLng = (minLng + maxLng) / 2;
+            const zoom = 12;
+            const x = Math.floor((centerLng + 180) / 360 * Math.pow(2, zoom));
+            const y = Math.floor((1 - Math.log(Math.tan(centerLat * Math.PI / 180) + 1 / Math.cos(centerLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
+            const tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${y}/${x}`;
+
+            const w = 70, h = 70, pad = 10;
+            const availW = w - 2*pad, availH = h - 2*pad;
+            const latRange = maxLat - minLat || 0.0001;
+            const lngRange = maxLng - minLng || 0.0001;
+            
+            const scaleX = availW / lngRange;
+            const scaleY = availH / latRange;
+            const scale = Math.min(scaleX, scaleY);
+            
+            const contentW = lngRange * scale;
+            const contentH = latRange * scale;
+            const offX = pad + (availW - contentW) / 2;
+            const offY = pad + (availH - contentH) / 2;
+
+            let d = "";
+            path.forEach((p, i) => {
+                const x = offX + (p[1] - minLng) * scale;
+                const y = offY + (maxLat - p[0]) * scale; 
+                d += (i === 0 ? "M" : "L") + `${x.toFixed(1)},${y.toFixed(1)}`;
+            });
+
+            return `<div class="highlight-thumb" style="background-image:url('${tileUrl}'); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;">
+                <div style="position:absolute; inset:0; background:rgba(0,0,0,0.3);"></div>
+                <svg width="70" height="70" viewBox="0 0 70 70" style="display:block; position:relative; z-index:1;">
+                    <path d="${d}" stroke="${color}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));"/>
+                </svg>
+            </div>`;
+        }
+
         // Helper to get interpolated point at specific distance
         function getPointAtDistance(path, d, totalDist, cumDists) {
             if (d <= 0) return path[0];
@@ -3431,6 +3541,7 @@
                         if(userDoc.data().color) currentUser.color = userDoc.data().color;
                         if(userDoc.data().avatarText) currentUser.avatarText = userDoc.data().avatarText;
                         updateProfileSettingsUI();
+                    applyVisitedStatus();
                     updateHighlights();
                     updateMyLogList();
                 } else {
@@ -3621,8 +3732,18 @@
 
             if (userPos) createdItems.forEach(i => i.d = L.latLng(i.lat, i.lng).distanceTo(userPos) / 1000);
             
-            if (myLogFilters.sort === 'rating') createdItems.sort((a,b) => (b.rating || 0) - (a.rating || 0));
-            else if (myLogFilters.sort === 'dist') createdItems.sort((a,b) => (a.d || 0) - (b.d || 0));
+            if (myLogFilters.sort === 'rating') {
+                createdItems.sort((a,b) => {
+                    const r = (b.rating || 0) - (a.rating || 0);
+                    return r !== 0 ? r : (b.id - a.id);
+                });
+            }
+            else if (myLogFilters.sort === 'dist') {
+                createdItems.sort((a,b) => {
+                    const dist = (a.d || 0) - (b.d || 0);
+                    return dist !== 0 ? dist : (b.id - a.id);
+                });
+            }
             else if (myLogFilters.sort === 'date') createdItems.sort((a,b) => b.id - a.id);
             
             // Update Map if on You Tab
@@ -3666,6 +3787,12 @@
                 }
                 
                 const thumb = (i.photos && i.photos.length > 0) ? i.photos[0] : (i.photo || 'https://placehold.co/100x100?text=No+Photo');
+                
+                let thumbHtml = `<img class="highlight-thumb" src="${thumb}">`;
+                if (i.type === 'WALK' && i.path) {
+                    thumbHtml = getRouteThumbnail(i.path, i.color || '#2563eb');
+                }
+
                 const dateStr = formatDate(i.id);
                 const visitedDateStr = i.visitedDate ? formatDate(i.visitedDate) : '';
 
@@ -3677,7 +3804,7 @@
                 const visitedLabel = i.visited ? `<div class="visited-check-corner">✓</div>` : '';
                 const dateDisplay = (showVisitedDate && i.visited && i.visitedDate) ? `<span style="color:var(--accent); font-weight:700;">Visited on: ${visitedDateStr}</span>` : `<span style="opacity:0.7;">${dateStr}</span>`;
 
-                div.innerHTML = `<img class="highlight-thumb" src="${thumb}"><div style="flex:1; min-width:0;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><span class="type-label" style="background:${labelColor}">${iconChar} ${labelText}</span>${visibilityLabel}</div><p style="font-weight:bold; font-size:13px; margin:0 0 6px 0; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${i.name}</p><div style="display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text); opacity:0.8;">${ratingHtml}${dateDisplay}${i.d ? ` • ${formatDist(i.d)}` : ''}</div></div>${visitedLabel}`;
+                div.innerHTML = `${thumbHtml}<div style="flex:1; min-width:0;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><span class="type-label" style="background:${labelColor}">${iconChar} ${labelText}</span>${visibilityLabel}</div><p style="font-weight:bold; font-size:13px; margin:0 0 6px 0; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${i.name}</p><div style="display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text); opacity:0.8;">${ratingHtml}${dateDisplay}${i.d ? ` • ${formatDist(i.d)}` : ''}</div></div>${visitedLabel}`;
                 div.onclick = () => { 
                     const obj = i.type === 'PIN' ? storage.pins.find(p=>p.id===i.id) : storage.walks.find(w=>w.id===i.id); 
                     if(i.type === 'WALK' && obj.path) {
@@ -3693,6 +3820,30 @@
         }
 
         switchTab('explore');
+
+        function encodePolyline(path) {
+            let str = '';
+            let lastLat = 0;
+            let lastLng = 0;
+            const step = Math.max(1, Math.floor(path.length / 60));
+            const addPoint = (lat, lng) => {
+                const numLat = Math.round(lat * 1e5); const numLng = Math.round(lng * 1e5);
+                const dLat = numLat - lastLat; const dLng = numLng - lastLng;
+                lastLat = numLat; lastLng = numLng;
+                str += encodeValue(dLat) + encodeValue(dLng);
+            };
+            for (let i = 0; i < path.length; i += step) addPoint(parseFloat(path[i][0]), parseFloat(path[i][1]));
+            if ((path.length - 1) % step !== 0) addPoint(parseFloat(path[path.length - 1][0]), parseFloat(path[path.length - 1][1]));
+            return str;
+        }
+
+        function encodeValue(val) {
+            let num = val < 0 ? ~(val << 1) : (val << 1);
+            let str = '';
+            while (num >= 0x20) { str += String.fromCharCode((0x20 | (num & 0x1f)) + 63); num >>= 5; }
+            str += String.fromCharCode(num + 63);
+            return str;
+        }
     </script>
 </body>
 </html>
