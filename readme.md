@@ -1,4 +1,4 @@
-# 🌐 TraceLog
+<img width="444" height="248" alt="TraceLog Logo" src="Tracelog.png" />
 ## Map your journey
 
 TraceLog is a website for logging, sharing and discovering your intresting natural places and activities, Log pins, hikes and other activities. Discover, review and create a collection of visited hidden gems.
