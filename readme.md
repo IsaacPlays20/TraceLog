@@ -1,4 +1,4 @@
-<img width="444" height="248" alt="TraceLog Logo" src="Tracelog.png" />
+<img width="444" height="248" alt="TraceLog Logo" src="Images/Tracelog.png" />
 
 ## Map your journey
 
