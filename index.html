@@ -10,6 +10,9 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Google AdSense Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1243519901054274" crossorigin="anonymous"></script>
+
     <style>
         :root {
             --sidebar: 400px; 
@@ -530,6 +533,24 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
+        /* ADVERTISEMENT CONTAINERS */
+        #pc-ad-side {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            width: 160px; height: 600px; z-index: 2000;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            border-radius: 12px; backdrop-filter: blur(5px); pointer-events: none;
+        }
+        #pc-ad-side > * { pointer-events: auto; }
+        body.mobile-mode #pc-ad-side { display: none; }
+
+        #mobile-ad-banner {
+            width: 100%; height: 60px; margin-bottom: 15px; flex-shrink: 0;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            border-radius: 12px; display: none; align-items: center; justify-content: center; overflow: hidden;
+        }
+        body.mobile-mode #mobile-ad-banner { display: flex; }
     </style>
 </head>
 <body class="dark-theme auth-active">
@@ -653,6 +674,16 @@
             </div>
 
             <div class="sidebar-scroll-area" id="mainScrollArea">
+                <!-- Mobile Ad Banner (AdMob/AdSense) -->
+                <div id="mobile-ad-banner">
+                    <!-- Mobile Horizontal Ad Unit (320x50) -->
+                    <ins class="adsbygoogle"
+                         style="display:inline-block;width:320px;height:50px"
+                         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                         data-ad-slot="1234567890"></ins>
+                    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                </div>
+
                 <div id="explore-panel">
                     <div class="filter-container">
                         <span class="settings-label" style="margin-left:2px; font-size:10px; opacity:0.6; text-transform:uppercase; letter-spacing:0.5px;">Sort By:</span>
@@ -949,6 +980,16 @@
                 </div>
                 <div id="elevContainer"><canvas id="elevChart"></canvas></div>
             </div>
+
+        <!-- PC Ad Banner (AdMob/AdSense) -->
+        <div id="pc-ad-side">
+            <!-- PC Vertical Ad Unit (160x600) -->
+            <ins class="adsbygoogle"
+                 style="display:inline-block;width:160px;height:600px"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="0987654321"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
 
         <div id="map"></div>
     </div>
