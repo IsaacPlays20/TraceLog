@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TraceLog │ Welcome</title>
+    <link rel="icon" href="Images/foot.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #2563eb; 
+            --accent: #10b981;
+            --bg: #0f172a; 
+            --card: rgba(30, 41, 59, 0.7); 
+            --text: #f1f5f9; 
+            --border: #334155;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body { 
+            margin: 0; padding: 0; 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); color: var(--text); 
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        a { text-decoration: none; color: inherit; transition: var(--transition); }
+        a:hover { color: var(--primary); }
+
+        /* Navigation */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0;
+            height: 70px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex; align-items: center; gap: 10px;
+            font-weight: 900; font-size: 1.5rem; letter-spacing: -0.5px;
+        }
+        .logo img { height: 50px; }
+
+        .nav-links { display: flex; gap: 30px; font-size: 0.9rem; font-weight: 600; }
+        .nav-links a { opacity: 0.8; }
+        .nav-links a:hover { opacity: 1; color: var(--primary); }
+
+        .btn {
+            background: var(--primary); color: white;
+            padding: 10px 20px; border-radius: 10px;
+            font-weight: 700; font-size: 0.9rem;
+            border: none; cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 100px 20px;
+            background: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.1) 0%, transparent 50%);
+        }
+
+        h1 { font-size: 4rem; font-weight: 900; margin: 0 0 20px 0; line-height: 1.1; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { font-size: 1.2rem; opacity: 0.7; max-width: 600px; margin: 0 auto 40px auto; }
+
+        .hero-btns { display: flex; gap: 15px; justify-content: center; }
+        .hero-btns .btn { padding: 15px 30px; font-size: 1rem; }
+
+        /* Sections */
+        section { padding: 80px 40px; max-width: 1000px; margin: 0 auto; }
+        
+        h2 { font-size: 2rem; font-weight: 800; margin-bottom: 30px; text-align: center; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 30px; border-radius: 20px;
+            transition: var(--transition);
+        }
+        .card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .card h3 { margin-top: 0; font-weight: 800; }
+        .card p { opacity: 0.7; font-size: 0.9rem; margin-bottom: 0; }
+        .icon { font-size: 2rem; margin-bottom: 15px; display: block; }
+
+        .text-block { background: var(--card); border: 1px solid var(--border); padding: 40px; border-radius: 20px; line-height: 1.8; opacity: 0.9; }
+
+        footer {
+            text-align: center; padding: 40px;
+            border-top: 1px solid var(--border);
+            opacity: 0.5; font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .nav-links { display: none; }
+            nav { padding: 0 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            <img src="Images/Tracelog.png" alt="Logo" onerror="this.style.display='none'">
+        </div>
+        <div class="nav-links">
+            <a href="#about">About</a>
+            <a href="#features">Features</a>
+            <a href="#privacy">Privacy</a>
+            <a href="#contact">Contact</a>
+        </div>
+        <a href="all.html" class="btn">Log In</a>
+    </nav>
+
+    <div class="hero">
+        <h1>Log your journey.<br>Share your world.</h1>
+        <p class="subtitle">The ultimate tool for explorers to log their activities, drop pins, and share and discover new experiences.</p>
+        <div class="hero-btns">
+            <a href="all.html" class="btn">Log In</a>
+            <a href="#about" class="btn btn-outline">Learn More</a>
+        </div>
+    </div>
+
+    <section id="about">
+        <h2>About TraceLog</h2>
+        <div class="text-block" style="text-align: center;">
+            <p>TraceLog is a website for logging, sharing and discovering your intresting natural places and activities, Log pins, hikes and other activities. Discover, review and create a collection of visited hidden gems.</p>
+        </div>
+    </section>
+
+    <section id="features">
+        <h2>Features</h2>
+        <div class="grid">
+            <div class="card">
+                <span class="icon">🌍</span>
+                <h3>Discover</h3>
+                <p>Find on our map or search and filter to find where your next adventure could take you.</p>
+            </div>
+            <div class="card">
+                <span class="icon">📍</span>
+                <h3>Drop Pins</h3>
+                <p>Mark locations with specific categories like Nature, History, or Landmarks. Add photos and notes to remember the details.</p>
+            </div>
+            <div class="card">
+                <span class="icon">🏃</span>
+                <h3>Track Activities</h3>
+                <p>Record your walks, hikes, runs, and cycle routes. View elevation profiles and distance statistics in real-time.</p>
+            </div>
+            <div class="card">
+                <span class="icon">🗺️</span>
+                <h3>Plot your Activities</h3>
+                <p>Plot your own routes using the activity trace tool to plan out your next adventure.</p>
+            </div>
+            <div class="card">
+                <span class="icon">☁️</span>
+                <h3>Cloud Sync</h3>
+                <p>Your data is securely stored in the cloud. Access your logbook from any device, anywhere in the world.</p>
+            </div>
+            <div class="card">
+                <span class="icon">🗒️</span>
+                <h3>My Log</h3>
+                <p>Save all your visited locations in your own logbook to remember.</p>
+            </div>
+            <div class="card">
+                <span class="icon">✈️</span>
+                <h3>Flyover</h3>
+                <p>Watch your activity from overhead as you follow where your next adventure will take you.</p>
+            </div>
+            <div class="card">
+                <span class="icon">⭐</span>
+                <h3>Rate and Review</h3>
+                <p>Comment and rate pins and activitys to share your experence and find other higly rated locations and activities</p>
+            </div>
+            <div class="card">
+                <span class="icon">⏰</span>
+                <h3>Updates</h3>
+                <p>And more features comming very soon.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="privacy">
+        <h2>Privacy Policy</h2>
+        <div class="text-block">
+            <p><strong>Your Data is Yours.</strong></p>
+            <p>At TraceLog, we prioritize your privacy. Your location data is used solely for the purpose of mapping your activities. We do not sell your personal data to third parties.</p>
+            <p>You have full control over the visibility of your logs. Choose to keep them private for your own journal, or make them public to share with the community.</p>
+            <p>Your data is saved on the cloud securely using Google Firebase</p>
+            <p>You can delete your account and all associated data at any time from the settings menu.</p>
+            <p>This project is entirely open source. The source code and project files can be found on <a href="https://github.com/IsaacPlays20/TraceLog">Github</a></p>
+        </div>
+    </section>
+
+    <section id="contact">
+        <h2>Contact Us</h2>
+        <div class="grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="card">
+                <h3>Support</h3>
+                <p>Need help with the app? Found a bug?</p>
+                <a href="https://github.com/IsaacPlays20/TraceLog/issues" style="color: var(--primary); font-weight: 700; display: block; margin-top: 10px;">https://github.com/IsaacPlays20/TraceLog/issues</a>
+            </div>
+            <div class="card">
+                <h3>General Inquiries</h3>
+                <p>For general questions and inquiries.</p>
+                <a href="mailto:hello@tracelog.app" style="color: var(--primary); font-weight: 700; display: block; margin-top: 10px;">Isaac.bradshaw18@gmail.com</a>
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>
