@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <style>
         :root {
@@ -53,9 +55,13 @@
         }
         .logo img { height: 50px; }
 
-        .nav-links { display: flex; gap: 30px; font-size: 0.9rem; font-weight: 600; }
+        .nav-links { 
+            display: flex; gap: 30px; font-size: 0.9rem; font-weight: 600; 
+            position: absolute; left: 50%; transform: translateX(-50%);
+        }
         .nav-links a { opacity: 0.8; }
         .nav-links a:hover { opacity: 1; color: var(--primary); }
+        .nav-links a.active { color: var(--primary); opacity: 1; }
 
         .btn {
             background: var(--primary); color: white;
@@ -70,10 +76,35 @@
 
         /* Hero Section */
         .hero {
+            position: relative;
             min-height: 100vh;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             text-align: center; padding: 100px 20px;
-            background: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.1) 0%, transparent 50%);
+            background: var(--bg);
+            overflow: hidden;
+        }
+
+        #hero-map {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            filter: grayscale(60%) brightness(0.6);
+            opacity: 0.8;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.3) 0%, var(--bg) 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .hero > *:not(#hero-map) {
+            position: relative;
+            z-index: 1;
         }
 
         h1 { font-size: 4rem; font-weight: 900; margin: 0 0 20px 0; line-height: 1.1; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -87,6 +118,32 @@
         
         h2 { font-size: 2rem; font-weight: 800; margin-bottom: 30px; text-align: center; }
         
+        /* Full-width carousel section */
+        #top-rated { 
+            max-width: 100%; 
+            background: #0b1120; /* Distinct dark background */
+            padding: 80px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .top-rated-header {
+            max-width: 1000px; margin: 0 auto 30px auto; padding: 0 40px;
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;
+        }
+        .top-rated-header h2 { margin: 0; text-align: left; }
+
+        .segmented-control {
+            display: flex; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 12px;
+        }
+        .seg-btn {
+            flex: 1; background: transparent; border: none; padding: 8px 16px;
+            border-radius: 8px; font-size: 0.9rem; font-weight: 800;
+            color: var(--text); cursor: pointer; transition: var(--transition); opacity: 0.6;
+        }
+        .seg-btn:hover { opacity: 1; }
+        .seg-btn.active { background: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.2); color: white; opacity: 1; }
+
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
         
         .card {
@@ -102,16 +159,60 @@
 
         .text-block { background: var(--card); border: 1px solid var(--border); padding: 40px; border-radius: 20px; line-height: 1.8; opacity: 0.9; }
 
-        footer {
-            text-align: center; padding: 40px;
-            border-top: 1px solid var(--border);
-            opacity: 0.5; font-size: 0.9rem;
+        /* Carousel Styles */
+        .carousel-container {
+            display: flex;
+            gap: 0px; /* Gap removed to allow 5 items cleanly, scaled using transform */
+            overflow-x: auto;
+            padding: 60px calc(50% - 150px); /* Center 300px items */
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            width: 100%;
+            box-sizing: border-box;
+            position: relative;
         }
+        .carousel-container::-webkit-scrollbar { display: none; }
+        .carousel-item {
+            scroll-snap-align: center;
+            width: 300px;
+            flex-shrink: 0;
+            transform: scale(0.75);
+            opacity: 0.4;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center center;
+        }
+        .carousel-item.focused {
+            transform: scale(1.15);
+            opacity: 1;
+            z-index: 10;
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.3));
+        }
+        .carousel-card {
+            display: flex; flex-direction: column;
+            background: var(--card); border-radius: 16px; border: 1px solid var(--border);
+            overflow: hidden; cursor: pointer; height: 100%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15); text-decoration: none; color: inherit;
+            transition: border-color 0.3s;
+        }
+        .carousel-card:hover { border-color: var(--primary); }
+        .carousel-card .highlight-thumb { width: 100%; height: 180px; border-radius: 0; flex-shrink: 0; object-fit: cover; background: #ddd; }
+        .carousel-card-body { padding: 15px; display: flex; flex-direction: column; flex: 1; background: var(--card); }
+        .type-label { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 4px 8px; color: white; border-radius: 6px; display: inline-block; margin-bottom: 5px; letter-spacing: 0.5px; }
 
         @media (max-width: 768px) {
             h1 { font-size: 2.5rem; }
             .nav-links { display: none; }
             nav { padding: 0 20px; }
+        }
+
+        .pin-wrapper { width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; }
+        .pin-shape {
+            width: 14px; height: 14px; border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg); border: 2px solid white;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.3); z-index: 500;
         }
     </style>
 </head>
@@ -119,111 +220,437 @@
 
     <nav>
         <div class="logo">
-            <img src="Images/Tracelog.png" alt="Logo" onerror="this.style.display='none'">
+            <a href="LandingPage.html" style="display: flex; align-items: center;"><img src="Images/Tracelog.png" alt="Logo" onerror="this.style.display='none'"></a>
         </div>
         <div class="nav-links">
-            <a href="#about">About</a>
-            <a href="#features">Features</a>
-            <a href="#privacy">Privacy</a>
-            <a href="#contact">Contact</a>
+            <a href="LandingPage.html" class="active">Home</a>
+            <a href="About.html">About</a>
+            <a href="Features.html">Features</a>
+            <a href="Privacy.html">Privacy</a>
+            <a href="Contact.html">Contact</a>
         </div>
         <a href="all.html" class="btn">Log In</a>
     </nav>
 
     <div class="hero">
+        <div id="hero-map"></div>
         <h1>Log your journey.<br>Share your world.</h1>
         <p class="subtitle">The ultimate tool for explorers to log their activities, drop pins, and share and discover new experiences.</p>
         <div class="hero-btns">
             <a href="all.html" class="btn">Log In</a>
-            <a href="#about" class="btn btn-outline">Learn More</a>
+            <a href="About.html" class="btn btn-outline">Learn More</a>
         </div>
     </div>
 
-    <section id="about">
-        <h2>About TraceLog</h2>
-        <div class="text-block" style="text-align: center;">
-            <p>TraceLog is a website for logging, sharing and discovering your intresting natural places and activities, Log pins, hikes and other activities. Discover, review and create a collection of visited hidden gems.</p>
+    <section id="top-rated">
+        <div class="top-rated-header">
+            <h2>Nearby Discoveries</h2>
+            <div class="segmented-control">
+                <button class="seg-btn active" onclick="filterCarousel('all')" id="btn-all">All</button>
+                <button class="seg-btn" onclick="filterCarousel('pins')" id="btn-pins">Pins</button>
+                <button class="seg-btn" onclick="filterCarousel('walks')" id="btn-walks">Activities</button>
+            </div>
+        </div>
+        <p style="text-align: center; opacity: 0.7; margin-top: -20px; margin-bottom: 20px; padding: 0 20px;" id="top-status">Loading amazing places near you...</p>
+        <div class="carousel-container" id="top-carousel"></div>
+    </section>
+
+    <section style="padding-bottom: 80px; max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 40px; align-items: center;">
+        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: left;">
+            <h3 style="margin-top: 0; font-size: 1.5rem; font-weight: 800; text-align: center;">Ready to explore?</h3>
+            <p style="opacity: 0.7; font-size: 0.9rem; margin-bottom: 20px; text-align: center;">Sign up or log in to your TraceLog account to start logging and sharing your adventures.</p>
+            <a href="all.html" class="btn" style="width: 100%; padding: 15px; font-size: 1.1rem; display: flex; justify-content: center; align-items: center; gap: 10px; box-sizing: border-box; text-decoration: none;">Log In</a>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px;">
+            <img src="Images/Tracelog.png" alt="TraceLog Logo" style="height: 50px; opacity: 0.9; margin-bottom: 10px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 400px;">
+                <a href="About.html" class="btn btn-outline" style="padding: 12px; font-size: 1rem; border-radius: 12px; text-align: center; display: block;">About Us</a>
+                <a href="Features.html" class="btn btn-outline" style="padding: 12px; font-size: 1rem; border-radius: 12px; text-align: center; display: block;">Features</a>
+                <a href="Privacy.html" class="btn btn-outline" style="padding: 12px; font-size: 1rem; border-radius: 12px; text-align: center; display: block;">Privacy Policy</a>
+                <a href="Contact.html" class="btn btn-outline" style="padding: 12px; font-size: 1rem; border-radius: 12px; text-align: center; display: block;">Contact</a>
+            </div>
+            <div style="opacity: 0.5; font-size: 0.85rem; margin-top: 10px;"><a href="https://github.com/IsaacPlays20/TraceLog" target="_blank" style="text-decoration: underline;">https://github.com/IsaacPlays20/TraceLog</a></div>
         </div>
     </section>
 
-    <section id="features">
-        <h2>Features</h2>
-        <div class="grid">
-            <div class="card">
-                <span class="icon">🌍</span>
-                <h3>Discover</h3>
-                <p>Find on our map or search and filter to find where your next adventure could take you.</p>
-            </div>
-            <div class="card">
-                <span class="icon">📍</span>
-                <h3>Drop Pins</h3>
-                <p>Mark locations with specific categories like Nature, History, or Landmarks. Add photos and notes to remember the details.</p>
-            </div>
-            <div class="card">
-                <span class="icon">🏃</span>
-                <h3>Track Activities</h3>
-                <p>Record your walks, hikes, runs, and cycle routes. View elevation profiles and distance statistics in real-time.</p>
-            </div>
-            <div class="card">
-                <span class="icon">🗺️</span>
-                <h3>Plot your Activities</h3>
-                <p>Plot your own routes using the activity trace tool to plan out your next adventure.</p>
-            </div>
-            <div class="card">
-                <span class="icon">☁️</span>
-                <h3>Cloud Sync</h3>
-                <p>Your data is securely stored in the cloud. Access your logbook from any device, anywhere in the world.</p>
-            </div>
-            <div class="card">
-                <span class="icon">🗒️</span>
-                <h3>My Log</h3>
-                <p>Save all your visited locations in your own logbook to remember.</p>
-            </div>
-            <div class="card">
-                <span class="icon">✈️</span>
-                <h3>Flyover</h3>
-                <p>Watch your activity from overhead as you follow where your next adventure will take you.</p>
-            </div>
-            <div class="card">
-                <span class="icon">⭐</span>
-                <h3>Rate and Review</h3>
-                <p>Comment and rate pins and activitys to share your experence and find other higly rated locations and activities</p>
-            </div>
-            <div class="card">
-                <span class="icon">⏰</span>
-                <h3>Updates</h3>
-                <p>And more features comming very soon.</p>
-            </div>
-        </div>
-    </section>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBG6ip3Uh6bDNgdr54Oy6sEtKxJROw4DC4",
+            authDomain: "geojournal-fa10f.firebaseapp.com",
+            databaseURL: "https://geojournal-fa10f-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "geojournal-fa10f",
+            storageBucket: "geojournal-fa10f.firebasestorage.app",
+            messagingSenderId: "185220958678",
+            appId: "1:185220958678:web:d418dce420543722417c77",
+            measurementId: "G-PX3SDJXSQR"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-    <section id="privacy">
-        <h2>Privacy Policy</h2>
-        <div class="text-block">
-            <p><strong>Your Data is Yours.</strong></p>
-            <p>At TraceLog, we prioritize your privacy. Your location data is used solely for the purpose of mapping your activities. We do not sell your personal data to third parties.</p>
-            <p>You have full control over the visibility of your logs. Choose to keep them private for your own journal, or make them public to share with the community.</p>
-            <p>Your data is saved on the cloud securely using Google Firebase</p>
-            <p>You can delete your account and all associated data at any time from the settings menu.</p>
-            <p>This project is entirely open source. The source code and project files can be found on <a href="https://github.com/IsaacPlays20/TraceLog">Github</a></p>
-        </div>
-    </section>
+        const PIN_TYPES = [
+            { name: 'Nature', color: '#10b981', icon: '🌿' },
+            { name: 'History', color: '#ef4444', icon: '🏛️' },
+            { name: 'Culture', color: '#d97706', icon: '🎨' },
+            { name: 'Mountain', color: '#8b5cf6', icon: '⛰️' },
+            { name: 'Water', color: '#3b82f6', icon: '💧' },
+            { name: 'Rock Formation', color: '#eab308', icon: '🪨' },
+            { name: 'Landmark', color: '#ec4899', icon: '🗿' },
+            { name: 'Waterfall', color: '#06b6d4', icon: '🌊' }
+        ];
 
-    <section id="contact">
-        <h2>Contact Us</h2>
-        <div class="grid" style="grid-template-columns: 1fr 1fr;">
-            <div class="card">
-                <h3>Support</h3>
-                <p>Need help with the app? Found a bug?</p>
-                <a href="https://github.com/IsaacPlays20/TraceLog/issues" style="color: var(--primary); font-weight: 700; display: block; margin-top: 10px;">https://github.com/IsaacPlays20/TraceLog/issues</a>
-            </div>
-            <div class="card">
-                <h3>General Inquiries</h3>
-                <p>For general questions and inquiries.</p>
-                <a href="mailto:hello@tracelog.app" style="color: var(--primary); font-weight: 700; display: block; margin-top: 10px;">Isaac.bradshaw18@gmail.com</a>
-            </div>
-        </div>
-    </section>
+        const ACTIVITY_COLORS = {
+            walk: '#10b981', 
+            hike: '#d97706', 
+            run: '#ef4444',  
+            cycle: '#3b82f6' 
+        };
 
+        function getRouteThumbnail(path, color, targetW = 300, targetH = 180) {
+            if (!path || path.length < 2) return `<div class="highlight-thumb" style="background:#eee; display:flex; align-items:center; justify-content:center; font-size:3rem;">🗺️</div>`;
+            
+            function latLngToWebMercator(lat, lng) {
+                const x = lng * 20037508.34 / 180;
+                let y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180);
+                y = y * 20037508.34 / 180;
+                return { x, y };
+            }
+
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            const mercatorPoints = path.map(p => {
+                const lat = parseFloat(typeof p === 'object' && !Array.isArray(p) ? p.lat : p[0]);
+                const lng = parseFloat(typeof p === 'object' && !Array.isArray(p) ? p.lng : p[1]);
+                const pt = latLngToWebMercator(lat, lng);
+                if(pt.x < minX) minX = pt.x;
+                if(pt.x > maxX) maxX = pt.x;
+                if(pt.y < minY) minY = pt.y;
+                if(pt.y > maxY) maxY = pt.y;
+                return pt;
+            });
+
+            if (maxX - minX < 100) { maxX += 500; minX -= 500; }
+            if (maxY - minY < 100) { maxY += 500; minY -= 500; }
+
+            const w0 = maxX - minX;
+            const h0 = maxY - minY;
+            const targetAspect = targetW / targetH;
+            const currentAspect = w0 / h0;
+
+            let finalMinX = minX, finalMaxX = maxX, finalMinY = minY, finalMaxY = maxY;
+            if (currentAspect > targetAspect) {
+                const newH = w0 / targetAspect;
+                const diff = newH - h0;
+                finalMinY -= diff / 2;
+                finalMaxY += diff / 2;
+            } else {
+                const newW = h0 * targetAspect;
+                const diff = newW - w0;
+                finalMinX -= diff / 2;
+                finalMaxX += diff / 2;
+            }
+
+            const padFactor = 1.3;
+            const fw = (finalMaxX - finalMinX) * padFactor;
+            const fh = (finalMaxY - finalMinY) * padFactor;
+            const cx = (finalMinX + finalMaxX) / 2;
+            const cy = (finalMinY + finalMaxY) / 2;
+
+            finalMinX = cx - fw / 2;
+            finalMaxX = cx + fw / 2;
+            finalMinY = cy - fh / 2;
+            finalMaxY = cy + fh / 2;
+
+            const exportUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=${finalMinX},${finalMinY},${finalMaxX},${finalMaxY}&bboxSR=102100&size=${targetW},${targetH}&imageSR=102100&format=jpg&f=image`;
+
+            let d = "";
+            mercatorPoints.forEach((pt, i) => {
+                const px = ((pt.x - finalMinX) / fw) * targetW;
+                const py = targetH - ((pt.y - finalMinY) / fh) * targetH;
+                d += (i === 0 ? "M" : "L") + `${px.toFixed(1)},${py.toFixed(1)}`;
+            });
+
+            return `<div class="highlight-thumb" style="width:100%; height:${targetH}px; background-image:url('${exportUrl}'); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; flex-shrink:0;">
+                <div style="position:absolute; inset:0; background:rgba(0,0,0,0.2);"></div>
+                <svg viewBox="0 0 ${targetW} ${targetH}" style="display:block; position:absolute; inset:0; z-index:1; width:100%; height:100%;">
+                    <path d="${d}" stroke="${color}" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));"/>
+                </svg>
+            </div>`;
+        }
+
+        function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+            var R = 6371; 
+            var dLat = (lat2-lat1) * (Math.PI/180);  
+            var dLon = (lon2-lon1) * (Math.PI/180); 
+            var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * (Math.PI/180)) * Math.cos(lat2 * (Math.PI/180)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            return R * c; 
+        }
+
+        let heroMap, mapFeatureGroup;
+
+        function initHeroMap() {
+            heroMap = L.map('hero-map', {
+                zoomControl: false, attributionControl: false, dragging: false,
+                touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false,
+                boxZoom: false, keyboard: false
+            }).setView([40, -40], 3);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(heroMap);
+            mapFeatureGroup = L.featureGroup().addTo(heroMap);
+        }
+
+        function populateHeroMap(items) {
+            if (!mapFeatureGroup) return;
+            items.forEach(item => {
+                if (item.type === 'PIN' && item.lat && item.lng) {
+                    const pinIcon = L.divIcon({ className: 'custom-pin-marker', html: `<div class="pin-wrapper"><div class="pin-shape" style="background:${item.color || '#2563eb'}"></div></div>`, iconSize: [30, 30], iconAnchor: [15, 30] }); 
+                    L.marker([item.lat, item.lng], {icon: pinIcon}).addTo(mapFeatureGroup);
+                } else if (item.type === 'WALK' && item.path) {
+                    const path = item.path.map(p => [typeof p === 'object' && !Array.isArray(p) ? p.lat : p[0], typeof p === 'object' && !Array.isArray(p) ? p.lng : p[1]]);
+                    L.polyline(path, {color: item.color || '#2563eb', weight: 3}).addTo(mapFeatureGroup);
+                }
+            });
+        }
+
+        let carouselScrollInterval;
+        let carouselPauseTimeout;
+        let allItems = [];
+        let userHasLoc = false;
+
+        function filterCarousel(type) {
+            document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + type).classList.add('active');
+            
+            let filtered = allItems;
+            if (type === 'pins') filtered = allItems.filter(i => i.type === 'PIN');
+            if (type === 'walks') filtered = allItems.filter(i => i.type === 'WALK');
+            
+            renderCarousel(filtered, userHasLoc, 'top-carousel', 'top-status');
+        }
+
+        function renderCarousel(items, hasLocation, containerId, statusId) {
+            const container = document.getElementById(containerId);
+            const status = document.getElementById(statusId);
+            
+            clearInterval(carouselScrollInterval);
+            clearTimeout(carouselPauseTimeout);
+
+            if (items.length === 0) {
+                status.innerText = "No top-rated locations found nearby for this filter.";
+                status.style.display = 'block';
+                container.innerHTML = '';
+                return;
+            }
+            
+            status.style.display = 'none';
+            container.innerHTML = '';
+            
+            const topItems = items.slice(0, 7); // Show slightly fewer results
+
+            const createNode = (i) => {
+                let labelText = '', labelColor = i.color || '#2563eb', iconChar = '📍';
+                if (i.type === 'WALK') {
+                    iconChar = i.activity === 'cycle' ? '🚲' : (i.activity === 'run' ? '⚡' : (i.activity === 'hike' ? '🥾' : '🚶'));
+                    labelText = i.activity ? i.activity.toUpperCase() : 'WALK';
+                    labelColor = ACTIVITY_COLORS[i.activity] || '#2563eb';
+                } else {
+                    const category = PIN_TYPES.find(t => t.color === i.color);
+                    labelText = category ? category.name.toUpperCase() : 'PIN';
+                    iconChar = category ? category.icon : '📍';
+                }
+
+                const thumbHtml = (i.type === 'WALK' && i.path) ? getRouteThumbnail(i.path, i.color || '#2563eb', 300, 180) : `<img class="highlight-thumb" src="${(i.photos && i.photos.length > 0) ? i.photos[0] : (i.photo || 'https://placehold.co/300x180?text=No+Photo')}">`;
+                const dStr = (hasLocation && i.d !== undefined && i.d !== Infinity && i.d < 10000) ? `<span style="font-weight:600; opacity:0.7;">${i.d.toFixed(1)} km away</span>` : '';
+                const ratingHtml = `<span style="display:inline-block; background:rgba(251, 191, 36, 0.15); color:#fbbf24; font-weight:800; padding:2px 6px; border-radius:4px; font-size:10px;">★ ${Number(i.rating || 0).toFixed(1)}</span>`;
+                
+                const div = document.createElement('div');
+                div.className = 'carousel-item';
+                div.innerHTML = `
+                    <div class="carousel-card">
+                        ${thumbHtml}
+                        <div class="carousel-card-body" style="border-top: 4px solid ${labelColor}">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <span class="type-label" style="background:${labelColor}; margin:0;">${iconChar} ${labelText}</span>
+                            </div>
+                            <p style="font-weight:900; font-size:16px; margin:0 0 8px 0; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${i.name}</p>
+                            <div style="display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--text); opacity:0.8;">
+                                ${ratingHtml}
+                                ${dStr}
+                            </div>
+                        </div>
+                    </div>`;
+                return div;
+            };
+
+            // Create 3 sets initially to allow scrolling immediately without empty slots at the start
+            for(let j=0; j<3; j++) {
+                topItems.forEach(i => container.appendChild(createNode(i)));
+            }
+            
+            // Setup intersection observer for focusing highlighting effect
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        Array.from(container.children).forEach(c => c.classList.remove('focused'));
+                        entry.target.classList.add('focused');
+                    }
+                });
+            }, { root: container, rootMargin: '0px -45% 0px -45%', threshold: 0 }); // -45% rootMargin creates a narrow trigger zone precisely in the center
+            
+            const startScrollInterval = () => {
+                clearInterval(carouselScrollInterval);
+                carouselScrollInterval = setInterval(() => {
+                    if (!container || container.children.length === 0) return;
+                    const children = Array.from(container.children);
+                    let currentIndex = children.findIndex(c => c.classList.contains('focused'));
+                    if (currentIndex === -1) currentIndex = topItems.length;
+                    
+                    let nextIndex = currentIndex + 1;
+                    if (children[nextIndex]) {
+                        const target = children[nextIndex];
+                        container.scrollTo({
+                            left: target.offsetLeft - container.clientWidth / 2 + target.clientWidth / 2,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 3500);
+            };
+
+            const pauseAutoScroll = () => {
+                clearInterval(carouselScrollInterval);
+                clearTimeout(carouselPauseTimeout);
+                carouselPauseTimeout = setTimeout(() => {
+                    startScrollInterval();
+                }, 6000); // Pause for 6 seconds when a card is manually clicked
+            };
+
+            Array.from(container.children).forEach(child => {
+                observer.observe(child);
+                child.onclick = () => {
+                    if (child.classList.contains('focused')) {
+                        window.location.href = 'all.html';
+                    } else {
+                        container.scrollTo({
+                            left: child.offsetLeft - container.clientWidth / 2 + child.clientWidth / 2,
+                            behavior: 'smooth'
+                        });
+                        pauseAutoScroll();
+                    }
+                };
+            });
+
+            // Infinite loop: append more clones to the right when nearing the right edge
+            container.onscroll = () => {
+                if (container.scrollWidth - container.scrollLeft < container.clientWidth * 3) {
+                    topItems.forEach(i => {
+                        const node = createNode(i);
+                        node.onclick = () => {
+                            if (node.classList.contains('focused')) {
+                                window.location.href = 'all.html';
+                            } else {
+                                container.scrollTo({
+                                    left: node.offsetLeft - container.clientWidth / 2 + node.clientWidth / 2,
+                                    behavior: 'smooth'
+                                });
+                                pauseAutoScroll();
+                            }
+                        };
+                        container.appendChild(node);
+                        observer.observe(node);
+                    });
+                }
+            };
+
+            if (items.length > 0) {
+                setTimeout(() => { 
+                    if (container.children.length > topItems.length) {
+                        // Start at the second block so there are items filling the left side of the screen
+                        const startIndex = topItems.length;
+                        const target = container.children[startIndex];
+                        container.scrollTo({
+                            left: target.offsetLeft - container.clientWidth / 2 + target.clientWidth / 2,
+                            behavior: 'auto'
+                        });
+                        target.classList.add('focused');
+                    }
+                }, 100);
+
+                startScrollInterval();
+                
+                // Pause auto-scroll on hover for better user experience
+                container.onmouseenter = () => clearInterval(carouselScrollInterval);
+                container.onmouseleave = () => {
+                    clearTimeout(carouselPauseTimeout);
+                    startScrollInterval();
+                };
+            }
+        }
+
+        async function loadTopRated() {
+            try {
+                initHeroMap();
+
+                // Try to sign in anonymously to ensure read access if your Firestore rules require it
+                try {
+                    await auth.signInAnonymously();
+                } catch (authErr) {
+                    console.log("Anonymous auth not used or failed:", authErr);
+                }
+
+                const [pubPinsSnap, pubWalksSnap] = await Promise.all([
+                    db.collection("pins").where("isPublic", "==", true).get(),
+                    db.collection("walks").where("isPublic", "==", true).get()
+                ]);
+                
+                let pins = [];
+                let walks = [];
+                pubPinsSnap.forEach(doc => { const data = doc.data(); pins.push({ id: doc.id, ...data, type: 'PIN'}); });
+                pubWalksSnap.forEach(doc => { const data = doc.data(); 
+                    let lat, lng; if (data.path && data.path.length > 0) { lat = typeof data.path[0] === 'object' && !Array.isArray(data.path[0]) ? data.path[0].lat : data.path[0][0]; lng = typeof data.path[0] === 'object' && !Array.isArray(data.path[0]) ? data.path[0].lng : data.path[0][1]; }
+                    walks.push({ id: doc.id, ...data, type: 'WALK', lat, lng});
+                });
+
+                const processItems = (items, hasLoc, uLat, uLng) => {
+                    items.forEach(i => {
+                        i.d = (hasLoc && i.lat && i.lng) ? getDistanceFromLatLonInKm(uLat, uLng, i.lat, i.lng) : Infinity;
+                        const ratingScore = (Number(i.rating) || 0) * 20;
+                        const distPenalty = (i.d !== Infinity) ? Math.min(i.d, 100) : 100;
+                        i.score = ratingScore - distPenalty;
+                    });
+                    return items.sort((a,b) => b.score - a.score);
+                };
+
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(pos => {
+                        userHasLoc = true;
+                        const userLat = pos.coords.latitude, userLng = pos.coords.longitude;
+                        heroMap.setView([userLat, userLng], 12);
+                        allItems = processItems([...pins, ...walks], true, userLat, userLng);
+                        populateHeroMap(allItems);
+                        filterCarousel('all');
+                    }, err => { 
+                        userHasLoc = false;
+                        heroMap.setView([51.505, -0.09], 10);
+                        allItems = processItems([...pins, ...walks], false, 0, 0);
+                        populateHeroMap(allItems);
+                        filterCarousel('all');
+                    }, { timeout: 5000 });
+                } else { 
+                    userHasLoc = false;
+                    heroMap.setView([51.505, -0.09], 10);
+                    allItems = processItems([...pins, ...walks], false, 0, 0);
+                    populateHeroMap(allItems);
+                    filterCarousel('all');
+                }
+            } catch(e) { 
+                console.error(e); 
+                document.getElementById('top-status').innerText = "Failed to load top rated locations: " + e.message; 
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadTopRated);
+    </script>
 </body>
 </html>

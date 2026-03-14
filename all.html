@@ -10,9 +10,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Google AdSense Script -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1243519901054274" crossorigin="anonymous"></script>
-
     <style>
         :root {
             --sidebar: 400px; 
@@ -535,22 +532,43 @@
         }
 
         /* ADVERTISEMENT CONTAINERS */
+        .ad-wrapper {
+            position: relative; display: flex; flex-direction: column; align-items: center;
+        }
+        .ad-label {
+            font-size: 9px; opacity: 0.5; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px;
+        }
+        .ad-close {
+            position: absolute; top: -8px; right: -8px;
+            background: var(--card); border: 1px solid var(--border); border-radius: 50%;
+            width: 22px; height: 22px; font-size: 10px; cursor: pointer; z-index: 10;
+            display: flex; align-items: center; justify-content: center; color: var(--text);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s;
+        }
+        .ad-close:hover { background: var(--border); transform: scale(1.1); }
+
+        #pc-ad-container {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%); z-index: 2000;
+        }
         #pc-ad-side {
-            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-            width: 160px; height: 600px; z-index: 2000;
+            width: 160px; height: 600px;
             display: flex; align-items: center; justify-content: center; overflow: hidden;
             background: rgba(255,255,255,0.05); border: 1px solid var(--border);
             border-radius: 12px; backdrop-filter: blur(5px); pointer-events: none;
         }
+        body.mobile-mode #pc-ad-container { display: none !important; }
         #pc-ad-side > * { pointer-events: auto; }
         body.mobile-mode #pc-ad-side { display: none; }
 
-        #mobile-ad-banner {
-            width: 100%; height: 60px; margin-bottom: 15px; flex-shrink: 0;
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-            border-radius: 12px; display: none; align-items: center; justify-content: center; overflow: hidden;
+        #mobile-ad-container {
+            width: 100%; margin-bottom: 15px; flex-shrink: 0; display: none; box-sizing: border-box;
         }
-        body.mobile-mode #mobile-ad-banner { display: flex; }
+        body.mobile-mode #mobile-ad-container { display: flex; }
+        #mobile-ad-banner {
+            width: 100%; height: 60px; flex-shrink: 0;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; max-width: 100%;
+        }
     </style>
 </head>
 <body class="dark-theme auth-active">
@@ -675,14 +693,22 @@
             </div>
 
             <div class="sidebar-scroll-area" id="mainScrollArea">
-                <!-- Mobile Ad Banner (AdMob/AdSense) -->
-                <div id="mobile-ad-banner">
-                    <!-- Mobile Horizontal Ad Unit (320x50) -->
-                    <ins class="adsbygoogle"
-                         style="display:inline-block;width:320px;height:50px"
-                         data-ad-client="ca-pub-1243519901054274"
-                         data-ad-slot="6750221382"></ins>
-                    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                <!-- Mobile Ad Banner (Adsterra) -->
+                <div id="mobile-ad-container" class="ad-wrapper">
+                    <button class="ad-close" onclick="closeAd('mobile-ad-container')" title="Close Ad">✕</button>
+                    <div id="mobile-ad-banner">
+                        <script>
+                        atOptions = {
+                            'key' : '5876d4c30fe4c0e0a23fcc20aa10b8b0',
+                            'format' : 'iframe',
+                            'height' : 50,
+                            'width' : 320,
+                            'params' : {}
+                        };
+                        </script>
+                        <script src="https://www.highperformanceformat.com/5876d4c30fe4c0e0a23fcc20aa10b8b0/invoke.js"></script>
+                    </div>
+                    <span class="ad-label">Advertisement</span>
                 </div>
 
                 <div id="explore-panel">
@@ -892,8 +918,10 @@
 
                         <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 15px;">
                             <p id="versionLabel" style="font-size: 11px; opacity: 0.5; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">TraceLog V18.3 Stable</p>
-                            <a href="https://github.com/IsaacPlays20/TraceLog/issues" style="font-size: 11px; opacity: 0.5; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Report a bug</a>
-                            <a href="https://github.com/IsaacPlays20/TraceLog" style="font-size: 11px; opacity: 0.5; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Github</a>
+                            <div style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;">
+                                <a href="https://github.com/IsaacPlays20/TraceLog/issues" target="_blank" class="btn" style="flex: 1; height: 34px; font-size: 11px; background: transparent; border: 1px solid var(--border); color: var(--text); opacity: 0.8; text-decoration: none; margin: 0;">Report a Bug</a>
+                                <a href="https://github.com/IsaacPlays20/TraceLog" target="_blank" class="btn" style="flex: 1; height: 34px; font-size: 11px; background: transparent; border: 1px solid var(--border); color: var(--text); opacity: 0.8; text-decoration: none; margin: 0;">GitHub</a>
+                            </div>
                         </div>
                         <button class="btn" onclick="signOut()" style="margin-top:10px; background:var(--danger); color:white;">Sign Out</button>
                     </div>
@@ -984,14 +1012,22 @@
                 <div id="elevContainer"><canvas id="elevChart"></canvas></div>
             </div>
 
-        <!-- PC Ad Banner (AdMob/AdSense) -->
-        <div id="pc-ad-side">
-            <!-- PC Vertical Ad Unit (160x600) -->
-            <ins class="adsbygoogle"
-                 style="display:inline-block;width:160px;height:600px"
-                 data-ad-client="ca-pub-1243519901054274"
-                 data-ad-slot="6555139052"></ins>
-            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        <!-- PC Ad Banner (Adsterra) -->
+        <div id="pc-ad-container" class="ad-wrapper">
+            <button class="ad-close" onclick="closeAd('pc-ad-container')" title="Close Ad">✕</button>
+            <div id="pc-ad-side">
+                <script>
+                atOptions = {
+                    'key' : '56b76d0d47bdebd4b199532edb523a93',
+                    'format' : 'iframe',
+                    'height' : 600,
+                    'width' : 160,
+                    'params' : {}
+                };
+                </script>
+                <script src="https://www.highperformanceformat.com/56b76d0d47bdebd4b199532edb523a93/invoke.js"></script>
+            </div>
+            <span class="ad-label">Advertisement</span>
         </div>
 
         <div id="map"></div>
@@ -1958,6 +1994,11 @@
             closeElevation(); switchTab('explore');
             if(document.body.classList.contains('mobile-mode')) snapTo('open');
             resetSidebarScroll();
+            
+            const mobAd = document.getElementById('mobile-ad-container');
+            const pcAd = document.getElementById('pc-ad-container');
+            if(mobAd) mobAd.style.display = '';
+            if(pcAd) pcAd.style.display = '';
         }
 
         function switchTab(tab) {
@@ -1974,6 +2015,11 @@
             closeElevation(); setMode(tab === 'explore' ? 'explore' : 'ready');
             refreshMapItems();
             resetSidebarScroll();
+            
+            const mobAd = document.getElementById('mobile-ad-container');
+            const pcAd = document.getElementById('pc-ad-container');
+            if(mobAd) mobAd.style.display = '';
+            if(pcAd) pcAd.style.display = '';
         }
 
         function setMode(mode) {
@@ -3204,30 +3250,32 @@
 
             const centerLat = (minLat + maxLat) / 2;
             const centerLng = (minLng + maxLng) / 2;
-            const zoom = 12;
+            const zoom = 14;
             const x = Math.floor((centerLng + 180) / 360 * Math.pow(2, zoom));
             const y = Math.floor((1 - Math.log(Math.tan(centerLat * Math.PI / 180) + 1 / Math.cos(centerLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
             const tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${y}/${x}`;
-
+            
             const w = 70, h = 70, pad = 10;
             const availW = w - 2*pad, availH = h - 2*pad;
             const latRange = maxLat - minLat || 0.0001;
             const lngRange = maxLng - minLng || 0.0001;
+            const lngScaleFactor = Math.cos(centerLat * Math.PI / 180);
+            const adjLngRange = lngRange * lngScaleFactor;
             
-            const scaleX = availW / lngRange;
+            const scaleX = availW / adjLngRange;
             const scaleY = availH / latRange;
             const scale = Math.min(scaleX, scaleY);
             
-            const contentW = lngRange * scale;
+            const contentW = adjLngRange * scale;
             const contentH = latRange * scale;
             const offX = pad + (availW - contentW) / 2;
             const offY = pad + (availH - contentH) / 2;
 
             let d = "";
             path.forEach((p, i) => {
-                const x = offX + (p[1] - minLng) * scale;
-                const y = offY + (maxLat - p[0]) * scale; 
-                d += (i === 0 ? "M" : "L") + `${x.toFixed(1)},${y.toFixed(1)}`;
+                const px = offX + ((p[1] - minLng) * lngScaleFactor) * scale;
+                const py = offY + (maxLat - p[0]) * scale; 
+                d += (i === 0 ? "M" : "L") + `${px.toFixed(1)},${py.toFixed(1)}`;
             });
 
             return `<div class="highlight-thumb" style="background-image:url('${tileUrl}'); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;">
@@ -3890,6 +3938,16 @@
                 };
                 list.appendChild(div);
             });
+        }
+
+        function closeAd(id) {
+            const adContainer = document.getElementById(id);
+            if(adContainer) {
+                adContainer.style.display = 'none';
+                setTimeout(() => {
+                    adContainer.style.display = '';
+                }, 3 * 60 * 1000); // Reappear after 3 minutes
+            }
         }
 
         switchTab('explore');
