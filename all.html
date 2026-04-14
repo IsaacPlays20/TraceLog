@@ -85,7 +85,7 @@
         .logo-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; gap: 8px; }
 
         .icon-btn, .tab-btn, .filter-btn, .btn, .zoom-btn, .layer-item-btn, .elev-toggle-btn {
-            background: var(--border); border: none; min-width: 34px; height: 34px; 
+            background: rgba(0,0,0,0.15); border: none; min-width: 34px; height: 34px; 
             border-radius: 10px; cursor: pointer; display: flex; align-items: center; 
             justify-content: center; color: var(--text); font-size: 14px; transition: 0.2s;
             flex-shrink: 0; font-family: 'Inter', sans-serif; font-weight: 700;
@@ -110,8 +110,8 @@
         }
 
         #mainSearch {
-            width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); 
-            background:var(--bg); color:var(--text); box-sizing:border-box; margin-bottom:15px;
+            width:100%; padding:12px; border-radius:12px; border:none; 
+            background:rgba(0,0,0,0.15); color:var(--text); box-sizing:border-box; margin-bottom:15px;
         }
 
         .tab-nav { display: flex; gap: 8px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
@@ -163,7 +163,7 @@
         .settings-container { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; }
         .settings-row-refined { 
             display: flex; justify-content: space-between; align-items: center; 
-            padding: 12px 16px; background: rgba(0,0,0,0.03); border-radius: 12px; border: 1px solid var(--border);
+            padding: 12px 16px; background: rgba(0,0,0,0.15); border-radius: 12px; border: none;
             gap: 10px;
         }
         .settings-header {
@@ -223,8 +223,8 @@
         #editTitle.active { color: var(--text); background: var(--bg); border: 1px solid var(--border); padding: 5px; border-radius: 6px; text-shadow: none; pointer-events: auto; }
 
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 5px 0 10px 0; }
-        .stat-card { background: rgba(0,0,0,0.04); padding: 12px; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
-        .stat-card-dual { grid-column: span 2; background: rgba(0,0,0,0.04); padding: 12px; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+        .stat-card { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: none; display: flex; flex-direction: column; gap: 4px; }
+        .stat-card-dual { grid-column: span 2; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: none; display: flex; flex-direction: column; gap: 8px; }
         .dual-row { display: flex; justify-content: space-between; align-items: center; }
         .dual-divider { height: 1px; background: var(--border); width: 100%; opacity: 0.5; }
         .stat-label { font-size: 9px; font-weight: 800; text-transform: uppercase; opacity: 0.5; letter-spacing: 0.5px; }
@@ -233,12 +233,12 @@
         .stat-sub-value { font-size: 12px; font-weight: 800; color: var(--text); }
 
         /* REWORKED FILTER STYLES */
-        .filter-container { margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px; }
+        .filter-container { margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.15); padding: 12px; border-radius: 16px; }
         
         .filter-section { 
             display: flex; flex-direction: column; 
-            background: var(--card); border: 1px solid var(--border); 
-            border-radius: 16px; overflow: hidden;
+            background: rgba(0,0,0,0.15); border: none; 
+            border-radius: 12px; overflow: hidden;
         }
 
         .toggle-btn-main { 
@@ -247,25 +247,24 @@
             cursor: pointer; display: flex; align-items: center; justify-content: space-between; 
             padding: 0 18px; transition: 0.2s; text-transform: uppercase;
         }
-        .toggle-btn-main:hover { background: rgba(0,0,0,0.02); }
-        .toggle-btn-main.active { background: var(--card); color: var(--text); box-shadow: none; border-bottom: 1px solid var(--border); border-radius: 0; }
+        .toggle-btn-main:hover { background: rgba(0,0,0,0.08); }
+        .toggle-btn-main.active { background: transparent; color: var(--text); box-shadow: none; border-bottom: none; border-radius: 0; }
 
         .filter-grid-reveal { 
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; 
-            padding: 12px; background: rgba(0,0,0,0.02);
+            padding: 12px; background: rgba(0,0,0,0.08);
             animation: slideDown 0.2s ease-out;
         }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         .sub-toggle-btn {
-            width: 100%; height: 65px; border-radius: 12px; border: 1px solid var(--border);
-            background: var(--card); color: var(--text); font-size: 9px; font-weight: 800;
+            width: 100%; height: 65px; border-radius: 12px; border: none;
+            background: rgba(0,0,0,0.15); color: var(--text); font-size: 9px; font-weight: 800;
             cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-            transition: 0.2s; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            transition: 0.2s; text-transform: uppercase; box-shadow: none;
         }
-        .dark-theme .sub-toggle-btn { background: #1e293b; }
-        .sub-toggle-btn:hover { transform: translateY(-2px); border-color: var(--primary); }
-        .sub-toggle-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3); }
+        .sub-toggle-btn:hover { transform: translateY(-2px); background: rgba(0,0,0,0.2); }
+        .sub-toggle-btn.active { background: var(--primary) !important; color: white !important; border: none; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3); }
         .sub-toggle-btn .filter-icon { font-size: 24px; line-height: 1; margin-bottom: 2px; }
 
         .gps-indicator-wrapper { position: relative; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; }
@@ -275,8 +274,8 @@
 
         .loc-icon-inner { width: 16px; height: 16px; background: #2563eb; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
 
-        .highlight-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 12px; margin-bottom: 8px; cursor: pointer; border: 1px solid var(--border); transition: 0.2s; position: relative; }
-        .highlight-item:hover { background: var(--border); transform: translateY(-2px); }
+        .highlight-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0,0,0,0.15); border-radius: 12px; margin-bottom: 8px; cursor: pointer; border: none; transition: 0.2s; position: relative; }
+        .highlight-item:hover { background: rgba(0,0,0,0.2); transform: translateY(-2px); }
         .highlight-thumb { width: 70px; height: 70px; border-radius: 8px; object-fit: cover; background: #ddd; flex-shrink: 0; }
         .type-label { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 5px; color: white; border-radius: 3px; display: inline-block; margin-bottom: 3px; }
 
@@ -287,7 +286,7 @@
         .edit-input { width: 100%; background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 2px 5px; color: var(--text); font-family: inherit; box-sizing: border-box; }
         #editDesc { font-size: 1.05rem; line-height: 1.5; opacity: 0.9; pointer-events: none; }
         #editDesc.active { pointer-events: auto; }
-        .info-card { background: rgba(0,0,0,0.02); padding: 10px; border-radius: 10px; border: 1px solid var(--border); }
+        .info-card { background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; border: none; }
 
         #explore-panel, #add-panel, #settings-panel, #detail-view { padding-bottom: 20px; }
 
@@ -314,8 +313,8 @@
         .modal { background: var(--card); padding: 15px; border-radius: 20px; width: 340px; display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
         .modal h3 { margin: 0 0 10px 0; font-size: 1.25rem; font-weight: 900; letter-spacing: -0.5px; text-align: center; }
         .modal-inputs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        .modal-input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; box-sizing: border-box; font-size: 14px; font-weight: 500; transition: border-color 0.2s; }
-        .modal-input:focus { border-color: var(--primary); outline: none; }
+        .modal-input { width: 100%; padding: 12px; border: none; border-radius: 12px; background: rgba(0,0,0,0.15); color: var(--text); font-family: 'Inter', sans-serif; box-sizing: border-box; font-size: 14px; font-weight: 500; transition: 0.2s; }
+        .modal-input:focus { background: rgba(0,0,0,0.2); outline: 2px solid var(--primary); outline-offset: -2px; }
         .modal-btns { display: flex; flex-direction: column; gap: 10px; }
 
         #layer-popup {
@@ -333,7 +332,7 @@
 
         .mode-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 10px; }
         .mode-btn {
-            background: rgba(0,0,0,0.03); border: 1px solid var(--border);
+            background: rgba(0,0,0,0.15); border: none;
             padding: 10px 0; border-radius: 10px; cursor: pointer;
             transition: 0.2s; display: flex; flex-direction: column; align-items: center;
             color: var(--text); height: 52px; justify-content: center;
@@ -392,7 +391,7 @@
         .fly-slider-group { flex: 1; display: flex; flex-direction: column; gap: 4px; align-items: center; }
         .fly-slider-group span { font-size: 9px; font-weight: 800; opacity: 0.7; letter-spacing: 0.5px; text-align: center; }
         
-        .fly-adjust-group { display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.05); padding: 3px; border-radius: 10px; border: 1px solid var(--border); width: 100%; box-sizing: border-box; }
+        .fly-adjust-group { display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.15); padding: 3px; border-radius: 10px; border: 1px solid var(--border); width: 100%; box-sizing: border-box; }
         .fly-adjust-btn { width: 28px; height: 28px; border-radius: 7px; border: none; background: var(--card); color: var(--text); font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: 0.1s; flex-shrink: 0; }
         .fly-adjust-btn:active { transform: scale(0.95); background: var(--border); }
         .fly-val-display { font-size: 11px; font-weight: 800; flex: 1; text-align: center; font-variant-numeric: tabular-nums; }
@@ -435,14 +434,13 @@
 
         .speed-input-group { display: flex; flex-direction: column; gap: 2px; }
 
-        .comments-section { margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; }
+        .comments-section { margin-top: 10px; }
         .comment-item { 
-            background: var(--card); 
+            background: rgba(0,0,0,0.15); 
             border-radius: 16px; 
             padding: 16px; 
             margin-bottom: 12px; 
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border: none;
         }
         .comment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
         .comment-avatar {
@@ -465,16 +463,16 @@
             box-shadow: 0 3px 8px rgba(0,0,0,0.04);
         }
         .comment-photo-thumb:hover { transform: scale(1.05); }
-        .new-comment-box { margin-top: 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+        .new-comment-box { margin-top: 15px; background: rgba(0,0,0,0.15); border: none; border-radius: 12px; padding: 12px; }
         .star-input { display: flex; gap: 5px; font-size: 24px; color: #cbd5e1; cursor: pointer; margin-bottom: 10px; }
         .star-input span.active { color: #fbbf24; }
         .comment-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-start; border-top: 1px solid var(--border); padding-top: 12px; }
         .comment-action-btn { 
-            background: var(--bg); border: 1px solid var(--border); font-size: 11px; cursor: pointer; 
+            background: rgba(0,0,0,0.15); border: none; font-size: 11px; cursor: pointer; 
             padding: 6px 12px; color: var(--text); font-weight: 700; 
             border-radius: 8px; transition: 0.2s;
         }
-        .comment-action-btn:hover { background: var(--border); }
+        .comment-action-btn:hover { background: rgba(0,0,0,0.2); }
         .comment-item { position: relative; }
 
         #lightbox-overlay {
@@ -485,24 +483,24 @@
 
         .color-dot { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
         .color-dot.active { border-color: var(--text); transform: scale(1.2); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .emoji-option { font-size: 16px; cursor: pointer; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: 0.2s; background: rgba(0,0,0,0.05); border: 1px solid transparent; }
-        .emoji-option:hover { background: rgba(0,0,0,0.1); transform: scale(1.1); }
+        .emoji-option { font-size: 16px; cursor: pointer; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: 0.2s; background: rgba(0,0,0,0.15); border: 1px solid transparent; }
+        .emoji-option:hover { background: rgba(0,0,0,0.2); transform: scale(1.1); }
 
         .facility-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 10px; }
         .facility-btn {
-            background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+            background: rgba(0,0,0,0.15); border: none; border-radius: 8px;
             padding: 8px; font-size: 11px; cursor: pointer; display: flex; flex-direction: row;
             align-items: center; justify-content: flex-start; gap: 8px; text-align: left;
             transition: 0.2s; color: var(--text); opacity: 0.8;
         }
-        .facility-btn.active { background: var(--primary); color: white; border-color: var(--primary); opacity: 1; }
+        .facility-btn.active { background: var(--primary); color: white; border: none; opacity: 1; }
         .facility-check { width: 14px; height: 14px; border: 1px solid currentColor; border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .facility-btn.active .facility-check::after { content: "✓"; font-size: 10px; font-weight: 900; }
-        .facility-tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.05); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 11px; margin: 0 4px 4px 0; }
+        .facility-tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.2); border: none; border-radius: 6px; padding: 4px 8px; font-size: 11px; margin: 0 4px 4px 0; }
 
         .segmented-control {
-            display: flex; background: rgba(0,0,0,0.05); padding: 4px;
-            border-radius: 10px; border: 1px solid var(--border); margin: 10px 0;
+            display: flex; background: rgba(0,0,0,0.2); padding: 4px;
+            border-radius: 10px; border: none; margin: 0;
         }
         .seg-btn {
             flex: 1; background: transparent; border: none; padding: 8px;
@@ -531,44 +529,6 @@
             overflow: hidden;
         }
 
-        /* ADVERTISEMENT CONTAINERS */
-        .ad-wrapper {
-            position: relative; display: flex; flex-direction: column; align-items: center;
-        }
-        .ad-label {
-            font-size: 9px; opacity: 0.5; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px;
-        }
-        .ad-close {
-            position: absolute; top: -8px; right: -8px;
-            background: var(--card); border: 1px solid var(--border); border-radius: 50%;
-            width: 22px; height: 22px; font-size: 10px; cursor: pointer; z-index: 10;
-            display: flex; align-items: center; justify-content: center; color: var(--text);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s;
-        }
-        .ad-close:hover { background: var(--border); transform: scale(1.1); }
-
-        #pc-ad-container {
-            position: absolute; right: 10px; top: 50%; transform: translateY(-50%); z-index: 2000;
-        }
-        #pc-ad-side {
-            width: 160px; height: 600px;
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-            border-radius: 12px; backdrop-filter: blur(5px); pointer-events: none;
-        }
-        body.mobile-mode #pc-ad-container { display: none !important; }
-        #pc-ad-side > * { pointer-events: auto; }
-        body.mobile-mode #pc-ad-side { display: none; }
-
-        #mobile-ad-container {
-            width: 100%; margin-bottom: 15px; flex-shrink: 0; display: none; box-sizing: border-box;
-        }
-        body.mobile-mode #mobile-ad-container { display: flex; }
-        #mobile-ad-banner {
-            width: 100%; height: 60px; flex-shrink: 0;
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-            border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; max-width: 100%;
-        }
     </style>
 </head>
 <body class="dark-theme auth-active">
@@ -587,12 +547,12 @@
                 <button class="btn btn-save-action" id="btnLogin" style="margin-bottom:10px;">Log In</button>
                 
                 <button class="btn" id="btnGoogle" style="margin-bottom:15px; background:white; color:#444; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; gap:10px;">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:18px;height:18px;">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:18px;height:18px;" alt="Google Logo">
                     Sign in with Google
                 </button>
                 <div style="display:flex; gap:10px; width:100%;">
-                    <button class="btn" id="btnSignup" style="flex:1; height:34px; font-size:11px; background:transparent; border:1px solid var(--border);">Sign Up</button>
-                    <button class="btn" id="btnForgot" style="flex:1; height:34px; font-size:11px; background:transparent; border:1px solid var(--border);">Forgot Password?</button>
+                    <button class="btn" id="btnSignup" style="flex:1; height:34px; font-size:11px; background:rgba(0,0,0,0.15); border:none;">Sign Up</button>
+                    <button class="btn" id="btnForgot" style="flex:1; height:34px; font-size:11px; background:rgba(0,0,0,0.15); border:none;">Forgot Password?</button>
                 </div>
                 <p id="authMessage" style="color:var(--danger); text-align:center; font-size:12px; margin:0;"></p>
             </div>
@@ -616,7 +576,7 @@
         </div>
 
         <div id="flyoverControls">
-            <div class="fly-stats-row" style="display:flex; justify-content:space-between; width:100%; margin-bottom:10px; font-size:11px; font-weight:800; color:var(--text); background:rgba(0,0,0,0.05); padding:8px; border-radius:10px; box-sizing: border-box;">
+            <div class="fly-stats-row" style="display:flex; justify-content:space-between; width:100%; margin-bottom:10px; font-size:11px; font-weight:800; color:var(--text); background:rgba(0,0,0,0.15); padding:8px; border-radius:10px; box-sizing: border-box;">
                 <span id="flyStatDist">0.00 km</span>
                 <span id="flyStatElev">-- m</span>
                 <span id="flyStatTime">00:00</span>
@@ -624,7 +584,7 @@
             <div class="fly-control-row" style="justify-content: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
                 <button class="fly-adjust-btn" onclick="rewindFlyover()" style="width:40px; height:36px; font-size:16px;" title="Rewind 10s">⏪</button>
                 <button class="fly-btn" id="flyPauseBtn" onclick="toggleFlyPause()" style="flex:1; max-width:100px;">⏸ PAUSE</button>
-                <select id="flyMapSelect" onchange="setMapLayer(this.value)" style="height:36px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:11px; font-weight:800; padding:0 5px; width: 90px;">
+                <select id="flyMapSelect" onchange="setMapLayer(this.value)" style="height:36px; border-radius:10px; border:none; background:rgba(0,0,0,0.15); color:var(--text); font-size:11px; font-weight:800; padding:0 10px; width: 90px; font-family: inherit;">
                     <option value="voyager">Voyager</option>
                     <option value="dark">Dark</option>
                     <option value="sat">Satellite</option>
@@ -693,30 +653,14 @@
             </div>
 
             <div class="sidebar-scroll-area" id="mainScrollArea">
-                <!-- Mobile Ad Banner (Adsterra) -->
-                <div id="mobile-ad-container" class="ad-wrapper">
-                    <button class="ad-close" onclick="closeAd('mobile-ad-container')" title="Close Ad">✕</button>
-                    <div id="mobile-ad-banner">
-                        <script>
-                        atOptions = {
-                            'key' : '5876d4c30fe4c0e0a23fcc20aa10b8b0',
-                            'format' : 'iframe',
-                            'height' : 50,
-                            'width' : 320,
-                            'params' : {}
-                        };
-                        </script>
-                        <script src="https://www.highperformanceformat.com/5876d4c30fe4c0e0a23fcc20aa10b8b0/invoke.js"></script>
-                    </div>
-                    <span class="ad-label">Advertisement</span>
-                </div>
-
                 <div id="explore-panel">
                     <div class="filter-container">
-                        <span class="settings-label" style="margin-left:2px; font-size:10px; opacity:0.6; text-transform:uppercase; letter-spacing:0.5px;">Sort By:</span>
-                        <div class="filter-row" style="display:flex; gap:6px;">
-                            <button class="filter-btn active" onclick="setSort('rating', this)" style="flex:1">⭐ RATING</button>
-                            <button class="filter-btn" onclick="setSort('dist', this)" style="flex:1">📍 DISTANCE</button>
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <span class="settings-label" style="margin-left:2px; font-size:10px; opacity:0.6; text-transform:uppercase; letter-spacing:0.5px;">Sort By:</span>
+                            <div class="filter-row" style="display:flex; gap:6px;">
+                                <button class="filter-btn active" onclick="setSort('rating', this)" style="flex:1">⭐ RATING</button>
+                                <button class="filter-btn" onclick="setSort('dist', this)" style="flex:1">📍 DISTANCE</button>
+                            </div>
                         </div>
                         
                         <div class="segmented-control">
@@ -740,14 +684,13 @@
                             </div>
                         </div>
                     </div>
-                    <div class="list-divider"></div>
                     
                     <div id="highlights-list"></div>
                     <div class="scroll-spacer"></div>
                 </div>
 
                 <div id="add-panel" style="display:none;">
-                    <div id="walk-options" style="display:none; margin: 0 0 10px 0; padding: 12px; background: rgba(0,0,0,0.03); border-radius: 12px; border: 1px solid var(--border);">
+                    <div id="walk-options" style="display:none; margin: 0 0 10px 0; padding: 12px; background: rgba(0,0,0,0.15); border-radius: 12px; border: none;">
                         <div class="mode-selector" id="addModeSelector">
                             <button class="mode-btn active" data-mode="walk"><span>🚶</span><b>Walk</b></button>
                             <button class="mode-btn" data-mode="hike"><span>🥾</span><b>Hike</b></button>
@@ -759,38 +702,44 @@
                             <label class="switch"><input type="checkbox" id="snapToggle"><span class="slider"></span></label>
                         </div>
                         <div style="display:flex; gap:8px; margin-top:10px;">
-                            <button class="btn" id="undoAddBtn" style="flex:1; height:32px; background:rgba(0,0,0,0.05); color:var(--text); font-size:11px; margin:0;">↩ Undo</button>
+                            <button class="btn" id="undoAddBtn" style="flex:1; height:32px; background:rgba(0,0,0,0.15); color:var(--text); font-size:11px; margin:0; border: none;">↩ Undo</button>
                             <button class="btn" id="cancelAddBtn" style="flex:1; height:32px; background:var(--danger); color:white; font-size:11px; margin:0;">✖ Cancel Plot</button>
                         </div>
                     </div>
 
-                    <div id="route-stats" style="display:none; background:rgba(0,0,0,0.05); padding:15px; border-radius:12px; margin-bottom: 15px;">
+                    <div id="route-stats" style="display:none; background:rgba(0,0,0,0.15); padding:15px; border-radius:12px; margin-bottom: 15px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <p id="liveDist" style="margin:0; font-weight:800; font-size: 1.2rem; color: var(--primary);">0.00 km</p>
                             <p id="liveTime" style="margin:0; font-weight:600; font-size: 0.9rem; opacity:0.7;">00m</p>
                         </div>
-                        <button class="btn" id="drawGraphBtn" onclick="toggleGraph()" style="margin-top:8px; background:rgba(0,0,0,0.05); border:1px solid var(--border); font-size:11px;">📈 Show Height Graph</button>
+                        <button class="btn" id="drawGraphBtn" onclick="toggleGraph()" style="margin-top:8px; background:rgba(0,0,0,0.15); border:none; font-size:11px;">📈 Show Height Graph</button>
                         <button class="btn btn-save-action" id="finishWalkBtn" style="margin-top:8px; width: 100%;">💾 Save Activity</button>
                     </div>
 
                     <button class="settings-header" onclick="toggleSettingsSection('addSectionContent', this)" style="margin-top:0;">
                         <span>NEW UPLOAD</span> <span class="chevron">▼</span>
                     </button>
-                    <div id="addSectionContent" class="settings-content">
-                        <button id="pinModeBtn" class="btn btn-main">📍 Log a Pin</button>
-                        <button id="walkModeBtn" class="btn btn-main">🏃 Trace Activity</button>
-                        <button id="recordModeBtn" class="btn btn-main" style="background: var(--primary); color: white;">🛰️ Record an Activity</button>
+                    <div id="addSectionContent" class="settings-content" style="flex-direction: row; gap: 8px;">
+                        <button id="pinModeBtn" class="btn btn-main" style="flex:1; height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">📍</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Log a Pin</span></button>
+                        <button id="walkModeBtn" class="btn btn-main" style="flex:1; height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">🗺️</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Trace Activity</span></button>
+                        <button id="recordModeBtn" class="btn btn-main" style="flex:1; height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">🔴</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Record</span></button>
                     </div>
                     
                     <div class="list-divider"></div>
                     
-                    <button class="settings-header" onclick="toggleSettingsSection('myLogSectionContent', this)">
-                        <span>MY UPLOADS</span> <span class="chevron">▼</span>
+                    <button class="settings-header" onclick="toggleSettingsSection('myTraceLogContent', this)" style="margin-top:0;">
+                        <span>MY TRACELOG</span> <span class="chevron" style="transform:rotate(-90deg)">▼</span>
                     </button>
-                    <div id="myLogSectionContent" class="settings-content">
+
+                    <div id="myTraceLogContent" class="settings-content" style="display:none;">
                         <div class="filter-container">
-                            <div style="display:flex; gap:6px; margin-bottom:6px;">
-                                <select onchange="setMyLogPrivacy(this.value)" style="flex:1; padding:0 10px; height:34px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:11px; font-weight:800; font-family:inherit;">
+                        <div class="segmented-control">
+                            <button class="seg-btn active" onclick="setYouTabView('uploads', this)">My Uploads</button>
+                            <button class="seg-btn" onclick="setYouTabView('logbook', this)">My Logbook</button>
+                        </div>
+
+                        <div style="display:flex; gap:6px;" id="myLogPrivacyFilter">
+                                <select onchange="setMyLogPrivacy(this.value)" style="flex:1; padding:0 10px; height:34px; border-radius:10px; border:none; background:rgba(0,0,0,0.15); color:var(--text); font-size:11px; font-weight:800; font-family:inherit;">
                                     <option value="all">👁️ ALL VISIBILITY</option>
                                     <option value="public">🌍 PUBLIC</option>
                                     <option value="private">🔒 PRIVATE</option>
@@ -826,15 +775,9 @@
                         </div>
                         
                         <div id="my-saved-list"></div>
+                        <div id="my-logged-list" style="display:none;"></div>
                     </div>
-                    
-                    <div class="list-divider"></div>
-                    <button class="settings-header" onclick="toggleSettingsSection('loggedSectionContent', this)">
-                        <span>MY LOGBOOK</span> <span class="chevron">▼</span>
-                    </button>
-                    <div id="loggedSectionContent" class="settings-content">
-                        <div id="my-logged-list"></div>
-                    </div>
+
                     <div class="scroll-spacer"></div>
                 </div>
 
@@ -867,7 +810,7 @@
                             </div>
                             <div class="settings-row-refined">
                                 <span class="settings-label">Map Style</span>
-                                <select id="settingsMapSelect" onchange="setMapLayer(this.value)" style="padding:4px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:11px; max-width: 120px;">
+                                <select id="settingsMapSelect" onchange="setMapLayer(this.value)" style="padding:8px 12px; border-radius:8px; border:none; background:rgba(0,0,0,0.15); color:var(--text); font-size:11px; max-width: 120px; font-family: inherit;">
                                     <option value="voyager">Voyager</option>
                                     <option value="dark">Dark</option>
                                     <option value="sat">Satellite</option>
@@ -882,7 +825,7 @@
                             </div>
                             <div class="settings-row-refined">
                                 <span class="settings-label">Interface Mode</span>
-                                <button class="btn" id="deviceToggleSettings" onclick="toggleDeviceMode()" style="width:auto; height:28px; font-size:11px; padding:0 10px; background:var(--bg); border:1px solid var(--border);">Switch Mode</button>
+                                <button class="btn" id="deviceToggleSettings" onclick="toggleDeviceMode()" style="width:auto; height:28px; font-size:11px; padding:0 10px; background:rgba(0,0,0,0.15); border:none;">Switch Mode</button>
                             </div>
                         </div>
 
@@ -892,7 +835,7 @@
                         <div id="prefSettings" class="settings-content" style="display:none;">
                             <div class="settings-row-refined">
                                 <span class="settings-label">Units</span>
-                                <select id="unitSelect" onchange="changeUnits(this.value)" style="padding:4px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:11px; max-width: 120px;">
+                                <select id="unitSelect" onchange="changeUnits(this.value)" style="padding:8px 12px; border-radius:8px; border:none; background:rgba(0,0,0,0.15); color:var(--text); font-size:11px; max-width: 120px; font-family: inherit;">
                                     <option value="metric">Metric (km, m)</option>
                                     <option value="imperial">Imperial (mi, ft)</option>
                                 </select>
@@ -912,18 +855,18 @@
                             <span>Account</span> <span class="chevron" style="transform:rotate(-90deg)">▼</span>
                         </button>
                         <div id="accSettings" class="settings-content" style="display:none;">
-                            <button class="btn" onclick="makeAllPrivate()" style="margin-top:5px; background:transparent; border:1px solid var(--border); color:var(--text); opacity:0.8; font-size:11px;">🔒 Make All Items Private</button>
-                            <button class="btn" onclick="deleteAccount()" style="margin-top:5px; background:transparent; border:1px solid var(--danger); color:var(--danger); font-size:11px;">⚠️ Delete Account</button>
+                            <button class="btn" onclick="makeAllPrivate()" style="margin-top:5px; background:rgba(0,0,0,0.15); border:none; color:var(--text); opacity:0.8; font-size:11px;">🔒 Make All Items Private</button>
+                            <button class="btn" onclick="signOut()" style="margin-top:5px; background:var(--danger); border:none; color:white; font-size:11px;">Sign Out</button>
+                            <button class="btn" onclick="deleteAccount()" style="margin-top:5px; background:rgba(239, 68, 68, 0.1); border:none; color:var(--danger); font-size:11px;">⚠️ Delete Account</button>
                         </div>
 
                         <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 15px;">
-                            <p id="versionLabel" style="font-size: 11px; opacity: 0.5; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">TraceLog V18.3 Stable</p>
+                            <p id="versionLabel" style="font-size: 11px; opacity: 0.5; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">TraceLog V3.0 Stable</p>
                             <div style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;">
-                                <a href="https://github.com/IsaacPlays20/TraceLog/issues" target="_blank" class="btn" style="flex: 1; height: 34px; font-size: 11px; background: transparent; border: 1px solid var(--border); color: var(--text); opacity: 0.8; text-decoration: none; margin: 0;">Report a Bug</a>
-                                <a href="https://github.com/IsaacPlays20/TraceLog" target="_blank" class="btn" style="flex: 1; height: 34px; font-size: 11px; background: transparent; border: 1px solid var(--border); color: var(--text); opacity: 0.8; text-decoration: none; margin: 0;">GitHub</a>
+                                <a href="https://github.com/IsaacPlays20/TraceLog/issues" target="_blank" class="btn" style="flex: 1; height: 34px; font-size: 11px; background: rgba(0,0,0,0.15); border: none; color: var(--text); opacity: 0.8; text-decoration: none; margin: 0;">Report a Bug</a>
+                                <a href="https://github.com/IsaacPlays20/TraceLog" target="_blank" class="btn" style="flex: 1; height: 34px; font-size: 11px; background: rgba(0,0,0,0.15); border: none; color: var(--text); opacity: 0.8; text-decoration: none; margin: 0;">GitHub</a>
                             </div>
                         </div>
-                        <button class="btn" onclick="signOut()" style="margin-top:10px; background:var(--danger); color:white;">Sign Out</button>
                     </div>
                     <div class="scroll-spacer"></div>
                 </div>
@@ -942,11 +885,10 @@
                         </div>
                     </div>
                     <div id="detCreator" style="margin-bottom: 8px; padding: 0 5px;"></div>
-                    <button class="btn" id="editAddPhotoBtn" onclick="openUrlUploadPopup('edit')" style="display:none; margin-bottom:10px; background:var(--bg); border:1px solid var(--border); color:var(--text); font-weight:600;">📷 Add Photo URL</button>
-                    <div id="detTypeLabel" style="padding: 0 5px; margin-bottom: 4px;"></div>
-                    <button class="btn" id="markVisitedBtn" onclick="toggleVisited()" style="margin: 0 5px 10px 5px; width: calc(100% - 10px); font-weight:700; border:1px solid var(--border);">⭕ Mark Visited</button>
+                    <button class="btn" id="editAddPhotoBtn" onclick="openUrlUploadPopup('edit')" style="display:none; margin-bottom:10px; background:rgba(0,0,0,0.15); border:none; color:var(--text); font-weight:600;">📷 Add Photo URL</button>
+                    <div id="detTypeLabel" class="info-card" style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
 
-                    <div id="editWalkOptions" style="display:none; margin: 10px 0; padding: 12px; background: rgba(37, 99, 235, 0.05); border-radius: 12px; border: 1px solid var(--primary);">
+                    <div id="editWalkOptions" style="display:none; margin: 10px 0; padding: 12px; background: rgba(37, 99, 235, 0.1); border-radius: 12px; border: none;">
                         <div class="mode-selector" id="editModeSelector">
                             <button class="mode-btn" data-mode="walk"><span>🚶</span><b>Walk</b></button>
                             <button class="mode-btn" data-mode="hike"><span>🥾</span><b>Hike</b></button>
@@ -957,34 +899,34 @@
                             <span class="settings-label" style="text-transform:none; font-size:12px; color: var(--primary);">Snap new points to paths</span>
                             <label class="switch"><input type="checkbox" id="editSnapToggle"><span class="slider"></span></label>
                         </div>
-                        <button class="btn" id="undoEditBtn" style="margin-top:10px; height:32px; background:var(--bg); border: 1px solid var(--border); font-size:11px;">↩ Undo Last Point</button>
+                        <button class="btn" id="undoEditBtn" style="margin-top:10px; height:32px; background:rgba(0,0,0,0.15); border: none; font-size:11px;">↩ Undo Last Point</button>
                     </div>
 
                     <div id="editTypeContainer" style="display:none; margin-bottom: 10px;">
                         <span class="stat-label">Pin Category</span>
                         <div class="pin-type-grid" id="detailTypePicker"></div>
                     </div>
-                    <div id="editPrivacyContainer" style="display:none; margin-bottom: 10px; padding: 12px; background: rgba(0,0,0,0.03); border-radius: 12px; border: 1px solid var(--border);">
+                    <div id="editPrivacyContainer" style="display:none; margin-bottom: 10px; padding: 12px; background: rgba(0,0,0,0.15); border-radius: 12px; border: none;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span class="settings-label" style="text-transform:none; font-size:12px;">Publicly Visible</span>
                             <label class="switch"><input type="checkbox" id="editPublicToggle"><span class="slider"></span></label>
                         </div>
                     </div>
-                    <div id="detFacilities" style="display:flex; flex-wrap:wrap; margin-bottom:10px;"></div>
+                    <div id="detFacilities" class="info-card" style="display:none; flex-wrap:wrap; margin-bottom:10px; gap:4px;"></div>
                     <div id="editFacilitiesContainer" style="display:none; margin-bottom:10px;">
                         <span class="settings-label">Facilities</span>
                         <div class="facility-grid" id="editFacilityPicker"></div>
                     </div>
 
-                    <div id="detStats"></div>
-                    <div class="info-card">
+                    <div id="detStats" class="info-card" style="display:none; margin-bottom:10px;"></div>
+                    <div class="info-card" style="margin-bottom: 10px;">
                         <div id="viewDescContainer">
                             <p id="viewDescText" style="margin:0; font-size:1.05rem; line-height:1.5; opacity:0.9; white-space: pre-wrap;"></p>
                             <button id="viewDescShowMoreBtn" style="display:none; background:none; border:none; color:var(--primary); font-weight:700; font-size:11px; padding:0; margin-top:5px; cursor:pointer;">Show More</button>
                         </div>
                         <textarea id="editDesc" class="edit-input" rows="4" placeholder="No notes added..." style="display:none;"></textarea>
                     </div>
-                    <div id="commentsSection" class="comments-section"></div>
+                    <div id="commentsSection" class="comments-section info-card"></div>
                     <div class="scroll-spacer"></div>
                 </div>
             </div>
@@ -1012,24 +954,6 @@
                 <div id="elevContainer"><canvas id="elevChart"></canvas></div>
             </div>
 
-        <!-- PC Ad Banner (Adsterra) -->
-        <div id="pc-ad-container" class="ad-wrapper">
-            <button class="ad-close" onclick="closeAd('pc-ad-container')" title="Close Ad">✕</button>
-            <div id="pc-ad-side">
-                <script>
-                atOptions = {
-                    'key' : '56b76d0d47bdebd4b199532edb523a93',
-                    'format' : 'iframe',
-                    'height' : 600,
-                    'width' : 160,
-                    'params' : {}
-                };
-                </script>
-                <script src="https://www.highperformanceformat.com/56b76d0d47bdebd4b199532edb523a93/invoke.js"></script>
-            </div>
-            <span class="ad-label">Advertisement</span>
-        </div>
-
         <div id="map"></div>
     </div>
 
@@ -1045,7 +969,7 @@
             </div>
             <p id="uploadStatus" style="font-size:12px; opacity:0.7; margin-bottom:15px; text-align:center;">Previewing image...</p>
             <div style="display:flex; gap:10px; width:100%;">
-                <button class="btn" onclick="cancelUpload()" style="flex:1; background:transparent; border:1px solid var(--border); color:var(--text);">Cancel</button>
+                <button class="btn" onclick="cancelUpload()" style="flex:1; background:rgba(0,0,0,0.15); border:none; color:var(--text);">Cancel</button>
                 <button class="btn btn-save-action" id="btnConfirmUpload" onclick="performUrlAdd()" style="flex:1;">Add Image</button>
             </div>
         </div>
@@ -1061,7 +985,7 @@
                 </div>
                 <div id="modalPhotoSection">
                     <div id="modalPhotoList" style="display:flex; gap:5px; overflow-x:auto; margin-bottom:5px;"></div>
-                    <button class="btn" onclick="openUrlUploadPopup('create')" style="background:rgba(0,0,0,0.05); border:1px solid var(--border); font-size:11px; height:32px;">📷 Add Photo</button>
+                <button class="btn" onclick="openUrlUploadPopup('create')" style="background:rgba(0,0,0,0.15); border:none; font-size:11px; height:32px;">📷 Add Photo</button>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:0 5px;">
                     <span class="settings-label" style="font-size:12px;">Mark as Visited</span>
@@ -1080,7 +1004,7 @@
             </div>
             <div class="modal-btns">
                 <button class="btn btn-save-action" id="confirmSaveBtn" style="height: 48px; font-size: 14px;">✅ Save to Library</button>
-                <button class="btn" style="background:none; color: var(--text); opacity: 0.6; border: 1px solid var(--border); height: 44px;" onclick="document.getElementById('modal-overlay').style.display='none'">Cancel</button>
+            <button class="btn" style="background:rgba(0,0,0,0.15); color: var(--text); border: none; height: 44px;" onclick="document.getElementById('modal-overlay').style.display='none'">Cancel</button>
             </div>
         </div>
     </div>
@@ -1089,7 +1013,7 @@
         <div class="modal" style="width: 320px; max-height: 80vh; display: flex; flex-direction: column;">
             <h3 style="margin-top:0;">Select Icon</h3>
             <div id="fullEmojiGrid" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; overflow-y: auto; padding-right: 5px; flex: 1;"></div>
-            <button class="btn" onclick="document.getElementById('emoji-modal-overlay').style.display='none'" style="margin-top:15px; background:transparent; border:1px solid var(--border); color:var(--text);">Close</button>
+            <button class="btn" onclick="document.getElementById('emoji-modal-overlay').style.display='none'" style="margin-top:15px; background:rgba(0,0,0,0.15); border:none; color:var(--text);">Close</button>
         </div>
     </div>
 
@@ -1101,10 +1025,10 @@
             </div>
             <textarea id="modalReviewText" class="modal-input" rows="4" placeholder="Share your experience (optional)..." style="margin-bottom:10px;"></textarea>
             <div id="modalReviewPhotoPreview" style="display:flex; gap:5px; overflow-x:auto; margin-bottom:10px;"></div>
-            <button class="btn" onclick="openUrlUploadPopup('review')" style="margin-bottom:15px; background:rgba(0,0,0,0.05); border:1px solid var(--border); font-size:13px; height:42px; font-weight:600;">📷 Add Photo</button>
+            <button class="btn" onclick="openUrlUploadPopup('review')" style="margin-bottom:15px; background:rgba(0,0,0,0.15); border:none; font-size:13px; height:42px; font-weight:600;">📷 Add Photo</button>
             <div class="modal-btns">
                 <button class="btn btn-save-action" onclick="postComment()" id="postReviewBtn">Post Review</button>
-                <button class="btn" onclick="closeReviewModal()" style="background:transparent; border:1px solid var(--border); color:var(--text);">Cancel</button>
+                <button class="btn" onclick="closeReviewModal()" style="background:rgba(0,0,0,0.15); border:none; color:var(--text);">Cancel</button>
             </div>
         </div>
     </div>
@@ -1233,6 +1157,7 @@
         };
 
         let currentTab = 'explore';
+        let currentYouView = 'uploads';
         let mapItems = new L.FeatureGroup(), userPos = null, userMarker = null, nodeHandles = [], waypointMarkers = [], chartInstance = null;
         let elevationAbortController = null;
         let miniMap = null, miniMapLayer = null, miniMapPoly = null;
@@ -1600,6 +1525,22 @@
             updateMyLogList();
         }
 
+        function setYouTabView(view, btn) {
+            currentYouView = view;
+            btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (view === 'uploads') {
+                document.getElementById('my-saved-list').style.display = 'block';
+                document.getElementById('my-logged-list').style.display = 'none';
+                document.getElementById('myLogPrivacyFilter').style.display = 'flex';
+            } else {
+                document.getElementById('my-saved-list').style.display = 'none';
+                document.getElementById('my-logged-list').style.display = 'block';
+                document.getElementById('myLogPrivacyFilter').style.display = 'none';
+            }
+            updateMyLogList();
+        }
+
         function toggleSettingsSection(id, btn) {
             const el = document.getElementById(id);
             const isHidden = el.style.display === 'none';
@@ -1888,7 +1829,12 @@
             let distText = '';
             if (userPos && lat && lng) {
                 const d = userPos.distanceTo(L.latLng(lat, lng)) / 1000;
-                distText = ` • ${formatDist(d)} away`;
+                let roundedDist = Math.round(d);
+                let unitStr = storage.units === 'imperial' ? 'mi' : 'km';
+                if (storage.units === 'imperial') {
+                    roundedDist = Math.round(d * 0.621371);
+                }
+                distText = `${roundedDist}${unitStr}`;
             }
 
             const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
@@ -1900,27 +1846,29 @@
             const isOwner = currentUser && item.userId === currentUser.uid;
             let ownerHtml = '';
             if (isOwner) {
-                const btnText = isEditing ? '✅ Finish Editing' : '🖋️ Edit Entry';
+                const btnText = isEditing ? '✅ Save' : '🖋️ Edit';
                 const btnBg = isEditing ? 'var(--accent)' : 'var(--primary)';
                 const delDisplay = isEditing ? 'flex' : 'none';
 
                 ownerHtml = `
-                    <div style="display:flex; gap:8px; margin-bottom:4px;">
-                        <button class="btn" id="bigEditBtn" onclick="toggleEditingLogic()" style="flex:1; height:44px; font-size:13px; background:${btnBg}; border:none; color:white; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
-                            ${btnText}
-                        </button>
-                        <button class="btn" id="bigDeleteBtn" onclick="deleteAction()" style="display:${delDisplay}; width:44px; height:44px; background:var(--danger); border:none; color:white; align-items:center; justify-content:center; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">🗑️</button>
-                    </div>
+                    <button class="btn" id="bigEditBtn" onclick="toggleEditingLogic()" style="flex:1; min-width:0; min-height:38px; height:auto; font-size:12px; background:${btnBg}; border:none; color:white; display:flex; align-items:center; justify-content:center; gap:4px; font-weight:700; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin:0; padding:5px; white-space:nowrap; line-height:1.2; text-align:center;">
+                        ${btnText}
+                    </button>
+                    <button class="btn" id="bigDeleteBtn" onclick="deleteAction()" style="display:${delDisplay}; width:38px; min-height:38px; height:auto; background:var(--danger); border:none; color:white; align-items:center; justify-content:center; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin:0; padding:0; flex-shrink:0;">🗑️</button>
                 `;
             }
 
             typeLabelDiv.innerHTML = `
                 ${ownerHtml}
-                <a href="${navUrl}" target="_blank" style="text-decoration:none; display:block;">
-                    <button class="btn" style="width:100%; height:44px; font-size:13px; background:var(--card); border:1px solid var(--border); color:var(--text); display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg" style="width:20px; height:20px;"> Navigate${distText}
+                <button class="btn" id="markVisitedBtn" onclick="toggleVisited()" style="flex:1; min-width:0; min-height:38px; height:auto; font-size:12px; font-weight:700; border:1px solid var(--border); border-radius:10px; margin:0; padding:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.2; display:flex; align-items:center; justify-content:center; text-align:center;">⭕ Visit</button>
+                <a href="${navUrl}" target="_blank" style="flex:1; min-width:0; text-decoration:none; display:flex;">
+                    <button class="btn" style="width:100%; min-height:38px; height:auto; font-size:12px; background:rgba(0,0,0,0.15); border:none; color:var(--text); display:flex; align-items:center; justify-content:center; gap:6px; font-weight:700; border-radius:10px; box-shadow:none; margin:0; padding:5px; white-space:nowrap; line-height:1.2; text-align:center;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Google_Maps_icon_%282026%29.svg/1280px-Google_Maps_icon_%282026%29.svg.png" style="width:20px; height:20px; flex-shrink:0;">
+                        ${distText ? `<span>${distText}</span>` : ''}
                     </button>
                 </a>`;
+                
+            updateVisitedButton(item);
         }
 
         function setupTypePickers() {
@@ -1994,11 +1942,6 @@
             closeElevation(); switchTab('explore');
             if(document.body.classList.contains('mobile-mode')) snapTo('open');
             resetSidebarScroll();
-            
-            const mobAd = document.getElementById('mobile-ad-container');
-            const pcAd = document.getElementById('pc-ad-container');
-            if(mobAd) mobAd.style.display = '';
-            if(pcAd) pcAd.style.display = '';
         }
 
         function switchTab(tab) {
@@ -2015,11 +1958,6 @@
             closeElevation(); setMode(tab === 'explore' ? 'explore' : 'ready');
             refreshMapItems();
             resetSidebarScroll();
-            
-            const mobAd = document.getElementById('mobile-ad-container');
-            const pcAd = document.getElementById('pc-ad-container');
-            if(mobAd) mobAd.style.display = '';
-            if(pcAd) pcAd.style.display = '';
         }
 
         function setMode(mode) {
@@ -2028,7 +1966,7 @@
             
             document.getElementById('route-stats').style.display = (mode === 'walk' ? 'block' : 'none');
             document.getElementById('walk-options').style.display = (mode === 'walk' ? 'block' : 'none');
-            document.getElementById('recordModeBtn').style.display = (mode === 'record' || isRecording ? 'none' : 'block');
+            document.getElementById('recordModeBtn').style.display = (mode === 'record' || isRecording ? 'none' : 'flex');
             
             const popout = document.getElementById('recording-popout');
             popout.style.display = (isRecording ? 'flex' : 'none');
@@ -2681,8 +2619,14 @@
                 updateWalkStats(); 
                 fetchElevation(item.path, false); 
                 updateWalkWaypoints(); 
+                document.getElementById('detStats').style.display = 'block';
             }
-            else { document.getElementById('detStats').innerHTML = ``; closeElevation(); window.currentActiveLayer = null; }
+            else { 
+                document.getElementById('detStats').innerHTML = ``; 
+                document.getElementById('detStats').style.display = 'none';
+                closeElevation(); 
+                window.currentActiveLayer = null; 
+            }
             nodeHandles.forEach(h=>map.removeLayer(h));
             resetSidebarScroll();
         }
@@ -2693,16 +2637,17 @@
             
             const isWalk = (item.path !== undefined);
             const isVisited = item.visited === true;
-            let label = isWalk ? (isVisited ? '✅ Completed' : '⭕ Mark Completed') : (isVisited ? '✅ Visited' : '⭕ Mark Visited');
+            let label = isWalk ? (isVisited ? '✅ Done' : '⭕ Do') : (isVisited ? '✅ Visited' : '⭕ Visit');
             
             if (isVisited && item.visitedDate) {
                 const dateStr = formatDate(item.visitedDate);
-                label += ` (${dateStr})`;
+                label += ` <span style="font-size:10px; opacity:0.8; margin-left:4px;">(${dateStr})</span>`;
             }
             
-            btn.innerText = label;
-            btn.style.background = isVisited ? 'var(--accent)' : 'var(--bg)';
+            btn.innerHTML = label;
+            btn.style.background = isVisited ? 'var(--accent)' : 'rgba(0,0,0,0.15)';
             btn.style.color = isVisited ? 'white' : 'var(--text)';
+            btn.style.border = isVisited ? 'none' : '1px solid var(--border)';
         }
 
         function updateDetailRating(item) {
@@ -2724,13 +2669,13 @@
 
             const count = item.comments ? item.comments.length : 0;
             
-            html += `<div onclick="toggleReviewsList()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; margin-top:5px; padding: 10px 0; border-bottom: 1px solid var(--border);">
+            html += `<div onclick="toggleReviewsList()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
                 <h4 style="margin:0; font-size:14px;">Reviews (${count})</h4>
                 <span id="reviewsChevron" style="font-size:10px; opacity:0.6; transition: 0.2s;">▼</span>
             </div>`;
 
             if(currentUser) {
-                html += `<button class="btn" onclick="openReviewModal()" style="margin-top:10px; margin-bottom:10px; background:var(--bg); border:1px solid var(--border); color:var(--text);">Write a Review</button>`;
+                html += `<button class="btn" onclick="openReviewModal()" style="margin-top:10px; margin-bottom:10px; background:rgba(0,0,0,0.15); border:none; color:var(--text);">Write a Review</button>`;
             }
 
             html += `<div id="reviewsListContainer" style="display:block; margin-top:10px;">`;
@@ -2743,7 +2688,7 @@
                     const date = formatDate(c.timestamp);
                     let actions = '';
                     if(currentUser && c.userId === currentUser.uid) {
-                        actions = `<div class="comment-actions"><button class="comment-action-btn" onclick="editComment(${item.id}, ${c.id})">Edit</button><button class="comment-action-btn" onclick="deleteComment(${item.id}, ${c.id})" style="color:var(--danger); border-color:var(--danger);">Delete</button></div>`;
+                        actions = `<div class="comment-actions"><button class="comment-action-btn" onclick="editComment(${item.id}, ${c.id})">Edit</button><button class="comment-action-btn" onclick="deleteComment(${item.id}, ${c.id})" style="color:var(--danger);">Delete</button></div>`;
                     }
 
                     let photoHtml = '';
@@ -3032,7 +2977,7 @@
             const bigBtn = document.getElementById('bigEditBtn');
             const bigDelBtn = document.getElementById('bigDeleteBtn');
             if(bigBtn) {
-                bigBtn.innerHTML = isEditing ? '✅ Finish Editing' : '🖋️ Edit Entry';
+                    bigBtn.innerHTML = isEditing ? '✅ Save' : '🖋️ Edit';
                 bigBtn.style.background = isEditing ? 'var(--accent)' : 'var(--primary)';
             }
             
@@ -3867,21 +3812,50 @@
             }
             else if (myLogFilters.sort === 'date') createdItems.sort((a,b) => b.id - a.id);
             
-            // Update Map if on You Tab
-            if (currentTab === 'add') {
-                mapItems.clearLayers();
-                createdItems.forEach(i => {
-                    if (i.type === 'PIN') addPin(i);
-                    else if (i.type === 'WALK') addWalk(i);
-                });
-            }
-
             // 2. Visited Items (Logged) - Can include items not created by me
             let loggedItems = [
                 ...storage.pins.filter(p => p.visited).map(p => ({...p, type:'PIN'})),
                 ...storage.walks.filter(w => w.visited).map(w => ({...w, type:'WALK', lat:w.path[0][0], lng:w.path[0][1]}))
             ];
-            loggedItems.sort((a,b) => (b.visitedDate || 0) - (a.visitedDate || 0));
+
+            loggedItems = loggedItems.filter(i => {
+                if (i.type === 'PIN') {
+                    if (!myLogFilters.showPins) return false;
+                    const cat = PIN_TYPES.find(t => t.color === i.color);
+                    return cat && myLogFilters.categories.includes(cat.name);
+                }
+                if (i.type === 'WALK') {
+                    if (!myLogFilters.showWalks) return false;
+                    return myLogFilters.activities.includes(i.activity || 'walk');
+                }
+                return true;
+            });
+
+            if (userPos) loggedItems.forEach(i => i.d = L.latLng(i.lat, i.lng).distanceTo(userPos) / 1000);
+
+            if (myLogFilters.sort === 'rating') {
+                loggedItems.sort((a,b) => {
+                    const r = (b.rating || 0) - (a.rating || 0);
+                    return r !== 0 ? r : (b.visitedDate || 0) - (a.visitedDate || 0);
+                });
+            }
+            else if (myLogFilters.sort === 'dist') {
+                loggedItems.sort((a,b) => {
+                    const dist = (a.d || 0) - (b.d || 0);
+                    return dist !== 0 ? dist : (b.visitedDate || 0) - (a.visitedDate || 0);
+                });
+            }
+            else if (myLogFilters.sort === 'date') loggedItems.sort((a,b) => (b.visitedDate || 0) - (a.visitedDate || 0));
+
+            // Update Map if on You Tab
+            if (currentTab === 'add') {
+                mapItems.clearLayers();
+                const itemsToMap = currentYouView === 'logbook' ? loggedItems : createdItems;
+                itemsToMap.forEach(i => {
+                    if (i.type === 'PIN') addPin(i);
+                    else if (i.type === 'WALK') addWalk(i);
+                });
+            }
 
             renderLogList(createdItems, savedList, "No created items.", false, false);
             renderLogList(loggedItems, loggedList, "No logged items.", true, true);
@@ -3938,16 +3912,6 @@
                 };
                 list.appendChild(div);
             });
-        }
-
-        function closeAd(id) {
-            const adContainer = document.getElementById(id);
-            if(adContainer) {
-                adContainer.style.display = 'none';
-                setTimeout(() => {
-                    adContainer.style.display = '';
-                }, 3 * 60 * 1000); // Reappear after 3 minutes
-            }
         }
 
         switchTab('explore');
