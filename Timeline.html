@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TraceLog │ Timeline</title>
+    <link rel="icon" href="Images/foot.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #2563eb; --accent: #10b981; --bg: #0f172a; 
+            --card: rgba(30, 41, 59, 0.7); --text: #f1f5f9; --border: #334155;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+        a { text-decoration: none; color: inherit; transition: var(--transition); }
+        
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; height: 70px;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 40px;
+            background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); z-index: 1000;
+        }
+        .logo { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 1.5rem; letter-spacing: -0.5px; }
+        .logo img { height: 50px; }
+        
+        .nav-links { display: flex; gap: 30px; font-size: 0.9rem; font-weight: 600; position: absolute; left: 50%; transform: translateX(-50%); }
+        .nav-links a { opacity: 0.8; } .nav-links a:hover { opacity: 1; color: var(--primary); }
+        .nav-links a.active { color: var(--primary); opacity: 1; }
+        
+        .btn { background: var(--primary); color: white; padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; border: none; cursor: pointer; transition: var(--transition); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+        
+        main { padding: 120px 40px 80px 40px; max-width: 1000px; margin: 0 auto; min-height: calc(100vh - 200px); }
+        h1 { font-size: 3.5rem; font-weight: 900; margin-bottom: 10px; text-align: center; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { font-size: 1.2rem; opacity: 0.7; margin-bottom: 60px; text-align: center; }
+        
+        /* Timeline Styles */
+        .timeline { position: relative; max-width: 800px; margin: 0 auto; }
+        .timeline::after {
+            content: ''; position: absolute; width: 4px; background: var(--border);
+            top: 0; bottom: 0; left: 50%; margin-left: -2px; border-radius: 2px;
+        }
+        
+        .timeline-item { padding: 10px 40px; position: relative; width: 50%; box-sizing: border-box; }
+        .timeline-item.left { left: 0; text-align: right; }
+        .timeline-item.right { left: 50%; }
+        
+        .timeline-item::after {
+            content: ''; position: absolute; width: 20px; height: 20px;
+            right: -14px; background-color: var(--bg); border: 4px solid var(--primary);
+            top: 15px; border-radius: 50%; z-index: 1; transition: var(--transition);
+        }
+        .timeline-item.right::after { left: -14px; }
+        
+        .timeline-item.current::after { border-color: var(--accent); box-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
+        .timeline-item.future::after { border-color: #f59e0b; border-style: dashed; }
+        
+        .timeline-content {
+            padding: 25px; background: var(--card); border: 1px solid var(--border);
+            border-radius: 16px; position: relative; transition: var(--transition);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: left;
+        }
+        .timeline-content:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        .timeline-content h3 { margin-top: 0; font-size: 1.4rem; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+        .timeline-item.current .timeline-content h3 { color: var(--accent); }
+        .timeline-item.future .timeline-content h3 { color: #f59e0b; }
+        
+        .timeline-content p { margin: 0; opacity: 0.8; font-size: 1rem; line-height: 1.6; }
+        
+        @media (max-width: 768px) { 
+            .nav-links { display: none; } nav { padding: 0 20px; } main { padding: 100px 20px 40px 20px; } h1 { font-size: 2.5rem; }
+            .timeline::after { left: 31px; }
+            .timeline-item { width: 100%; padding-left: 70px; padding-right: 0; }
+            .timeline-item.left { text-align: left; }
+            .timeline-item.right { left: 0; }
+            .timeline-item.left::after, .timeline-item.right::after { left: 17px; right: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="logo">
+            <img src="Images/Tracelog.png" alt="Logo" onerror="this.style.display='none'">
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="About.html">About</a>
+            <a href="Features.html">Features</a>
+            <a href="Timeline.html" class="active">Timeline</a>
+            <a href="Privacy.html">Privacy</a>
+            <a href="Contact.html">Contact</a>
+        </div>
+        <a href="all.html" class="btn">Log In</a>
+    </nav>
+
+    <main>
+        <h1>Project Timeline</h1>
+        
+        <div class="timeline">
+            <div class="timeline-item left">
+                <div class="timeline-content">
+                    <h3>V1.0 - Release</h3>
+                    <p>This version introduced the ability to drop interactive pins, write notes, and start building a personal logbook of visited locations.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item right">
+                <div class="timeline-content">
+                    <h3>V2.0 - Personalization</h3>
+                    <p>Introduction of activity tracing for walking, hiking, running, and cycling. Account and comments launched ad well as my Log to track your own journeys.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item left current">
+                <div class="timeline-content">
+                    <h3>V3.0 - General Improvments and Launch Website</h3>
+                    <p>Added rich location data, detailed facility tags, an improved mobile experience, and robust cloud syncing tailored for local adventurers.</p>
+                </div>
+            </div>
+
+            <div class="timeline-item right future">
+                <div class="timeline-content">
+                    <h3>General improvments and growing userbase</h3>
+                    <p>Aim to gow our users to create more content to discover and add more features to hlep to discover easier.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item left future">
+                <div class="timeline-content">
+                    <h3>Future - Expanding to the World</h3>
+                    <p>Taking TraceLog global. Our next major leap involves expanding our curated discoveries, introducing advanced routing features, integrating more social/community review aspects, and bringing the full TraceLog experience to explorers worldwide.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
