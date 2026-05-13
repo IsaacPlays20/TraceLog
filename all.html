@@ -21,6 +21,7 @@
             --text: #0f172a; 
             --border: #e2e8f0;
             --transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color-scheme: light;
         }
 
         .dark-theme { 
@@ -28,6 +29,7 @@
             --card: rgba(30, 41, 59, 0.9); 
             --text: #f1f5f9; 
             --border: #334155; 
+            color-scheme: dark;
         }
 
         body, html { 
@@ -126,15 +128,15 @@
         .sidebar-scroll-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
         .modal::-webkit-scrollbar, 
-        #fullEmojiGrid::-webkit-scrollbar, 
+        #fullEmojiContainer::-webkit-scrollbar, 
         #modalPhotoList::-webkit-scrollbar, 
         #modalReviewPhotoPreview::-webkit-scrollbar { 
             width: 4px; height: 4px; 
         }
-        .modal::-webkit-scrollbar-track, #fullEmojiGrid::-webkit-scrollbar-track, #modalPhotoList::-webkit-scrollbar-track, #modalReviewPhotoPreview::-webkit-scrollbar-track { 
+        .modal::-webkit-scrollbar-track, #fullEmojiContainer::-webkit-scrollbar-track, #modalPhotoList::-webkit-scrollbar-track, #modalReviewPhotoPreview::-webkit-scrollbar-track { 
             background: transparent; 
         }
-        .modal::-webkit-scrollbar-thumb, #fullEmojiGrid::-webkit-scrollbar-thumb, #modalPhotoList::-webkit-scrollbar-thumb, #modalReviewPhotoPreview::-webkit-scrollbar-thumb { 
+        .modal::-webkit-scrollbar-thumb, #fullEmojiContainer::-webkit-scrollbar-thumb, #modalPhotoList::-webkit-scrollbar-thumb, #modalReviewPhotoPreview::-webkit-scrollbar-thumb { 
             background: var(--border); border-radius: 4px; 
         }
 
@@ -176,6 +178,23 @@
         .settings-header:hover { opacity: 0.7; }
         .settings-content { display: flex; flex-direction: column; gap: 8px; margin-bottom: 5px; }
         .settings-label { font-size: 13px; font-weight: 600; opacity: 0.9; }
+
+        .custom-select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding: 8px 30px 8px 12px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: rgba(0,0,0,0.15) url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E") no-repeat right 10px center;
+            color: var(--text);
+            font-size: 11px;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .custom-select:hover { background-color: rgba(0,0,0,0.2); }
+        .custom-select:focus { outline: none; border-color: var(--primary); }
 
         .switch { position: relative; display: inline-block; width: 42px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; position: absolute; appearance: none; }
@@ -291,7 +310,8 @@
         #explore-panel, #add-panel, #settings-panel, #detail-view { padding-bottom: 20px; }
 
         .zoom-controls { position: absolute; top: 20px; right: 20px; z-index: 3000; display: flex; flex-direction: column; gap: 8px; transition: top 0.3s ease; }
-        .btn { width: 100%; height: 42px; margin-bottom: 10px; font-size: 12px; }
+        .btn { width: 100%; height: 42px; margin-bottom: 10px; font-size: 12px; font-family: inherit; }
+        .settings-content .btn { margin-bottom: 0; }
 
         #elevation-dock { 
             position: absolute; bottom: -450px; left: calc(var(--sidebar) + 20px); 
@@ -433,6 +453,12 @@
         .custom-pin-marker:hover { z-index: 10000 !important; }
 
         .speed-input-group { display: flex; flex-direction: column; gap: 2px; }
+        .speed-input-group input[type=number]::-webkit-inner-spin-button,
+        .speed-input-group input[type=number]::-webkit-outer-spin-button {
+            opacity: 1;
+            cursor: pointer;
+            height: 100%;
+        }
 
         .comments-section { margin-top: 10px; }
         .comment-item { 
@@ -584,7 +610,7 @@
             <div class="fly-control-row" style="justify-content: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
                 <button class="fly-adjust-btn" onclick="rewindFlyover()" style="width:40px; height:36px; font-size:16px;" title="Rewind 10s">⏪</button>
                 <button class="fly-btn" id="flyPauseBtn" onclick="toggleFlyPause()" style="flex:1; max-width:100px;">⏸ PAUSE</button>
-                <select id="flyMapSelect" onchange="setMapLayer(this.value)" style="height:36px; border-radius:10px; border:none; background:rgba(0,0,0,0.15); color:var(--text); font-size:11px; font-weight:800; padding:0 10px; width: 90px; font-family: inherit;">
+                <select id="flyMapSelect" class="custom-select" onchange="setMapLayer(this.value)" style="height:36px; border-radius:10px; width: 100px;">
                     <option value="voyager">Voyager</option>
                     <option value="dark">Dark</option>
                     <option value="sat">Satellite</option>
@@ -643,13 +669,13 @@
                         <button id="minimizeBtn" class="icon-btn" onclick="toggleSidebar()">✕</button>
                     </div>
                 </div>
-                <input type="text" id="mainSearch" placeholder="🔍 Search City, Pins, Activities...">
                 
                 <div class="tab-nav" id="mainTabs">
                     <button class="tab-btn active" id="exploreTab" onclick="switchTab('explore')">EXPLORE</button>
                     <button class="tab-btn" id="addTab" onclick="switchTab('add')">YOU</button>
                     <button class="tab-btn" id="settingsTab" onclick="switchTab('settings')">SETTINGS</button>
                 </div>
+                <input type="text" id="mainSearch" placeholder="🔍 Search City, Pins, Activities...">
             </div>
 
             <div class="sidebar-scroll-area" id="mainScrollArea">
@@ -667,6 +693,13 @@
                             <button class="seg-btn active" onclick="setFilterMode('all', this)">Both</button>
                             <button class="seg-btn" onclick="setFilterMode('pins', this)">Pins</button>
                             <button class="seg-btn" onclick="setFilterMode('walks', this)">Activities</button>
+                        </div>
+
+                        <div class="segmented-control">
+                            <button class="seg-btn active" onclick="setLogStatusFilter('all', this)">All</button>
+                            <button class="seg-btn" onclick="setLogStatusFilter('none', this)">New</button>
+                            <button class="seg-btn" onclick="setLogStatusFilter('bucket', this)">Bucket</button>
+                            <button class="seg-btn" onclick="setLogStatusFilter('visited', this)">Visited</button>
                         </div>
 
                         <div class="filter-section" id="filterSectionPins">
@@ -735,11 +768,12 @@
                         <div class="filter-container">
                         <div class="segmented-control">
                             <button class="seg-btn active" onclick="setYouTabView('uploads', this)">My Uploads</button>
+                            <button class="seg-btn" onclick="setYouTabView('bucket', this)">Bucket List</button>
                             <button class="seg-btn" onclick="setYouTabView('logbook', this)">My Logbook</button>
                         </div>
 
                         <div style="display:flex; gap:6px;" id="myLogPrivacyFilter">
-                                <select onchange="setMyLogPrivacy(this.value)" style="flex:1; padding:0 10px; height:34px; border-radius:10px; border:none; background:rgba(0,0,0,0.15); color:var(--text); font-size:11px; font-weight:800; font-family:inherit;">
+                                <select class="custom-select" onchange="setMyLogPrivacy(this.value)" style="flex:1; height:34px; border-radius:10px;">
                                     <option value="all">👁️ ALL VISIBILITY</option>
                                     <option value="public">🌍 PUBLIC</option>
                                     <option value="private">🔒 PRIVATE</option>
@@ -776,41 +810,35 @@
                         
                         <div id="my-saved-list"></div>
                         <div id="my-logged-list" style="display:none;"></div>
+                        <div id="my-bucket-list" style="display:none;"></div>
                     </div>
 
                     <div class="scroll-spacer"></div>
                 </div>
 
                 <div id="settings-panel" style="display:none;">
+                    <div id="profileRow" style="display:none; align-items:center; gap:15px; padding: 10px 15px 20px 15px; border-bottom: 1px solid var(--border); margin-bottom: 10px;">
+                        <div id="settingsAvatarPreview" class="comment-avatar" style="width:64px; height:64px; font-size:24px; flex-shrink:0; cursor:pointer; position:relative; transition: 0.2s;" onclick="openAvatarPopup()" title="Change Avatar">
+                            <span id="settingsAvatarText"></span>
+                            <div class="pencil-badge" style="position:absolute; bottom:-4px; right:-4px; background:var(--card); border:1px solid var(--border); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:12px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">✏️</div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; flex:1;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <input type="text" id="settingsDisplayName" class="modal-input" style="padding:4px 8px; font-size:18px; font-weight:800; background:transparent; border:none; outline:none; box-shadow:none; width:100%; margin:0; transition:0.2s;" placeholder="Loading..." oninput="document.getElementById('updateDNBtn').style.display='block'" onfocus="this.style.background='rgba(0,0,0,0.15)'" onblur="this.style.background='transparent'">
+                                <button class="btn" id="updateDNBtn" style="width:auto; padding:0 10px; height:28px; margin:0; display:none; flex-shrink:0;">Save</button>
+                            </div>
+                            <span id="userEmailDisplay" style="font-size:13px; opacity:0.7; margin-left: 8px;"></span>
+                        </div>
+                    </div>
+
                     <div class="settings-container">
                         <button class="settings-header" onclick="toggleSettingsSection('genSettings', this)">
                             <span>General</span> <span class="chevron">▼</span>
                         </button>
                         <div id="genSettings" class="settings-content">
-                            <div class="settings-row-refined" id="profileRow" style="display:none; flex-direction:column; align-items:flex-start; gap:4px;">
-                                <span class="settings-label">Logged in as</span>
-                                <span id="userEmailDisplay" style="font-size:12px; opacity:0.7; word-break:break-all;"></span>
-                                <div style="width:100%; margin-top:8px; padding-top:8px; border-top:1px solid var(--border);">
-                                    <span class="settings-label" style="font-size:11px;">Display Name</span>
-                                    <div style="display:flex; gap:5px; margin-top:4px;">
-                                        <input type="text" id="settingsDisplayName" class="modal-input" style="padding:6px; font-size:12px;" placeholder="Loading..."><button class="btn" id="updateDNBtn" style="width:auto; padding:0 10px; height:30px;">Save</button>
-                                    </div>
-                                </div>
-                                <div style="width:100%; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:8px;">
-                                    <span class="settings-label" style="font-size:11px;">Avatar Style</span>
-                                    <div style="display:flex; align-items:center; gap:12px;">
-                                        <div id="settingsAvatarPreview" class="comment-avatar" style="width:48px; height:48px; font-size:18px; flex-shrink:0;"></div>
-                                        <div style="flex:1; display:flex; flex-direction:column; gap:8px;">
-                                            <input type="text" id="avatarTextInput" class="modal-input" maxlength="2" placeholder="Initials or Emoji" style="padding:6px; font-size:12px; width:100%;">
-                                            <div style="display:flex; gap:4px; flex-wrap:wrap;" id="profileEmojiPicker"></div>
-                                            <div style="display:flex; gap:6px; flex-wrap:wrap;" id="profileColorPicker"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                             <div class="settings-row-refined">
                                 <span class="settings-label">Map Style</span>
-                                <select id="settingsMapSelect" onchange="setMapLayer(this.value)" style="padding:8px 12px; border-radius:8px; border:none; background:rgba(0,0,0,0.15); color:var(--text); font-size:11px; max-width: 120px; font-family: inherit;">
+                                <select id="settingsMapSelect" class="custom-select" onchange="setMapLayer(this.value)" style="max-width: 140px;">
                                     <option value="voyager">Voyager</option>
                                     <option value="dark">Dark</option>
                                     <option value="sat">Satellite</option>
@@ -835,7 +863,7 @@
                         <div id="prefSettings" class="settings-content" style="display:none;">
                             <div class="settings-row-refined">
                                 <span class="settings-label">Units</span>
-                                <select id="unitSelect" onchange="changeUnits(this.value)" style="padding:8px 12px; border-radius:8px; border:none; background:rgba(0,0,0,0.15); color:var(--text); font-size:11px; max-width: 120px; font-family: inherit;">
+                                <select id="unitSelect" class="custom-select" onchange="changeUnits(this.value)" style="max-width: 140px;">
                                     <option value="metric">Metric (km, m)</option>
                                     <option value="imperial">Imperial (mi, ft)</option>
                                 </select>
@@ -843,10 +871,10 @@
                             <div class="settings-row-refined" style="flex-direction:column; align-items:flex-start; gap:10px;">
                                 <span class="settings-label">Default Speeds (<span id="speedUnitLabel">km/h</span>)</span>
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; width:100%;">
-                                    <div class="speed-input-group"><span style="font-size:10px;">Walk</span><input type="number" id="speedWalk" class="modal-input" style="padding:6px; font-size:12px;" onchange="saveSpeeds()"></div>
-                                    <div class="speed-input-group"><span style="font-size:10px;">Hike</span><input type="number" id="speedHike" class="modal-input" style="padding:6px; font-size:12px;" onchange="saveSpeeds()"></div>
-                                    <div class="speed-input-group"><span style="font-size:10px;">Run</span><input type="number" id="speedRun" class="modal-input" style="padding:6px; font-size:12px;" onchange="saveSpeeds()"></div>
-                                    <div class="speed-input-group"><span style="font-size:10px;">Cycle</span><input type="number" id="speedCycle" class="modal-input" style="padding:6px; font-size:12px;" onchange="saveSpeeds()"></div>
+                                    <div class="speed-input-group"><span style="font-size:11px; font-weight:800; color:var(--accent);"><span style="margin-right:4px;">🚶</span>Walk</span><input type="number" id="speedWalk" class="modal-input" style="padding:8px; font-size:13px;" onchange="saveSpeeds()"></div>
+                                    <div class="speed-input-group"><span style="font-size:11px; font-weight:800; color:#d97706;"><span style="margin-right:4px;">🥾</span>Hike</span><input type="number" id="speedHike" class="modal-input" style="padding:8px; font-size:13px;" onchange="saveSpeeds()"></div>
+                                    <div class="speed-input-group"><span style="font-size:11px; font-weight:800; color:var(--danger);"><span style="margin-right:4px;">⚡</span>Run</span><input type="number" id="speedRun" class="modal-input" style="padding:8px; font-size:13px;" onchange="saveSpeeds()"></div>
+                                    <div class="speed-input-group"><span style="font-size:11px; font-weight:800; color:#3b82f6;"><span style="margin-right:4px;">🚲</span>Cycle</span><input type="number" id="speedCycle" class="modal-input" style="padding:8px; font-size:13px;" onchange="saveSpeeds()"></div>
                                 </div>
                             </div>
                         </div>
@@ -854,17 +882,17 @@
                         <button class="settings-header" onclick="toggleSettingsSection('accSettings', this)">
                             <span>Account</span> <span class="chevron" style="transform:rotate(-90deg)">▼</span>
                         </button>
-                        <div id="accSettings" class="settings-content" style="display:none;">
-                            <button class="btn" onclick="makeAllPrivate()" style="margin-top:5px; background:rgba(0,0,0,0.15); border:none; color:var(--text); opacity:0.8; font-size:11px;">🔒 Make All Items Private</button>
-                            <button class="btn" onclick="signOut()" style="margin-top:5px; background:var(--danger); border:none; color:white; font-size:11px;">Sign Out</button>
-                            <button class="btn" onclick="deleteAccount()" style="margin-top:5px; background:rgba(239, 68, 68, 0.1); border:none; color:var(--danger); font-size:11px;">⚠️ Delete Account</button>
+                        <div id="accSettings" class="settings-content" style="display:none; gap:8px;">
+                            <button class="btn" onclick="makeAllPrivate()" style="background:rgba(0,0,0,0.15); border:none; color:var(--text); opacity:0.8; font-size:11px; margin:0;">🔒 Make All Items Private</button>
+                            <button class="btn" onclick="signOut()" style="background:var(--danger); border:none; color:white; font-size:11px; margin:0;">Sign Out</button>
+                            <button class="btn" onclick="deleteAccount()" style="background:rgba(239, 68, 68, 0.1); border:none; color:var(--danger); font-size:11px; margin:0;">⚠️ Delete Account</button>
                         </div>
 
                         <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 15px;">
                             <p id="versionLabel" style="font-size: 11px; opacity: 0.5; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">TraceLog V3.0 Stable</p>
                             <div style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;">
-                                <a href="https://github.com/IsaacPlays20/TraceLog/issues" target="_blank" class="btn" style="flex: 1; height: 34px; font-size: 11px; background: rgba(0,0,0,0.15); border: none; color: var(--text); opacity: 0.8; text-decoration: none; margin: 0;">Report a Bug</a>
-                                <a href="https://github.com/IsaacPlays20/TraceLog" target="_blank" class="btn" style="flex: 1; height: 34px; font-size: 11px; background: rgba(0,0,0,0.15); border: none; color: var(--text); opacity: 0.8; text-decoration: none; margin: 0;">GitHub</a>
+                                <a href="https://github.com/IsaacPlays20/TraceLog/issues" target="_blank" class="btn" style="flex: 1; height: 34px; font-size: 11px; background: rgba(0,0,0,0.15); border: none; color: var(--text); opacity: 0.8; text-decoration: none; margin: 0; display: flex; align-items: center; justify-content: center;">Report a Bug</a>
+                                <a href="https://github.com/IsaacPlays20/TraceLog" target="_blank" class="btn" style="flex: 1; height: 34px; font-size: 11px; background: rgba(0,0,0,0.15); border: none; color: var(--text); opacity: 0.8; text-decoration: none; margin: 0; display: flex; align-items: center; justify-content: center;">GitHub</a>
                             </div>
                         </div>
                     </div>
@@ -988,8 +1016,12 @@
                 <button class="btn" onclick="openUrlUploadPopup('create')" style="background:rgba(0,0,0,0.15); border:none; font-size:11px; height:32px;">📷 Add Photo</button>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:0 5px;">
-                    <span class="settings-label" style="font-size:12px;">Mark as Visited</span>
-                    <label class="switch"><input type="checkbox" id="visitedToggle"><span class="slider"></span></label>
+                    <span class="settings-label" style="font-size:12px;">Log Status</span>
+                    <select id="logStatusSelect" class="custom-select" style="max-width: 140px;">
+                        <option value="none">None</option>
+                        <option value="bucket">Bucket List</option>
+                        <option value="visited">Visited</option>
+                    </select>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:0 5px;">
                     <span class="settings-label" style="font-size:12px;">Make Public</span>
@@ -1009,11 +1041,30 @@
         </div>
     </div>
 
-    <div id="emoji-modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.7); align-items:center; justify-content:center; z-index:10002; backdrop-filter:blur(4px);">
+    <div id="avatar-modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.7); align-items:center; justify-content:center; z-index:10002; backdrop-filter:blur(4px);">
+        <div class="modal" style="width: 320px; max-height: 80vh; display: flex; flex-direction: column; overflow-y:auto;">
+            <h3 style="margin-top:0;">Customize Profile</h3>
+            <div style="display:flex; align-items:center; justify-content:center; margin-bottom:15px;">
+                <div id="avatarModalPreview" class="comment-avatar" style="width:80px; height:80px; font-size:32px;"></div>
+            </div>
+            <span class="settings-label" style="font-size:11px; margin-bottom:5px;">Display Name</span>
+            <input type="text" id="avatarModalDisplayName" class="modal-input" placeholder="Display Name" style="padding:10px; font-size:14px; margin-bottom:15px;">
+            <span class="settings-label" style="font-size:11px; margin-bottom:5px;">Icon or Initials</span>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <input type="text" id="avatarTextInput" class="modal-input" maxlength="2" placeholder="Initials or Emoji" style="padding:10px; font-size:14px; flex:1; margin:0;">
+                <button class="btn" onclick="openEmojiModal()" style="margin:0; width:auto; padding:0 20px; font-size:14px; height:auto;">Icon</button>
+            </div>
+            <span class="settings-label" style="font-size:11px; margin-bottom:5px;">Background Color</span>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:15px;" id="profileColorPicker"></div>
+            <button class="btn btn-save-action" onclick="closeAvatarPopup()" style="margin-top:auto;">Done</button>
+        </div>
+    </div>
+
+    <div id="emoji-modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.7); align-items:center; justify-content:center; z-index:10003; backdrop-filter:blur(4px);">
         <div class="modal" style="width: 320px; max-height: 80vh; display: flex; flex-direction: column;">
             <h3 style="margin-top:0;">Select Icon</h3>
-            <div id="fullEmojiGrid" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; overflow-y: auto; padding-right: 5px; flex: 1;"></div>
-            <button class="btn" onclick="document.getElementById('emoji-modal-overlay').style.display='none'" style="margin-top:15px; background:rgba(0,0,0,0.15); border:none; color:var(--text);">Close</button>
+            <div id="fullEmojiContainer" style="display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-right: 5px; flex: 1;"></div>
+            <button class="btn" onclick="document.getElementById('emoji-modal-overlay').style.display='none'" style="margin-top:15px; margin-bottom:0; background:rgba(0,0,0,0.15); border:none; color:var(--text);">Close</button>
         </div>
     </div>
 
@@ -1030,6 +1081,18 @@
                 <button class="btn btn-save-action" onclick="postComment()" id="postReviewBtn">Post Review</button>
                 <button class="btn" onclick="closeReviewModal()" style="background:rgba(0,0,0,0.15); border:none; color:var(--text);">Cancel</button>
             </div>
+        </div>
+    </div>
+
+    <div id="log-status-modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.7); align-items:center; justify-content:center; z-index:10003; backdrop-filter:blur(4px);">
+        <div class="modal" style="width: 280px; text-align: center;">
+            <h3 style="margin-top:0;">Add Label</h3>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom: 15px;">
+                <button class="btn" onclick="setLogStatusFromPopup('visited')" style="background:var(--accent); border:none; color:white; font-size:14px; margin:0;">Visited</button>
+                <button class="btn" onclick="setLogStatusFromPopup('bucket')" style="background:var(--primary); border:none; color:white; font-size:14px; margin:0;">Bucket List</button>
+                <button class="btn" onclick="setLogStatusFromPopup('none')" style="background:rgba(0,0,0,0.15); border:none; color:var(--text); font-size:14px; margin:0;">Remove Label</button>
+            </div>
+            <button class="btn" onclick="document.getElementById('log-status-modal-overlay').style.display='none'" style="margin:0; background:transparent; border:1px solid var(--border); color:var(--text);">Cancel</button>
         </div>
     </div>
 
@@ -1102,16 +1165,12 @@
 
         const BASIC_EMOJIS = ['👤', '🙂', '📍', '🌲', '🏔️', '🌊', '🚲', '🏃'];
         const ALL_EMOJIS = [
-            '👤', '🙂', '😀', '😎', '🤠', '🥳', '😴', '🤔', 
-            '📍', '🏠', '🏢', '⛺', '🏰', '🗽', '🗼', '🗿',
-            '🌲', '🌳', '🌴', '🌵', '🌿', '🍂', '🍁', '🍄',
-            '🏔️', '⛰️', '🌋', '🗻', '🏜️', '🏖️', '🏝️', '🏞️',
-            '🌊', '💧', '🔥', '🌈', '☀️', '🌙', '⭐', '☁️',
-            '🚲', '🏃', '🚶', '🧗', '🏄', '🏊', '🚣', '🏇',
-            '🚗', '✈️', '🚀', '🚁', '🚂', '🚌', '🏎️', '🏍️',
-            '📸', '🎨', '🎤', '🎧', '🎮', '🎲', '🧩', '🧸',
-            '🐶', '🐱', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁',
-            '🐸', '🐢', '🐙', '🐬', '🐳', '🦈', '🐊', '🦕'
+            { category: 'Faces & People', emojis: ['👤', '🙂', '😀', '😎', '🤠', '🥳', '😴', '🤔'] },
+            { category: 'Nature & Weather', emojis: ['🌲', '🌳', '🌴', '🌵', '🌿', '🍂', '🍁', '🍄', '🏔️', '⛰️', '🌋', '🗻', '🏜️', '🏖️', '🏝️', '🏞️', '🌊', '💧', '🔥', '🌈', '☀️', '🌙', '⭐', '☁️'] },
+            { category: 'Places & Travel', emojis: ['📍', '🏠', '🏢', '⛺', '🏰', '🗽', '🗼', '🗿', '🚗', '✈️', '🚀', '🚁', '🚂', '🚌', '🏎️', '🏍️'] },
+            { category: 'Activities & Sports', emojis: ['🚲', '🏃', '🚶', '🧗', '🏄', '🏊', '🚣', '🏇'] },
+            { category: 'Animals', emojis: ['🐶', '🐱', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐸', '🐢', '🐙', '🐬', '🐳', '🦈', '🐊', '🦕'] },
+            { category: 'Objects', emojis: ['📸', '🎨', '🎤', '🎧', '🎮', '🎲', '🧩', '🧸'] }
         ];
 
         // Activity Color Coding
@@ -1143,7 +1202,8 @@
             categories: PIN_TYPES.map(t => t.name),
             sort: 'rating',
             onlyMine: false,
-            search: ''
+            search: '',
+            logStatus: 'all'
         };
         
         let myLogFilters = {
@@ -1310,17 +1370,25 @@
             if (!currentUser) return;
             const visitedSet = new Set(currentUser.visitedItems || []);
             const visitedMap = currentUser.visitedData || {};
+            const bucketSet = new Set(currentUser.bucketItems || []);
             
             const process = (item) => {
                 if (visitedMap[item.id]) {
                     item.visited = true;
                     item.visitedDate = visitedMap[item.id];
+                    item.bucketList = false;
                 } else if (visitedSet.has(item.id)) {
                     item.visited = true;
                     item.visitedDate = null;
+                    item.bucketList = false;
+                } else if (bucketSet.has(item.id)) {
+                    item.visited = false;
+                    item.visitedDate = null;
+                    item.bucketList = true;
                 } else {
                     item.visited = false;
                     item.visitedDate = null;
+                    item.bucketList = false;
                 }
             };
             
@@ -1446,6 +1514,13 @@
             updateHighlights();
         }
 
+        function setLogStatusFilter(status, btn) {
+            activeFilters.logStatus = status;
+            btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateHighlights();
+        }
+
         function setMyLogSort(type, btn) {
             myLogFilters.sort = type;
             btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -1458,32 +1533,79 @@
             updateMyLogList();
         }
 
-        async function toggleVisited() {
-            if(!activeSelectionId) return;
+        function openLogStatusPopup() {
+            if (!currentUser) {
+                alert("Please log in to add labels.");
+                return;
+            }
+            document.getElementById('log-status-modal-overlay').style.display = 'flex';
+        }
+
+        async function setLogStatusFromPopup(status) {
+            document.getElementById('log-status-modal-overlay').style.display = 'none';
+            if(!activeSelectionId || !currentUser) return;
             const item = storage.pins.find(p=>p.id===activeSelectionId) || storage.walks.find(w=>w.id===activeSelectionId);
             if(!item) return;
             
-            item.visited = !item.visited;
-            
             if (!currentUser.visitedData) currentUser.visitedData = {};
             if (!currentUser.visitedItems) currentUser.visitedItems = []; // Legacy support
+            if (!currentUser.bucketItems) currentUser.bucketItems = [];
             
             const idStr = item.id.toString();
             
-            if (item.visited) {
+            item.bucketList = false;
+            item.visited = false;
+            item.visitedDate = null;
+            delete currentUser.visitedData[idStr];
+            currentUser.visitedItems = currentUser.visitedItems.filter(id => id !== item.id);
+            currentUser.bucketItems = currentUser.bucketItems.filter(id => id !== item.id);
+
+            if (status === 'bucket') {
+                item.bucketList = true;
+                currentUser.bucketItems.push(item.id);
+            } else if (status === 'visited') {
+                item.visited = true;
                 item.visitedDate = Date.now();
                 currentUser.visitedData[idStr] = item.visitedDate;
-                if (!currentUser.visitedItems.includes(item.id)) currentUser.visitedItems.push(item.id);
-            } else {
-                delete currentUser.visitedData[idStr];
-                item.visitedDate = null;
-                currentUser.visitedItems = currentUser.visitedItems.filter(id => id !== item.id);
+                currentUser.visitedItems.push(item.id);
             }
 
-            // Save to User Profile instead of Item
-            db.collection('users').doc(currentUser.uid).set({ visitedItems: currentUser.visitedItems, visitedData: currentUser.visitedData }, { merge: true });
+            db.collection('users').doc(currentUser.uid).set({ 
+                visitedItems: currentUser.visitedItems, 
+                visitedData: currentUser.visitedData,
+                bucketItems: currentUser.bucketItems
+            }, { merge: true });
 
             updateVisitedButton(item);
+            refreshMapItems();
+        }
+
+        async function markAsVisitedFromList(itemId) {
+            if (!currentUser) return;
+            const item = storage.pins.find(p=>p.id===itemId) || storage.walks.find(w=>w.id===itemId);
+            if (!item) return;
+
+            if (!currentUser.visitedData) currentUser.visitedData = {};
+            if (!currentUser.visitedItems) currentUser.visitedItems = []; 
+            if (!currentUser.bucketItems) currentUser.bucketItems = [];
+            
+            const idStr = item.id.toString();
+            
+            item.bucketList = false;
+            item.visited = true;
+            item.visitedDate = Date.now();
+            currentUser.visitedData[idStr] = item.visitedDate;
+            
+            if (!currentUser.visitedItems.includes(item.id)) currentUser.visitedItems.push(item.id);
+            currentUser.bucketItems = currentUser.bucketItems.filter(id => id !== item.id);
+
+            db.collection('users').doc(currentUser.uid).set({ 
+                visitedItems: currentUser.visitedItems, 
+                visitedData: currentUser.visitedData,
+                bucketItems: currentUser.bucketItems
+            }, { merge: true });
+
+            if (activeSelectionId === item.id) updateVisitedButton(item);
             refreshMapItems();
         }
 
@@ -1529,12 +1651,18 @@
             currentYouView = view;
             btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            
+            document.getElementById('my-saved-list').style.display = 'none';
+            document.getElementById('my-logged-list').style.display = 'none';
+            document.getElementById('my-bucket-list').style.display = 'none';
+            
             if (view === 'uploads') {
                 document.getElementById('my-saved-list').style.display = 'block';
-                document.getElementById('my-logged-list').style.display = 'none';
                 document.getElementById('myLogPrivacyFilter').style.display = 'flex';
+            } else if (view === 'bucket') {
+                document.getElementById('my-bucket-list').style.display = 'block';
+                document.getElementById('myLogPrivacyFilter').style.display = 'none';
             } else {
-                document.getElementById('my-saved-list').style.display = 'none';
                 document.getElementById('my-logged-list').style.display = 'block';
                 document.getElementById('myLogPrivacyFilter').style.display = 'none';
             }
@@ -1800,6 +1928,9 @@
                 }, 
                 options:{ maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ title:{display:true, text: isImp ? 'mi' : 'km'} }, y:{ title:{display:true, text: isImp ? 'ft' : 'm'}, position:'right' } } } 
             });
+            const labels = distData.map(d => isImp ? (d * 0.621371).toFixed(1) : d.toFixed(1));
+            const data = liveElevData.map(e => isImp ? e * 3.28084 : e);
+            chartInstance = new Chart(ctx, createChartConfig(labels, data, isImp));
         }
 
         function renderTypeLabel(item) {
@@ -1860,7 +1991,7 @@
 
             typeLabelDiv.innerHTML = `
                 ${ownerHtml}
-                <button class="btn" id="markVisitedBtn" onclick="toggleVisited()" style="flex:1; min-width:0; min-height:38px; height:auto; font-size:12px; font-weight:700; border:1px solid var(--border); border-radius:10px; margin:0; padding:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.2; display:flex; align-items:center; justify-content:center; text-align:center;">⭕ Visit</button>
+                <button class="btn" id="markVisitedBtn" style="flex:1; min-width:0; min-height:38px; height:auto; font-size:12px; font-weight:700; border:1px solid var(--border); border-radius:10px; margin:0; padding:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.2; display:flex; align-items:center; justify-content:center; text-align:center;">🏷️ Add Label</button>
                 <a href="${navUrl}" target="_blank" style="flex:1; min-width:0; text-decoration:none; display:flex;">
                     <button class="btn" style="width:100%; min-height:38px; height:auto; font-size:12px; background:rgba(0,0,0,0.15); border:none; color:var(--text); display:flex; align-items:center; justify-content:center; gap:6px; font-weight:700; border-radius:10px; box-shadow:none; margin:0; padding:5px; white-space:nowrap; line-height:1.2; text-align:center;">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Google_Maps_icon_%282026%29.svg/1280px-Google_Maps_icon_%282026%29.svg.png" style="width:20px; height:20px; flex-shrink:0;">
@@ -1937,7 +2068,7 @@
             document.getElementById('mainTabs').style.display = 'flex';
             document.getElementById('detail-view').style.display = 'none';
             document.getElementById('editWalkOptions').style.display = 'none';
-            document.getElementById('mainSearch').style.display = 'block'; 
+            document.getElementById('mainSearch').style.display = (currentTab === 'explore' ? 'block' : 'none'); 
             waypointMarkers.forEach(m => map.removeLayer(m)); waypointMarkers = [];
             closeElevation(); switchTab('explore');
             if(document.body.classList.contains('mobile-mode')) snapTo('open');
@@ -1954,7 +2085,7 @@
             document.getElementById('settings-panel').style.display = (tab === 'settings' ? 'block' : 'none');
             document.getElementById('detail-view').style.display = 'none';
             document.getElementById('editWalkOptions').style.display = 'none';
-            document.getElementById('mainSearch').style.display = 'block'; 
+            document.getElementById('mainSearch').style.display = (tab === 'explore' ? 'block' : 'none'); 
             closeElevation(); setMode(tab === 'explore' ? 'explore' : 'ready');
             refreshMapItems();
             resetSidebarScroll();
@@ -2100,6 +2231,16 @@
             // Explore Tab: Only show Public items
             all = all.filter(i => i.isPublic === true);
             
+            if (activeFilters.logStatus !== 'all' && currentUser) {
+                if (activeFilters.logStatus === 'none') {
+                    all = all.filter(i => !i.visited && !i.bucketList);
+                } else if (activeFilters.logStatus === 'bucket') {
+                    all = all.filter(i => i.bucketList === true);
+                } else if (activeFilters.logStatus === 'visited') {
+                    all = all.filter(i => i.visited === true);
+                }
+            }
+
             all = all.filter(i => {
                 if (i.type === 'PIN') {
                     if (!activeFilters.showPins) return false;
@@ -2186,7 +2327,7 @@
                             ${ratingHtml}
                             ${distHtml}
                         </div>
-                    </div>${i.visited ? '<div class="visited-check-corner">✓</div>' : ''}`;
+                    </div>`;
                 div.onclick = () => { 
                     const obj = i.type === 'PIN' ? storage.pins.find(p=>p.id===i.id) : storage.walks.find(w=>w.id===i.id); 
                     if(i.type === 'WALK' && obj.path) {
@@ -2302,7 +2443,7 @@
             }
         };
 
-        function resetModal() { document.getElementById('itemName').value = ''; document.getElementById('itemDesc').value = ''; setupTypePickers(); tempCreationPhotos = []; document.getElementById('modalPhotoList').innerHTML = ''; renderFacilityPicker('modalFacilityPicker'); }
+        function resetModal() { document.getElementById('itemName').value = ''; document.getElementById('itemDesc').value = ''; document.getElementById('logStatusSelect').value = 'none'; setupTypePickers(); tempCreationPhotos = []; document.getElementById('modalPhotoList').innerHTML = ''; renderFacilityPicker('modalFacilityPicker'); }
 
         document.getElementById('confirmSaveBtn').onclick = async () => {
             if (!currentUser) return;
@@ -2312,21 +2453,29 @@
             const facilities = getSelectedFacilities('modalFacilityPicker');
             const activityMode = document.querySelector('#addModeSelector .mode-btn.active').dataset.mode;
             const isPublic = document.getElementById('publicToggle').checked;
-            const isVisited = document.getElementById('visitedToggle').checked;
             
-            // Handle Visited State
-            const visitedState = isVisited;
+            const logStatus = document.getElementById('logStatusSelect').value;
+            const isVisited = (logStatus === 'visited');
+            const isBucket = (logStatus === 'bucket');
+            
             const visitedDate = isVisited ? Date.now() : null;
             
+            if (!currentUser.visitedData) currentUser.visitedData = {};
+            if (!currentUser.visitedItems) currentUser.visitedItems = [];
+            if (!currentUser.bucketItems) currentUser.bucketItems = [];
+
             if (isVisited) {
-                if (!currentUser.visitedData) currentUser.visitedData = {};
-                if (!currentUser.visitedItems) currentUser.visitedItems = [];
                 currentUser.visitedData[id.toString()] = visitedDate;
                 currentUser.visitedItems.push(id);
-                // Update user profile immediately
+            } else if (isBucket) {
+                currentUser.bucketItems.push(id);
+            }
+            
+            if (isVisited || isBucket) {
                 db.collection('users').doc(currentUser.uid).set({ 
                     visitedItems: currentUser.visitedItems, 
-                    visitedData: currentUser.visitedData 
+                    visitedData: currentUser.visitedData,
+                    bucketItems: currentUser.bucketItems
                 }, { merge: true });
             }
             
@@ -2335,7 +2484,7 @@
             if (tempPath.length < 2) { 
                 flat = pendingCoords.lat; 
                 flon = pendingCoords.lng; 
-                entry = { id, name, desc, rating: 0, lat: flat, lng: flon, color: selectedColor, type: 'PIN', userId: currentUser.uid, creatorName: currentUser.displayName || "User", isPublic: isPublic, photos: [...tempCreationPhotos], facilities: facilities, visited: visitedState, visitedDate: visitedDate };
+                entry = { id, name, desc, rating: 0, lat: flat, lng: flon, color: selectedColor, type: 'PIN', userId: currentUser.uid, creatorName: currentUser.displayName || "User", isPublic: isPublic, photos: [...tempCreationPhotos], facilities: facilities, visited: isVisited, visitedDate: visitedDate, bucketList: isBucket };
                 storage.pins.push(entry); 
                 addPin(entry);
                 await saveToCloud('pins', entry);
@@ -2361,8 +2510,9 @@
                     creatorName: currentUser.displayName || "User",
                     photos: [...tempCreationPhotos],
                     facilities: facilities,
-                    visited: visitedState,
-                    visitedDate: visitedDate
+                    visited: isVisited,
+                    visitedDate: visitedDate,
+                    bucketList: isBucket
                 }; 
                 storage.walks.push(entry); 
                 addWalk(entry); 
@@ -2637,17 +2787,30 @@
             
             const isWalk = (item.path !== undefined);
             const isVisited = item.visited === true;
-            let label = isWalk ? (isVisited ? '✅ Done' : '⭕ Do') : (isVisited ? '✅ Visited' : '⭕ Visit');
+            const isBucket = item.bucketList === true;
             
-            if (isVisited && item.visitedDate) {
-                const dateStr = formatDate(item.visitedDate);
-                label += ` <span style="font-size:10px; opacity:0.8; margin-left:4px;">(${dateStr})</span>`;
+            let label = '🏷️ Add Label';
+            let bg = 'rgba(0,0,0,0.15)';
+            let color = 'var(--text)';
+            let border = '1px solid var(--border)';
+            
+            if (isVisited) {
+                label = 'Visited';
+                bg = 'var(--accent)';
+                color = 'white';
+                border = 'none';
+            } else if (isBucket) {
+                label = 'Bucket List';
+                bg = 'var(--primary)';
+                color = 'white';
+                border = 'none';
             }
             
             btn.innerHTML = label;
-            btn.style.background = isVisited ? 'var(--accent)' : 'rgba(0,0,0,0.15)';
-            btn.style.color = isVisited ? 'white' : 'var(--text)';
-            btn.style.border = isVisited ? 'none' : '1px solid var(--border)';
+            btn.style.background = bg;
+            btn.style.color = color;
+            btn.style.border = border;
+            btn.onclick = () => openLogStatusPopup();
         }
 
         function updateDetailRating(item) {
@@ -2915,6 +3078,9 @@
                     }
                 }]
             });
+            const labels = distData.map(d => isImp ? (d * 0.621371).toFixed(1) : d.toFixed(1));
+            const data = item.elevData.map(e => isImp ? e * 3.28084 : e);
+            chartInstance = new Chart(ctx, createChartConfig(labels, data, isImp));
         }
 
         function updateWalkStats() {
@@ -3447,6 +3613,9 @@
                         document.getElementById('elevation-dock').classList.add('active');
                         const ctx = document.getElementById('elevChart').getContext('2d'); if(chartInstance) chartInstance.destroy();
                         chartInstance = new Chart(ctx, { type:'line', data:{ labels: distData.map(d => isImp ? (d * 0.621371).toFixed(1) : d.toFixed(1)), datasets:[{ data: elevs.map(e => isImp ? e * 3.28084 : e), borderColor:'#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.15)', fill:true, pointRadius:0, borderWidth: 2, tension:0.4, cubicInterpolationMode: 'monotone' }] }, options:{ maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ title:{display:true, text: isImp ? 'mi' : 'km'} }, y:{ title:{display:true, text: isImp ? 'ft' : 'm'}, position:'right' } } } });
+                        const labels = distData.map(d => isImp ? (d * 0.621371).toFixed(1) : d.toFixed(1));
+                        const data = elevs.map(e => isImp ? e * 3.28084 : e);
+                        chartInstance = new Chart(ctx, createChartConfig(labels, data, isImp));
                     }
                     return;
                 }
@@ -3459,6 +3628,9 @@
                     document.getElementById('elevation-dock').classList.add('active');
                     const ctx = document.getElementById('elevChart').getContext('2d'); if(chartInstance) chartInstance.destroy();
                     chartInstance = new Chart(ctx, { type:'line', data:{ labels: distData.map(d => isImp ? (d * 0.621371).toFixed(1) : d.toFixed(1)), datasets:[{ data: elevs.map(e => isImp ? e * 3.28084 : e), borderColor:'#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.15)', fill:true, pointRadius:0, borderWidth: 2, tension:0.4, cubicInterpolationMode: 'monotone' }] }, options:{ maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ title:{display:true, text: isImp ? 'mi' : 'km'} }, y:{ title:{display:true, text: isImp ? 'ft' : 'm'}, position:'right' } } } });
+                    const labels = distData.map(d => isImp ? (d * 0.621371).toFixed(1) : d.toFixed(1));
+                    const data = elevs.map(e => isImp ? e * 3.28084 : e);
+                    chartInstance = new Chart(ctx, createChartConfig(labels, data, isImp));
                 }
                 if(item) updateWalkStats(); 
             } catch(e) { if (e.name !== 'AbortError') console.error(e); }
@@ -3596,6 +3768,91 @@
             }
         });
 
+        function createChartConfig(labels, data, isImp) {
+            return {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                        fill: true,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        borderWidth: 2,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            displayColors: false,
+                            callbacks: {
+                                title: (ctx) => `Distance: ${ctx[0].label} ${isImp ? 'mi' : 'km'}`,
+                                label: (ctx) => `Height: ${Math.round(ctx.raw)} ${isImp ? 'ft' : 'm'}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: isImp ? 'mi' : 'km' }, ticks: { maxTicksLimit: 8 } },
+                        y: { title: { display: true, text: isImp ? 'ft' : 'm' }, position: 'right' }
+                    }
+                },
+                plugins: [{
+                    id: 'minMaxPlugin',
+                    afterDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        const dsData = chart.data.datasets[0].data;
+                        if (!dsData || dsData.length === 0) return;
+                        let min = Infinity, max = -Infinity;
+                        let minIdx = -1, maxIdx = -1;
+                        for (let i = 0; i < dsData.length; i++) {
+                            if (dsData[i] < min) { min = dsData[i]; minIdx = i; }
+                            if (dsData[i] > max) { max = dsData[i]; maxIdx = i; }
+                        }
+                        const meta = chart.getDatasetMeta(0);
+                        const unit = isImp ? 'ft' : 'm';
+                        const drawPoint = (idx, val, label, color) => {
+                            if (idx < 0) return;
+                            const el = meta.data[idx];
+                            if (!el) return;
+                            const x = el.x; const y = el.y;
+                            ctx.save(); ctx.beginPath(); ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                            ctx.fillStyle = color; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+                            ctx.font = 'bold 11px Inter'; ctx.fillStyle = color; ctx.textAlign = 'center';
+                            let textY = y - 12;
+                            if (label === 'MIN' && y > chart.chartArea.bottom - 20) textY = y - 12;
+                            else if (label === 'MIN') textY = y + 20;
+                            if (label === 'MAX' && y < chart.chartArea.top + 20) textY = y + 20;
+                            ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 4;
+                            ctx.fillText(`${label}: ${Math.round(val)}${unit}`, x, textY);
+                            ctx.restore();
+                        };
+                        if (minIdx !== -1) drawPoint(minIdx, min, 'MIN', '#3b82f6');
+                        if (maxIdx !== -1 && maxIdx !== minIdx) drawPoint(maxIdx, max, 'MAX', '#ef4444');
+                    }
+                }, {
+                    id: 'flyoverProgress',
+                    afterDraw: (chart) => {
+                        if (typeof window.flyoverDistance !== 'number' || window.flyoverDistance === null) return;
+                        const ctx = chart.ctx; const xAxis = chart.scales.x; const yAxis = chart.scales.y; const labels = chart.data.labels;
+                        if (!labels || labels.length === 0) return; const totalDist = parseFloat(labels[labels.length - 1]); if (!totalDist) return;
+                        const pct = Math.min(1, Math.max(0, window.flyoverDistance / totalDist)); const x = xAxis.left + (xAxis.width * pct);
+                        const dataIndex = Math.min(chart.data.datasets[0].data.length - 1, Math.floor(pct * chart.data.datasets[0].data.length));
+                        const y = yAxis.getPixelForValue(chart.data.datasets[0].data[dataIndex]);
+                        ctx.save(); ctx.beginPath(); ctx.moveTo(x, yAxis.top); ctx.lineTo(x, yAxis.bottom); ctx.lineWidth = 1; ctx.strokeStyle = '#ef4444'; ctx.stroke(); ctx.beginPath(); ctx.arc(x, y, 5, 0, 2 * Math.PI); ctx.fillStyle = '#ef4444'; ctx.fill(); ctx.restore();
+                    }
+                }]
+            };
+        }
+
         async function checkUserProfile(user) {
             try {
                 const userDoc = await db.collection('users').doc(user.uid).get();
@@ -3604,6 +3861,7 @@
                     document.getElementById('settingsDisplayName').value = currentUser.displayName;
                         if(userDoc.data().visitedData) currentUser.visitedData = userDoc.data().visitedData;
                         if(userDoc.data().visitedItems) currentUser.visitedItems = userDoc.data().visitedItems;
+                        if(userDoc.data().bucketItems) currentUser.bucketItems = userDoc.data().bucketItems; else currentUser.bucketItems = [];
                         if(userDoc.data().color) currentUser.color = userDoc.data().color;
                         if(userDoc.data().avatarText) currentUser.avatarText = userDoc.data().avatarText;
                         updateProfileSettingsUI();
@@ -3618,43 +3876,33 @@
 
         function updateProfileSettingsUI() {
             const preview = document.getElementById('settingsAvatarPreview');
+            const textSpan = document.getElementById('settingsAvatarText');
+            const modalPreview = document.getElementById('avatarModalPreview');
             const picker = document.getElementById('profileColorPicker');
-            const emojiPicker = document.getElementById('profileEmojiPicker');
             const textInput = document.getElementById('avatarTextInput');
             if(!preview || !picker) return;
 
             const initials = (currentUser.displayName || 'User').substring(0, 2).toUpperCase();
-            preview.innerText = currentUser.avatarText || initials;
-            preview.style.background = currentUser.color || 'linear-gradient(135deg, var(--primary), var(--accent))';
+            
+            const avatarContent = currentUser.avatarText || initials;
+            const avatarBg = currentUser.color || 'linear-gradient(135deg, var(--primary), var(--accent))';
+            
+            preview.style.background = avatarBg;
+            if (textSpan) textSpan.innerText = avatarContent;
+            
+            if(modalPreview) {
+                modalPreview.innerText = avatarContent;
+                modalPreview.style.background = avatarBg;
+            }
 
             if(textInput) {
                 textInput.value = currentUser.avatarText || '';
-                textInput.oninput = (e) => { preview.innerText = e.target.value || initials; };
+                textInput.oninput = (e) => { 
+                    const val = e.target.value || initials;
+                    if(textSpan) textSpan.innerText = val; 
+                    if(modalPreview) modalPreview.innerText = val;
+                };
                 textInput.onchange = (e) => { saveAvatarText(e.target.value); };
-            }
-
-            if(emojiPicker) {
-                emojiPicker.innerHTML = '';
-                BASIC_EMOJIS.forEach(e => {
-                    const span = document.createElement('span');
-                    span.className = 'emoji-option';
-                    span.innerText = e;
-                    span.onclick = () => {
-                        if(textInput) textInput.value = e;
-                        preview.innerText = e;
-                        saveAvatarText(e);
-                    };
-                    emojiPicker.appendChild(span);
-                });
-                
-                // Add "More" button
-                const moreBtn = document.createElement('span');
-                moreBtn.className = 'emoji-option';
-                moreBtn.innerText = '➕';
-                moreBtn.style.background = 'var(--primary)';
-                moreBtn.style.color = 'white';
-                moreBtn.onclick = openEmojiModal;
-                emojiPicker.appendChild(moreBtn);
             }
 
             picker.innerHTML = '';
@@ -3669,26 +3917,69 @@
         }
 
         function openEmojiModal() {
-            const grid = document.getElementById('fullEmojiGrid');
-            grid.innerHTML = '';
-            ALL_EMOJIS.forEach(e => {
-                const span = document.createElement('span');
-                span.className = 'emoji-option';
-                span.style.width = '100%';
-                span.style.height = '40px';
-                span.style.fontSize = '20px';
-                span.innerText = e;
-                span.onclick = () => {
-                    const textInput = document.getElementById('avatarTextInput');
-                    const preview = document.getElementById('settingsAvatarPreview');
-                    if(textInput) textInput.value = e;
-                    if(preview) preview.innerText = e;
-                    saveAvatarText(e);
-                    document.getElementById('emoji-modal-overlay').style.display = 'none';
-                };
-                grid.appendChild(span);
+            const container = document.getElementById('fullEmojiContainer');
+            container.innerHTML = '';
+            ALL_EMOJIS.forEach(cat => {
+                const section = document.createElement('div');
+                section.style.display = 'flex';
+                section.style.flexDirection = 'column';
+                section.style.gap = '8px';
+                
+                const heading = document.createElement('span');
+                heading.className = 'settings-label';
+                heading.style.fontSize = '11px';
+                heading.style.opacity = '0.6';
+                heading.style.textTransform = 'uppercase';
+                heading.innerText = cat.category;
+                section.appendChild(heading);
+
+                const grid = document.createElement('div');
+                grid.style.display = 'grid';
+                grid.style.gridTemplateColumns = 'repeat(6, 1fr)';
+                grid.style.gap = '8px';
+
+                cat.emojis.forEach(emoji => {
+                    const span = document.createElement('span');
+                    span.className = 'emoji-option';
+                    span.style.width = '100%';
+                    span.style.height = '40px';
+                    span.style.fontSize = '20px';
+                    span.innerText = emoji;
+                    span.onclick = () => {
+                        const textInput = document.getElementById('avatarTextInput');
+                        const textSpan = document.getElementById('settingsAvatarText');
+                        const modalPreview = document.getElementById('avatarModalPreview');
+                        if(textInput) textInput.value = emoji;
+                        if(textSpan) textSpan.innerText = emoji;
+                        if(modalPreview) modalPreview.innerText = emoji;
+                        saveAvatarText(emoji);
+                        document.getElementById('emoji-modal-overlay').style.display = 'none';
+                    };
+                    grid.appendChild(span);
+                });
+                section.appendChild(grid);
+                container.appendChild(section);
             });
             document.getElementById('emoji-modal-overlay').style.display = 'flex';
+        }
+
+        function openAvatarPopup() {
+            if (currentUser) {
+                document.getElementById('avatarModalDisplayName').value = currentUser.displayName || '';
+            }
+            document.getElementById('avatar-modal-overlay').style.display = 'flex';
+        }
+
+        function closeAvatarPopup() {
+            document.getElementById('avatar-modal-overlay').style.display = 'none';
+            const nameInput = document.getElementById('avatarModalDisplayName');
+            if (nameInput && currentUser) {
+                const newName = nameInput.value.trim();
+                if (newName && newName !== currentUser.displayName) {
+                    document.getElementById('settingsDisplayName').value = newName;
+                    saveDisplayName(false);
+                }
+            }
         }
 
         async function saveAvatarText(text) {
@@ -3764,13 +4055,17 @@
         }
 
         document.getElementById('saveDNBtn').onclick = () => saveDisplayName(true);
-        document.getElementById('updateDNBtn').onclick = () => saveDisplayName(false);
+        document.getElementById('updateDNBtn').onclick = () => {
+            saveDisplayName(false);
+            document.getElementById('updateDNBtn').style.display = 'none';
+        };
 
         function updateMyLogList() {
             const savedList = document.getElementById('my-saved-list');
             const loggedList = document.getElementById('my-logged-list');
-            if (!savedList || !loggedList) return;
-            if (!currentUser) { savedList.innerHTML = '<p style="font-size:12px;opacity:0.5;text-align:center;margin-top:20px;">Please log in to view your log.</p>'; loggedList.innerHTML = '<p style="font-size:12px;opacity:0.5;text-align:center;margin-top:20px;">Please log in to view your log.</p>'; return; }
+            const bucketListEl = document.getElementById('my-bucket-list');
+            if (!savedList || !loggedList || !bucketListEl) return;
+            if (!currentUser) { savedList.innerHTML = '<p style="font-size:12px;opacity:0.5;text-align:center;margin-top:20px;">Please log in to view your log.</p>'; loggedList.innerHTML = '<p style="font-size:12px;opacity:0.5;text-align:center;margin-top:20px;">Please log in to view your log.</p>'; bucketListEl.innerHTML = '<p style="font-size:12px;opacity:0.5;text-align:center;margin-top:20px;">Please log in to view your log.</p>'; return; }
             
             // 1. Created Items (My Log)
             let createdItems = [
@@ -3847,21 +4142,57 @@
             }
             else if (myLogFilters.sort === 'date') loggedItems.sort((a,b) => (b.visitedDate || 0) - (a.visitedDate || 0));
 
+            // 3. Bucket List Items
+            let bucketItems = [
+                ...storage.pins.filter(p => p.bucketList).map(p => ({...p, type:'PIN'})),
+                ...storage.walks.filter(w => w.bucketList).map(w => ({...w, type:'WALK', lat:w.path[0][0], lng:w.path[0][1]}))
+            ];
+
+            bucketItems = bucketItems.filter(i => {
+                if (i.type === 'PIN') {
+                    if (!myLogFilters.showPins) return false;
+                    const cat = PIN_TYPES.find(t => t.color === i.color);
+                    return cat && myLogFilters.categories.includes(cat.name);
+                }
+                if (i.type === 'WALK') {
+                    if (!myLogFilters.showWalks) return false;
+                    return myLogFilters.activities.includes(i.activity || 'walk');
+                }
+                return true;
+            });
+
+            if (userPos) bucketItems.forEach(i => i.d = L.latLng(i.lat, i.lng).distanceTo(userPos) / 1000);
+
+            if (myLogFilters.sort === 'rating') {
+                bucketItems.sort((a,b) => {
+                    const r = (b.rating || 0) - (a.rating || 0);
+                    return r !== 0 ? r : (b.id - a.id);
+                });
+            }
+            else if (myLogFilters.sort === 'dist') {
+                bucketItems.sort((a,b) => {
+                    const dist = (a.d || 0) - (b.d || 0);
+                    return dist !== 0 ? dist : (b.id - a.id);
+                });
+            }
+            else if (myLogFilters.sort === 'date') bucketItems.sort((a,b) => b.id - a.id);
+
             // Update Map if on You Tab
             if (currentTab === 'add') {
                 mapItems.clearLayers();
-                const itemsToMap = currentYouView === 'logbook' ? loggedItems : createdItems;
+                const itemsToMap = currentYouView === 'logbook' ? loggedItems : (currentYouView === 'bucket' ? bucketItems : createdItems);
                 itemsToMap.forEach(i => {
                     if (i.type === 'PIN') addPin(i);
                     else if (i.type === 'WALK') addWalk(i);
                 });
             }
 
-            renderLogList(createdItems, savedList, "No created items.", false, false);
-            renderLogList(loggedItems, loggedList, "No logged items.", true, true);
+            renderLogList(createdItems, savedList, "No created items.", 'uploads');
+            renderLogList(loggedItems, loggedList, "No logged items.", 'logbook');
+            renderLogList(bucketItems, bucketListEl, "Your bucket list is empty.", 'bucket');
         }
 
-        function renderLogList(all, list, emptyMsg, hideVisibility = false, showVisitedDate = true) {
+        function renderLogList(all, list, emptyMsg, listType) {
             list.innerHTML = all.length ? '' : `<p style="font-size:12px;opacity:0.5;text-align:center;margin-top:10px;margin-bottom:10px;">${emptyMsg}</p>`;
             all.forEach(i => {
                 const div = document.createElement('div'); div.className = 'highlight-item'; div.style.borderLeft = `4px solid ${i.color || '#2563eb'}`;
@@ -3877,7 +4208,7 @@
                 }
                 
                 let visibilityLabel = '';
-                if (!hideVisibility) {
+                if (listType === 'uploads') {
                     visibilityLabel = i.isPublic ? `<span class="type-label" style="background:#10b981;">PUBLIC</span>` : `<span class="type-label" style="background:#ef4444;">PRIVATE</span>`;
                 }
                 
@@ -3896,10 +4227,22 @@
                     ratingHtml = `<span style="display:inline-block; background:rgba(251, 191, 36, 0.15); color:#fbbf24; font-weight:800; padding:2px 6px; border-radius:4px; font-size:10px;">★ ${i.rating.toFixed(1)}</span>`;
                 }
 
-                const visitedLabel = i.visited ? `<div class="visited-check-corner">✓</div>` : '';
-                const dateDisplay = (showVisitedDate && i.visited && i.visitedDate) ? `<span style="color:var(--accent); font-weight:700;">Visited on: ${visitedDateStr}</span>` : `<span style="opacity:0.7;">${dateStr}</span>`;
+                let dateDisplay = '';
+                if (listType === 'logbook') {
+                    dateDisplay = (i.visited && i.visitedDate) ? `<span style="color:var(--accent); font-weight:700;">Visited on: ${visitedDateStr}</span>` : `<span style="opacity:0.7;">${dateStr}</span>`;
+                }
+                
+                let distDisplay = '';
+                if (listType === 'logbook' && i.d) {
+                    distDisplay = ` • ${formatDist(i.d)}`;
+                }
+                
+                let actionBtn = '';
+                if (listType === 'bucket') {
+                    actionBtn = `<button class="btn" style="width: auto; height: 24px; padding: 0 8px; font-size: 10px; margin: 0; margin-left: auto; background: var(--accent); color: white; border: none; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="event.stopPropagation(); markAsVisitedFromList(${i.id})">Mark Visited</button>`;
+                }
 
-                div.innerHTML = `${thumbHtml}<div style="flex:1; min-width:0;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><span class="type-label" style="background:${labelColor}">${iconChar} ${labelText}</span>${visibilityLabel}</div><p style="font-weight:bold; font-size:13px; margin:0 0 6px 0; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${i.name}</p><div style="display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text); opacity:0.8;">${ratingHtml}${dateDisplay}${i.d ? ` • ${formatDist(i.d)}` : ''}</div></div>${visitedLabel}`;
+                div.innerHTML = `${thumbHtml}<div style="flex:1; min-width:0;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><span class="type-label" style="background:${labelColor}">${iconChar} ${labelText}</span>${visibilityLabel}</div><p style="font-weight:bold; font-size:13px; margin:0 0 6px 0; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${i.name}</p><div style="display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text); opacity:0.8;">${ratingHtml}${dateDisplay}${distDisplay}${actionBtn}</div></div>`;
                 div.onclick = () => { 
                     const obj = i.type === 'PIN' ? storage.pins.find(p=>p.id===i.id) : storage.walks.find(w=>w.id===i.id); 
                     if(i.type === 'WALK' && obj.path) {
