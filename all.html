@@ -132,13 +132,14 @@
         .modal::-webkit-scrollbar, 
         #fullEmojiContainer::-webkit-scrollbar, 
         #modalPhotoList::-webkit-scrollbar, 
-        #modalReviewPhotoPreview::-webkit-scrollbar { 
+        #modalReviewPhotoPreview::-webkit-scrollbar,
+        #editPhotoGrid::-webkit-scrollbar { 
             width: 4px; height: 4px; 
         }
-        .modal::-webkit-scrollbar-track, #fullEmojiContainer::-webkit-scrollbar-track, #modalPhotoList::-webkit-scrollbar-track, #modalReviewPhotoPreview::-webkit-scrollbar-track { 
+        .modal::-webkit-scrollbar-track, #fullEmojiContainer::-webkit-scrollbar-track, #modalPhotoList::-webkit-scrollbar-track, #modalReviewPhotoPreview::-webkit-scrollbar-track, #editPhotoGrid::-webkit-scrollbar-track { 
             background: transparent; 
         }
-        .modal::-webkit-scrollbar-thumb, #fullEmojiContainer::-webkit-scrollbar-thumb, #modalPhotoList::-webkit-scrollbar-thumb, #modalReviewPhotoPreview::-webkit-scrollbar-thumb { 
+        .modal::-webkit-scrollbar-thumb, #fullEmojiContainer::-webkit-scrollbar-thumb, #modalPhotoList::-webkit-scrollbar-thumb, #modalReviewPhotoPreview::-webkit-scrollbar-thumb, #editPhotoGrid::-webkit-scrollbar-thumb { 
             background: var(--border); border-radius: 4px; 
         }
 
@@ -218,16 +219,23 @@
         #detMiniMap.active { opacity: 1; z-index: 2; }
         #detMiniMap .leaflet-control-container { display: none; }
 
-        #detRating, .floating-action-btn, #detTypeOverlay { 
+        .floating-action-btn, #detTypeOverlay { 
             position: absolute; background: rgba(15, 23, 42, 0.7); 
             backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 8px;
             color: #fbbf24; font-size: 1rem; display: flex; gap: 3px; z-index: 10; border: 1px solid rgba(255,255,255,0.1);
             transition: 0.2s;
         }
         
+        #detRating { 
+            position: absolute;
+            top: 12px; right: 12px; 
+            font-size: 13px; font-weight: 800; color: #fbbf24; 
+            background: rgba(15, 23, 42, 0.85); 
+            padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(8px); z-index: 10;
+        }
+
         #detTypeOverlay { top: 12px; left: 12px; padding: 0; background: transparent; border: none; backdrop-filter: none; }
 
-        #detRating { top: 12px; right: 12px; }
         .floating-action-btn { top: 12px; right: 12px; left: auto; color: white; width: 34px; height: 34px; padding: 0; align-items: center; justify-content: center; cursor: pointer; background: rgba(15, 23, 42, 0.7); border-radius: 10px; }
         #floatEditBtn:hover, #floatEditBtn.is-editing { background: var(--primary); } 
         .floating-action-btn.btn-delete-float { right: 54px; left: auto; }
@@ -322,13 +330,13 @@
 
         #elevation-dock { 
             position: absolute; bottom: -450px; left: calc(var(--sidebar) + 20px); 
-            right: 20px; height: 260px; background: var(--card); backdrop-filter: blur(10px);
+            right: 20px; height: 180px; background: var(--card); backdrop-filter: blur(10px);
             border-radius: 12px; border: 1px solid var(--border); z-index: 5000; 
             padding: 15px; transition: bottom var(--transition), left var(--transition); 
             box-shadow: 0 -5px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;
         }
         #elevation-dock.active { bottom: 20px; }
-        body.mobile-mode #elevation-dock.active { bottom: 120px; left: 10px; right: 10px; height: 220px; }
+        body.mobile-mode #elevation-dock.active { bottom: 120px; left: 10px; right: 10px; height: 150px; }
 
         #elevContainer { flex: 1; min-height: 0; width: 100%; position: relative; }
         .walk-marker-icon { font-size: 16px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 50 !important; }
@@ -694,25 +702,19 @@
                         </div>
                         
                         <div class="segmented-control">
-                            <button class="seg-btn active" onclick="setFilterMode('all', this)">Both</button>
-                            <button class="seg-btn" onclick="setFilterMode('pins', this)">Pins</button>
-                            <button class="seg-btn" onclick="setFilterMode('walks', this)">Activities</button>
-                        </div>
-
-                        <div class="segmented-control">
                             <button class="seg-btn active" onclick="setLogStatusFilter('all', this)">All</button>
                             <button class="seg-btn" onclick="setLogStatusFilter('none', this)">New</button>
                             <button class="seg-btn" onclick="setLogStatusFilter('bucket', this)">Bucket</button>
                             <button class="seg-btn" onclick="setLogStatusFilter('visited', this)">Visited</button>
                         </div>
 
-                        <div class="filter-section" id="filterSectionPins">
-                            <button class="toggle-btn-main" onclick="toggleFilterSection('pinGridReveal', this)" style="width:100%; justify-content: space-between; padding: 0 15px;"><span>📍 Pins</span> <span class="chevron" style="opacity:0.5; font-size:10px; transition:0.3s;">▼</span></button>
-                            <div class="filter-grid-reveal" id="pinGridReveal" style="display:none;"></div>
-                        </div>
+                        <div id="pinFiltersContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
 
                         <div class="filter-section" id="filterSectionActivities">
-                            <button class="toggle-btn-main" onclick="toggleFilterSection('activityGridReveal', this)" style="width:100%; justify-content: space-between; padding: 0 15px;"><span>🏃 Activities</span> <span class="chevron" style="opacity:0.5; font-size:10px; transition:0.3s;">▼</span></button>
+                            <div style="display:flex; align-items:center; background: rgba(0,0,0,0.08);">
+                                <input type="checkbox" checked onchange="toggleEntireCategory(this, 'activities', 'explore')" style="margin-left: 15px; transform: scale(1.2); cursor: pointer;" title="Toggle All">
+                                <button class="toggle-btn-main" onclick="toggleFilterSection('activityGridReveal', this)" style="flex:1; justify-content: space-between; padding: 0 15px; background: transparent;"><span>🏃 Activities</span> <span class="chevron" style="opacity:0.5; font-size:10px; transition:0.3s;">▼</span></button>
+                            </div>
                             <div class="filter-grid-reveal" id="activityGridReveal" style="display:none;">
                                 <button class="sub-toggle-btn active" data-type="walk" onclick="toggleSubFilter(this, 'activity')"><span class="filter-icon">🚶</span>Walk</button>
                                 <button class="sub-toggle-btn active" data-type="hike" onclick="toggleSubFilter(this, 'activity')"><span class="filter-icon">🥾</span>Hike</button>
@@ -756,10 +758,12 @@
                     <button class="settings-header" onclick="toggleSettingsSection('addSectionContent', this)" style="margin-top:0;">
                         <span>NEW UPLOAD</span> <span class="chevron">▼</span>
                     </button>
-                    <div id="addSectionContent" class="settings-content" style="flex-direction: row; gap: 8px;">
-                        <button id="pinModeBtn" class="btn btn-main" style="flex:1; height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">📍</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Log a Pin</span></button>
-                        <button id="walkModeBtn" class="btn btn-main" style="flex:1; height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">🗺️</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Trace Activity</span></button>
-                        <button id="recordModeBtn" class="btn btn-main" style="flex:1; height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">🔴</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Record</span></button>
+                    <div id="addSectionContent" class="settings-content" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                        <button id="pinModeBtn" class="btn btn-main" style="height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">📍</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Pin</span></button>
+                        <button id="campsiteModeBtn" class="btn btn-main" style="height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">⛺</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Campsite</span></button>
+                        <button id="parkingModeBtn" class="btn btn-main" style="height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">🅿️</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Parking</span></button>
+                        <button id="walkModeBtn" class="btn btn-main" style="height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">🗺️</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Trace</span></button>
+                        <button id="recordModeBtn" class="btn btn-main" style="grid-column: span 2; height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">🔴</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Record Activity</span></button>
                     </div>
                     
                     <div class="list-divider"></div>
@@ -790,19 +794,13 @@
                                 <button class="filter-btn active" onclick="setMyLogSort('date', this)" style="flex:1">📅 DATE</button>
                             </div>
 
-                            <div class="segmented-control">
-                                <button class="seg-btn active" onclick="setMyLogFilterMode('all', this)">Both</button>
-                                <button class="seg-btn" onclick="setMyLogFilterMode('pins', this)">Pins</button>
-                                <button class="seg-btn" onclick="setMyLogFilterMode('walks', this)">Activities</button>
-                            </div>
-
-                            <div class="filter-section" id="myLogFilterSectionPins">
-                                <button class="toggle-btn-main" onclick="toggleFilterSection('myLogPinGridReveal', this)" style="width:100%; justify-content: space-between; padding: 0 15px;"><span>📍 Pins</span> <span class="chevron" style="opacity:0.5; font-size:10px; transition:0.3s;">▼</span></button>
-                                <div class="filter-grid-reveal" id="myLogPinGridReveal" style="display:none;"></div>
-                            </div>
+                            <div id="myLogPinFiltersContainer" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
 
                             <div class="filter-section" id="myLogFilterSectionActivities">
-                                <button class="toggle-btn-main" onclick="toggleFilterSection('myLogActivityGridReveal', this)" style="width:100%; justify-content: space-between; padding: 0 15px;"><span>🏃 Activities</span> <span class="chevron" style="opacity:0.5; font-size:10px; transition:0.3s;">▼</span></button>
+                                <div style="display:flex; align-items:center; background: rgba(0,0,0,0.08);">
+                                    <input type="checkbox" checked onchange="toggleEntireCategory(this, 'activities', 'mylog')" style="margin-left: 15px; transform: scale(1.2); cursor: pointer;" title="Toggle All">
+                                    <button class="toggle-btn-main" onclick="toggleFilterSection('myLogActivityGridReveal', this)" style="flex:1; justify-content: space-between; padding: 0 15px; background: transparent;"><span>🏃 Activities</span> <span class="chevron" style="opacity:0.5; font-size:10px; transition:0.3s;">▼</span></button>
+                                </div>
                                 <div class="filter-grid-reveal" id="myLogActivityGridReveal" style="display:none;">
                                     <button class="sub-toggle-btn active" data-type="walk" onclick="toggleMyLogSubFilter(this, 'activity')"><span class="filter-icon">🚶</span>Walk</button>
                                     <button class="sub-toggle-btn active" data-type="hike" onclick="toggleMyLogSubFilter(this, 'activity')"><span class="filter-icon">🥾</span>Hike</button>
@@ -917,8 +915,12 @@
                         </div>
                     </div>
                     <div id="detCreator" style="margin-bottom: 8px; padding: 0 5px;"></div>
-                    <button class="btn" id="editAddPhotoBtn" onclick="openUrlUploadPopup('edit')" style="display:none; margin-bottom:10px; background:rgba(0,0,0,0.15); border:none; color:var(--text); font-weight:600;">📷 Add Photo URL</button>
                     <div id="detTypeLabel" class="info-card" style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                    <div id="detCampsiteInfo" style="display:none; gap: 10px; margin-bottom: 10px;"></div>
+                <div id="editPhotosContainer" style="display:none; margin-bottom:10px; flex-direction:column; gap:5px;">
+                    <span class="settings-label" style="font-size:12px;">Photos</span>
+                    <div id="editPhotoGrid" style="display:flex; gap:8px; overflow-x:auto; padding: 6px 6px 10px 2px; align-items: center;"></div>
+                </div>
 
                     <div id="editWalkOptions" style="display:none; margin: 10px 0; padding: 12px; background: rgba(37, 99, 235, 0.1); border-radius: 12px; border: none;">
                         <div class="mode-selector" id="editModeSelector">
@@ -937,6 +939,10 @@
                     <div id="editTypeContainer" style="display:none; margin-bottom: 10px;">
                         <span class="stat-label">Pin Category</span>
                         <div class="pin-type-grid" id="detailTypePicker"></div>
+                    </div>
+                    <div id="editCampsiteFields" style="display:none; flex-direction:column; gap:8px; margin-bottom: 10px;">
+                        <input type="number" id="editCampsitePrice" class="edit-input" placeholder="Starting Price (£)" style="background:rgba(0,0,0,0.15); border:none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 500;">
+                        <input type="url" id="editCampsiteUrl" class="edit-input" placeholder="Pitchup Booking URL" style="background:rgba(0,0,0,0.15); border:none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 500;">
                     </div>
                     <div id="editPrivacyContainer" style="display:none; margin-bottom: 10px; padding: 12px; background: rgba(0,0,0,0.15); border-radius: 12px; border: none;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -1016,6 +1022,10 @@
                 <div id="pinTypeSelect" style="display:none;">
                    <span class="stat-label" style="text-align:center; display:block; margin-bottom:10px;">Select Pin Category</span>
                    <div class="pin-type-grid" id="modalTypePicker"></div>
+                   <div id="campsiteFields" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
+                        <input type="number" id="campsitePrice" class="modal-input" placeholder="Starting Price (£)">
+                        <input type="url" id="campsiteUrl" class="modal-input" placeholder="Pitchup Booking URL">
+                   </div>
                 </div>
                 <div id="modalPhotoSection">
                     <div id="modalPhotoList" style="display:flex; gap:5px; overflow-x:auto; margin-bottom:5px;"></div>
@@ -1234,7 +1244,8 @@
             sort: 'rating',
             onlyMine: false,
             search: '',
-            logStatus: 'all'
+            logStatus: 'all',
+            maxPrice: 50
         };
         
         let myLogFilters = {
@@ -1434,18 +1445,25 @@
 
         // --- NEW REDESIGNED FILTER LOGIC ---
         function initFiltersUI() {
-            const pinGrid = document.getElementById('pinGridReveal');
-            pinGrid.innerHTML = '';
+            const pinContainer = document.getElementById('pinFiltersContainer');
+            if (!pinContainer) return;
+            pinContainer.innerHTML = '';
+            
             PIN_CATEGORIES.forEach(cat => {
-                const header = document.createElement('div');
-                header.style.gridColumn = '1 / -1';
-                header.style.fontSize = '10px';
-                header.style.fontWeight = '800';
-                header.style.opacity = '0.6';
-                header.style.textTransform = 'uppercase';
-                header.style.marginTop = '4px';
-                header.innerHTML = `${cat.icon} ${cat.name}`;
-                pinGrid.appendChild(header);
+                const sectionId = 'filterGridReveal_' + cat.name.replace(/\s+/g, '');
+                const section = document.createElement('div');
+                section.className = 'filter-section';
+                
+                section.innerHTML = `
+                    <div style="display:flex; align-items:center; background: rgba(0,0,0,0.08);">
+                        <input type="checkbox" checked onchange="toggleEntireCategory(this, '${cat.name}', 'explore')" style="margin-left: 15px; transform: scale(1.2); cursor: pointer;" title="Toggle All">
+                        <button class="toggle-btn-main" onclick="toggleFilterSection('${sectionId}', this)" style="flex:1; justify-content: space-between; padding: 0 15px; background: transparent;"><span>${cat.icon} ${cat.name}</span> <span class="chevron" style="opacity:0.5; font-size:10px; transition:0.3s;">▼</span></button>
+                    </div>
+                    <div class="filter-grid-reveal" id="${sectionId}" style="display:none;"></div>
+                `;
+                pinContainer.appendChild(section);
+                
+                const grid = section.querySelector('.filter-grid-reveal');
 
                 cat.types.forEach(type => {
                     const btn = document.createElement('button');
@@ -1457,8 +1475,24 @@
                     btn.style.color = 'white';
                     btn.innerHTML = `<span class="filter-icon">${type.icon}</span>${type.name}`;
                     btn.onclick = () => toggleSubFilter(btn, 'category');
-                    pinGrid.appendChild(btn);
+                    grid.appendChild(btn);
                 });
+
+                if (cat.name === 'Camping') {
+                    const sliderDiv = document.createElement('div');
+                    sliderDiv.id = 'campsitePriceFilterContainer';
+                    sliderDiv.style.gridColumn = '1 / -1';
+                    sliderDiv.style.display = activeFilters.categories.includes('Campsites') ? 'block' : 'none';
+                    sliderDiv.innerHTML = `
+                        <div id="campsitePriceFilter" style="padding: 10px 15px; background: rgba(0,0,0,0.08); border-radius: 12px; margin-top: 5px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                <span style="font-size:11px; font-weight:800; opacity:0.7;">Max Price: <span id="maxPriceDisplay">${activeFilters.maxPrice === 50 || activeFilters.maxPrice === undefined ? 'Any' : '£' + activeFilters.maxPrice}</span></span>
+                            </div>
+                            <input type="range" id="priceSlider" min="0" max="50" step="1" value="${activeFilters.maxPrice === undefined ? 50 : activeFilters.maxPrice}" style="width:100%;" oninput="document.getElementById('maxPriceDisplay').innerText = this.value == 50 ? 'Any' : '£' + this.value; activeFilters.maxPrice = parseInt(this.value); updateHighlights();">
+                        </div>
+                    `;
+                    grid.appendChild(sliderDiv);
+                }
             });
 
             // Initialize Activity Buttons Colors
@@ -1477,18 +1511,25 @@
         }
         
         function initMyLogFiltersUI() {
-            const pinGrid = document.getElementById('myLogPinGridReveal');
-            pinGrid.innerHTML = '';
+            const pinContainer = document.getElementById('myLogPinFiltersContainer');
+            if (!pinContainer) return;
+            pinContainer.innerHTML = '';
+            
             PIN_CATEGORIES.forEach(cat => {
-                const header = document.createElement('div');
-                header.style.gridColumn = '1 / -1';
-                header.style.fontSize = '10px';
-                header.style.fontWeight = '800';
-                header.style.opacity = '0.6';
-                header.style.textTransform = 'uppercase';
-                header.style.marginTop = '4px';
-                header.innerHTML = `${cat.icon} ${cat.name}`;
-                pinGrid.appendChild(header);
+                const sectionId = 'myLogFilterGridReveal_' + cat.name.replace(/\s+/g, '');
+                const section = document.createElement('div');
+                section.className = 'filter-section';
+                
+                section.innerHTML = `
+                    <div style="display:flex; align-items:center; background: rgba(0,0,0,0.08);">
+                        <input type="checkbox" checked onchange="toggleEntireCategory(this, '${cat.name}', 'mylog')" style="margin-left: 15px; transform: scale(1.2); cursor: pointer;" title="Toggle All">
+                        <button class="toggle-btn-main" onclick="toggleFilterSection('${sectionId}', this)" style="flex:1; justify-content: space-between; padding: 0 15px; background: transparent;"><span>${cat.icon} ${cat.name}</span> <span class="chevron" style="opacity:0.5; font-size:10px; transition:0.3s;">▼</span></button>
+                    </div>
+                    <div class="filter-grid-reveal" id="${sectionId}" style="display:none;"></div>
+                `;
+                pinContainer.appendChild(section);
+                
+                const grid = section.querySelector('.filter-grid-reveal');
 
                 cat.types.forEach(type => {
                     const btn = document.createElement('button');
@@ -1500,7 +1541,7 @@
                     btn.style.color = 'white';
                     btn.innerHTML = `<span class="filter-icon">${type.icon}</span>${type.name}`;
                     btn.onclick = () => toggleMyLogSubFilter(btn, 'category');
-                    pinGrid.appendChild(btn);
+                    grid.appendChild(btn);
                 });
             });
             
@@ -1516,6 +1557,50 @@
                     }
                 }
             });
+        }
+
+        function toggleEntireCategory(checkbox, categoryName, tab) {
+            const isChecked = checkbox.checked;
+            let filtersObj = tab === 'explore' ? activeFilters : myLogFilters;
+            
+            let gridId;
+            if (categoryName === 'activities') {
+                gridId = tab === 'explore' ? 'activityGridReveal' : 'myLogActivityGridReveal';
+            } else {
+                gridId = (tab === 'explore' ? 'filterGridReveal_' : 'myLogFilterGridReveal_') + categoryName.replace(/\s+/g, '');
+            }
+            
+            const grid = document.getElementById(gridId);
+            if (!grid) return;
+            
+            grid.querySelectorAll('.sub-toggle-btn').forEach(btn => {
+                const val = categoryName === 'activities' ? btn.dataset.type : btn.dataset.cat;
+                
+                if (btn.classList.contains('active') !== isChecked) {
+                    btn.classList.toggle('active', isChecked);
+                    const color = btn.dataset.color;
+                    if (color) {
+                        btn.style.backgroundColor = isChecked ? color : '';
+                        btn.style.color = isChecked ? 'white' : '';
+                    }
+                    
+                    let arr = categoryName === 'activities' ? filtersObj.activities : filtersObj.categories;
+                    if (isChecked) {
+                        if (!arr.includes(val)) arr.push(val);
+                    } else {
+                        const index = arr.indexOf(val);
+                        if (index > -1) arr.splice(index, 1);
+                    }
+                }
+            });
+
+            if (categoryName === 'Camping') {
+                const cpf = tab === 'explore' ? document.getElementById('campsitePriceFilterContainer') : null;
+                if (cpf) cpf.style.display = isChecked && filtersObj.categories.includes('Campsites') ? 'block' : 'none';
+            }
+
+            if (tab === 'explore') updateHighlights();
+            else updateMyLogList();
         }
 
         function toggleFilterSection(id, btn) {
@@ -1550,26 +1635,11 @@
                 const val = btn.dataset.cat;
                 if (isActive) activeFilters.categories.push(val);
                 else activeFilters.categories = activeFilters.categories.filter(c => c !== val);
-            }
-            updateHighlights();
-        }
-
-        function setFilterMode(mode, btn) {
-            btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            if (mode === 'all') {
-                activeFilters.showPins = true; activeFilters.showWalks = true;
-                document.getElementById('filterSectionPins').style.display = 'flex';
-                document.getElementById('filterSectionActivities').style.display = 'flex';
-            } else if (mode === 'pins') {
-                activeFilters.showPins = true; activeFilters.showWalks = false;
-                document.getElementById('filterSectionPins').style.display = 'flex';
-                document.getElementById('filterSectionActivities').style.display = 'none';
-            } else if (mode === 'walks') {
-                activeFilters.showPins = false; activeFilters.showWalks = true;
-                document.getElementById('filterSectionPins').style.display = 'none';
-                document.getElementById('filterSectionActivities').style.display = 'flex';
+                
+                if (val === 'Campsites') {
+                    const cpf = document.getElementById('campsitePriceFilterContainer');
+                    if (cpf) cpf.style.display = isActive ? 'block' : 'none';
+                }
             }
             updateHighlights();
         }
@@ -1673,25 +1743,6 @@
             myLogFilters.visited = val;
             btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            updateMyLogList();
-        }
-        
-        function setMyLogFilterMode(mode, btn) {
-            btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            if (mode === 'all') {
-                myLogFilters.showPins = true; myLogFilters.showWalks = true;
-                document.getElementById('myLogFilterSectionPins').style.display = 'flex';
-                document.getElementById('myLogFilterSectionActivities').style.display = 'flex';
-            } else if (mode === 'pins') {
-                myLogFilters.showPins = true; myLogFilters.showWalks = false;
-                document.getElementById('myLogFilterSectionPins').style.display = 'flex';
-                document.getElementById('myLogFilterSectionActivities').style.display = 'none';
-            } else if (mode === 'walks') {
-                myLogFilters.showPins = false; myLogFilters.showWalks = true;
-                document.getElementById('myLogFilterSectionPins').style.display = 'none';
-                document.getElementById('myLogFilterSectionActivities').style.display = 'flex';
-            }
             updateMyLogList();
         }
         
@@ -1980,8 +2031,13 @@
             const isImp = storage.units === 'imperial';
             const ctx = document.getElementById('elevChart').getContext('2d'); 
             if(chartInstance) chartInstance.destroy();
-            const labels = distData.map(d => isImp ? (d * 0.621371).toFixed(1) : d.toFixed(1));
-            const data = liveElevData.map(e => isImp ? e * 3.28084 : e);
+            
+            const len = Math.min(distData.length, liveElevData.length);
+            distData = distData.slice(0, len);
+            const graphElevs = liveElevData.slice(0, len);
+
+            const labels = distData.map(d => isImp ? (d * 0.621371).toFixed(2) : d.toFixed(2));
+            const data = graphElevs.map(e => isImp ? e * 3.28084 : e);
             chartInstance = new Chart(ctx, createChartConfig(labels, data, isImp));
         }
 
@@ -2059,6 +2115,10 @@
                 const el = document.getElementById(id); if (!el) return;
                 el.innerHTML = '';
                 PIN_CATEGORIES.forEach(cat => {
+                    if (window.currentPinCategory && window.currentPinCategory !== 'all' && cat.name !== window.currentPinCategory) {
+                        return;
+                    }
+
                     const header = document.createElement('div');
                     header.style.gridColumn = '1 / -1';
                     header.style.fontSize = '10px';
@@ -2091,6 +2151,17 @@
                                 }
                             }
                         }; el.appendChild(btn);
+                        
+                        if(t.color === selectedColor) {
+                            const campsiteFields = document.getElementById('campsiteFields');
+                            if(campsiteFields && id === 'modalTypePicker') {
+                                campsiteFields.style.display = (t.name === 'Campsites') ? 'flex' : 'none';
+                            }
+                            const editCampsiteFields = document.getElementById('editCampsiteFields');
+                            if(editCampsiteFields && id === 'detailTypePicker') {
+                                editCampsiteFields.style.display = (t.name === 'Campsites') ? 'flex' : 'none';
+                            }
+                        }
                     });
                 });
             });
@@ -2206,10 +2277,15 @@
             }
         }
 
-        if (pinModeBtn) pinModeBtn.onclick = () => { selectedColor = PIN_TYPES[0].color; setupTypePickers(); setMode('pin'); };
+        if (pinModeBtn) pinModeBtn.onclick = () => { window.currentPinCategory = 'Places'; selectedColor = PIN_TYPES[0].color; setupTypePickers(); setMode('pin'); };
+        const campsiteModeBtn = document.getElementById('campsiteModeBtn');
+        if (campsiteModeBtn) campsiteModeBtn.onclick = () => { window.currentPinCategory = 'Camping'; selectedColor = '#14b8a6'; setupTypePickers(); setMode('pin'); };
+        const parkingModeBtn = document.getElementById('parkingModeBtn');
+        if (parkingModeBtn) parkingModeBtn.onclick = () => { window.currentPinCategory = 'Parking'; selectedColor = '#f59e0b'; setupTypePickers(); setMode('pin'); };
         if (walkModeBtn) walkModeBtn.onclick = () => { 
             const activityMode = document.querySelector('#addModeSelector .mode-btn.active').dataset.mode;
             selectedColor = ACTIVITY_COLORS[activityMode];
+            window.currentPinCategory = 'all';
             tempPoly.setStyle({color: selectedColor});
             setupTypePickers(); 
             setMode('walk'); 
@@ -2329,7 +2405,12 @@
                 if (i.type === 'PIN') {
                     if (!activeFilters.showPins) return false;
                     const cat = PIN_TYPES.find(t => t.color === i.color);
-                    return cat && activeFilters.categories.includes(cat.name);
+                    if (!cat || !activeFilters.categories.includes(cat.name)) return false;
+                    
+                    if (cat.name === 'Campsites' && activeFilters.maxPrice !== undefined && activeFilters.maxPrice < 50) {
+                        if (i.price === undefined || i.price === null || i.price > activeFilters.maxPrice) return false;
+                    }
+                    return true;
                 }
                 if (i.type === 'WALK') {
                     if (!activeFilters.showWalks) return false;
@@ -2388,7 +2469,7 @@
 
                 let ratingHtml = '';
                 if (i.rating > 0) {
-                    ratingHtml = `<span style="display:inline-block; background:rgba(251, 191, 36, 0.15); color:#fbbf24; font-weight:800; padding:2px 6px; border-radius:4px; font-size:10px;">★ ${i.rating.toFixed(1)}</span>`;
+                    ratingHtml = `<span style="display:inline-block; background:rgba(15, 23, 42, 0.85); color:#fbbf24; font-weight:800; padding:2px 6px; border-radius:4px; font-size:10px; border: 1px solid rgba(255,255,255,0.1);">★ ${i.rating.toFixed(1)}</span>`;
                 }
                 
                 const distHtml = (i.d !== undefined && i.d !== null) ? `<span style="font-weight:600; opacity:0.7;">${formatDist(i.d)} away</span>` : '';
@@ -2527,7 +2608,17 @@
             }
         };
 
-        function resetModal() { document.getElementById('itemName').value = ''; document.getElementById('itemDesc').value = ''; document.getElementById('logStatusSelect').value = 'none'; setupTypePickers(); tempCreationPhotos = []; document.getElementById('modalPhotoList').innerHTML = ''; renderFacilityPicker('modalFacilityPicker'); }
+        function resetModal() { 
+            document.getElementById('itemName').value = ''; 
+            document.getElementById('itemDesc').value = ''; 
+            document.getElementById('logStatusSelect').value = 'none'; 
+            const cp = document.getElementById('campsitePrice'); if(cp) cp.value = '';
+            const cu = document.getElementById('campsiteUrl'); if(cu) cu.value = '';
+            setupTypePickers(); 
+            tempCreationPhotos = []; 
+            document.getElementById('modalPhotoList').innerHTML = ''; 
+            renderFacilityPicker('modalFacilityPicker'); 
+        }
 
         document.getElementById('confirmSaveBtn').onclick = async () => {
             if (!currentUser) return;
@@ -2541,6 +2632,9 @@
             const logStatus = document.getElementById('logStatusSelect').value;
             const isVisited = (logStatus === 'visited');
             const isBucket = (logStatus === 'bucket');
+            
+            const price = document.getElementById('campsitePrice') ? parseFloat(document.getElementById('campsitePrice').value) : null;
+            const pitchupUrl = document.getElementById('campsiteUrl') ? document.getElementById('campsiteUrl').value : "";
             
             const visitedDate = isVisited ? Date.now() : null;
             
@@ -2745,7 +2839,7 @@
             if(isWalk) { document.querySelectorAll('#editModeSelector .mode-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.mode === (item.activity || 'walk')); }); }
             if(document.body.classList.contains('mobile-mode')) snapTo('half');
             const floatEdit = document.getElementById('floatEditBtn'); floatEdit.innerHTML = '🖋️'; floatEdit.classList.remove('is-editing');
-            document.getElementById('floatDeleteBtn').style.display = 'none'; document.getElementById('editAddPhotoBtn').style.display = 'none';
+            document.getElementById('floatDeleteBtn').style.display = 'none'; 
             
             // Slideshow Logic
             if(slideshowInterval) { clearInterval(slideshowInterval); slideshowInterval = null; }
@@ -2894,6 +2988,20 @@
             waypointMarkers.forEach(m => map.removeLayer(m)); waypointMarkers = [];
             renderComments(item);
             updateDetailRating(item);
+            
+            const campsiteInfo = document.getElementById('detCampsiteInfo');
+            if (campsiteInfo) {
+                if (item.color === '#14b8a6' && (item.price || item.pitchupUrl)) {
+                    campsiteInfo.style.display = 'flex';
+                    let html = '';
+                    if (item.price) html += `<span style="font-weight:800; color:var(--text); padding: 8px 12px; background:rgba(0,0,0,0.15); border-radius:10px;">From £${item.price}</span>`;
+                    if (item.pitchupUrl) html += `<a href="${item.pitchupUrl}" target="_blank" class="btn" style="flex:1; margin:0; display:flex; align-items:center; justify-content:center; height:36px; border-radius:10px; background:var(--accent); color:white; text-decoration:none;">Book on Pitchup</a>`;
+                    campsiteInfo.innerHTML = html;
+                } else {
+                    campsiteInfo.style.display = 'none';
+                }
+            }
+
             if (isWalk) { 
                 window.currentActiveLayer = layer || mapItems.getLayers().find(l => l instanceof L.Polyline && JSON.stringify(l.getLatLngs()[0]) === JSON.stringify(L.latLng(item.path[0][0], item.path[0][1]))); 
                 updateWalkStats(); 
@@ -2909,6 +3017,83 @@
             }
             nodeHandles.forEach(h=>map.removeLayer(h));
             resetSidebarScroll();
+        }
+
+        function refreshSlideshow(item) {
+            if(slideshowInterval) { clearInterval(slideshowInterval); slideshowInterval = null; }
+            const imgEl = document.getElementById('detPhoto');
+            const imgBackEl = document.getElementById('detPhotoBack');
+            
+            const miniMapEl = document.getElementById('detMiniMap');
+            miniMapEl.classList.remove('active');
+            imgEl.classList.add('active');
+            
+            let photos = [];
+            if(item.photos && item.photos.length > 0) photos = [...item.photos];
+            else if(item.photo) photos = [item.photo];
+
+            const isWalk = (item.path !== undefined);
+            const showMapPreview = isWalk && item.path && item.path.length > 0;
+            const slideCount = photos.length + (showMapPreview ? 1 : 0);
+
+            if(slideCount > 0) {
+                currentPhotoIndex = 0;
+                
+                const updateSlide = () => {
+                    const isMapSlide = showMapPreview && currentPhotoIndex === 0;
+                    
+                    if (isMapSlide) {
+                        imgEl.classList.remove('active');
+                        miniMapEl.classList.add('active');
+                        
+                        if (!miniMap) {
+                            miniMap = L.map('detMiniMap', { zoomControl: false, attributionControl: false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false });
+                        }
+                        if (miniMapLayer) miniMap.removeLayer(miniMapLayer);
+                        miniMapLayer = L.tileLayer(mapStyles[storage.mapStyle] || mapStyles.sat).addTo(miniMap);
+                        
+                        if (miniMapPoly) miniMap.removeLayer(miniMapPoly);
+                        miniMapPoly = L.polyline(item.path, { color: item.color || '#2563eb', weight: 4 }).addTo(miniMap);
+                        
+                        miniMap.invalidateSize();
+                        miniMap.fitBounds(miniMapPoly.getBounds(), { paddingTopLeft: [20, 20], paddingBottomRight: [20, 80] });
+                    } else {
+                        miniMapEl.classList.remove('active');
+                        
+                        const pIndex = showMapPreview ? currentPhotoIndex - 1 : currentPhotoIndex;
+                        if (photos[pIndex]) {
+                            if (!imgEl.src || imgEl.style.opacity === '0' || miniMapEl.classList.contains('active')) {
+                                imgEl.src = photos[pIndex];
+                                imgBackEl.src = photos[pIndex];
+                                imgEl.classList.add('active');
+                            } else {
+                                imgBackEl.src = imgEl.src;
+                                imgEl.style.transition = 'none';
+                                imgEl.classList.remove('active');
+                                imgEl.src = photos[pIndex];
+                                void imgEl.offsetWidth; 
+                                imgEl.style.transition = 'opacity 1s ease-in-out';
+                                imgEl.classList.add('active');
+                            }
+                            imgEl.onclick = () => openLightbox(pIndex, photos);
+                        }
+                    }
+                };
+
+                updateSlide();
+
+                if(slideCount > 1) {
+                    slideshowInterval = setInterval(() => {
+                        currentPhotoIndex = (currentPhotoIndex + 1) % slideCount;
+                        updateSlide();
+                    }, 5000);
+                }
+            } else { 
+                imgEl.src = "https://placehold.co/500x300?text=No+Photo"; 
+                imgBackEl.src = "https://placehold.co/500x300?text=No+Photo";
+                imgEl.onclick = null; 
+                miniMapEl.classList.remove('active');
+            }
         }
 
         function updateVisitedButton(item) {
@@ -2948,7 +3133,7 @@
             if(!rDiv) return;
             if (item.comments && item.comments.length > 0) {
                 rDiv.style.display = 'flex';
-                rDiv.innerHTML = `★ ${(item.rating || 0).toFixed(1)}`;
+            rDiv.innerHTML = `${(item.rating || 0).toFixed(1)} ★`;
             } else {
                 rDiv.style.display = 'none';
             }
@@ -2999,7 +3184,7 @@
                     else if (c.avatarText) displayText = c.avatarText;
                     
                     const avatarBg = (currentUser && c.userId === currentUser.uid && currentUser.color) ? currentUser.color : (c.userColor || 'linear-gradient(135deg, var(--primary), var(--accent))');
-                    const ratingDisplay = `<div style="position:absolute; top:16px; right:16px; font-size:13px; font-weight:800; color:#fbbf24; background:rgba(251, 191, 36, 0.15); padding:2px 8px; border-radius:6px;">${c.rating.toFixed(1)} ★</div>`;
+                    const ratingDisplay = `<div style="position:absolute; top:16px; right:16px; font-size:13px; font-weight:800; color:#fbbf24; background:rgba(15, 23, 42, 0.85); padding:2px 8px; border-radius:6px; border: 1px solid rgba(255,255,255,0.1);">${c.rating.toFixed(1)} ★</div>`;
                     
                     html += `<div class="comment-item">${ratingDisplay}<div class="comment-header"><div class="comment-avatar" style="background:${avatarBg}">${displayText}</div><div class="comment-info"><span class="comment-user">${commName}</span><span class="comment-date">${date}</span></div></div><p class="comment-text" style="margin-top:5px;">${c.text}</p>${photoHtml}${actions}</div>`;
                 });
@@ -3173,17 +3358,28 @@
                 return;
             }
             document.getElementById('elevation-dock').classList.add('active');
+            let sampledPoints = [];
+            for (let i = 0; i < item.path.length - 1; i++) {
+                const start = L.latLng(item.path[i][0], item.path[i][1]), end = L.latLng(item.path[i+1][0], item.path[i+1][1]), dist = start.distanceTo(end); sampledPoints.push(start);
+                const numSteps = Math.floor(dist / 100); for (let j = 1; j <= numSteps; j++) { const ratio = (j * 100) / dist; sampledPoints.push(L.latLng(start.lat + (end.lat - start.lat) * ratio, start.lng + (end.lng - start.lng) * ratio)); }
+            }
+            sampledPoints.push(L.latLng(item.path[item.path.length - 1][0], item.path[item.path.length - 1][1]));
+
             let currentTotal = 0, distData = [0]; 
-            for(let j = 1; j < item.path.length; j++){ 
-                currentTotal += L.latLng(item.path[j-1][0], item.path[j-1][1]).distanceTo(L.latLng(item.path[j][0], item.path[j][1])); 
+            for(let j = 1; j < sampledPoints.length; j++){ 
+                currentTotal += sampledPoints[j-1].distanceTo(sampledPoints[j]); 
                 distData.push(currentTotal / 1000); 
             }
+            const len = Math.min(distData.length, item.elevData.length);
+            distData = distData.slice(0, len);
+            const graphElevs = item.elevData.slice(0, len);
+
             const ctx = document.getElementById('elevChart').getContext('2d'); 
             if(chartInstance) chartInstance.destroy();
             
             const isImp = storage.units === 'imperial';
-            const labels = distData.map(d => isImp ? (d * 0.621371).toFixed(1) : d.toFixed(1));
-            const data = item.elevData.map(e => isImp ? e * 3.28084 : e);
+            const labels = distData.map(d => isImp ? (d * 0.621371).toFixed(2) : d.toFixed(2));
+            const data = graphElevs.map(e => isImp ? e * 3.28084 : e);
             chartInstance = new Chart(ctx, createChartConfig(labels, data, isImp));
         }
 
@@ -3198,8 +3394,16 @@
                 document.getElementById('liveDist').innerText = formatDist(distKm);
                 
                 const activityMode = document.querySelector('#addModeSelector .mode-btn.active').dataset.mode;
+                let tempAscent = 0;
+                if (liveElevData && liveElevData.length > 0) {
+                    for(let i=1; i<liveElevData.length; i++) {
+                        let diff = liveElevData[i] - liveElevData[i-1];
+                        if(diff > 0) tempAscent += diff;
+                    }
+                }
                 const speed = storage.speeds[activityMode] || 5;
-                const totalMins = Math.round((distKm / speed) * 60);
+                let totalMins = Math.round((distKm / speed) * 60);
+                if (tempAscent > 0) totalMins += Math.round(tempAscent / 10);
                 const hours = Math.floor(totalMins / 60);
                 const mins = totalMins % 60;
                 const timeEl = document.getElementById('liveTime');
@@ -3224,6 +3428,7 @@
             } else {
                 let speed = storage.speeds[item.activity || 'walk'] || 5;
                 totalMins = Math.round((parseFloat(item.dist) / speed) * 60);
+                if (ascent > 0) totalMins += Math.round(ascent / 10);
             }
 
             let hours = Math.floor(totalMins / 60), mins = totalMins % 60;            
@@ -3231,6 +3436,81 @@
             updateWalkWaypoints(); saveData();
             saveToCloud('walks', item);
             updateMyLogList();
+        }
+
+        function renderEditPhotos(item) {
+            const grid = document.getElementById('editPhotoGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            
+            let photosArray = [];
+            if (item.photos && item.photos.length > 0) {
+                photosArray = item.photos;
+            } else if (item.photo) {
+                photosArray = [item.photo];
+            }
+            
+            photosArray.forEach((url, idx) => {
+                const div = document.createElement('div');
+                div.style.position = 'relative';
+                div.style.flexShrink = '0';
+                div.style.width = '60px';
+                div.style.height = '60px';
+                div.draggable = true;
+                div.innerHTML = `<img src="${url}" style="width:100%; height:100%; object-fit:cover; border-radius:8px; border:1px solid var(--border); box-sizing:border-box; cursor:grab;">
+                                 <button class="icon-btn" style="position:absolute; top:-5px; right:-5px; width:20px; height:20px; font-size:10px; background:var(--danger); color:white; border-radius:50%; min-width:20px; padding:0;" title="Delete Photo">✕</button>`;
+                
+                div.ondragstart = (e) => { e.dataTransfer.setData('text/plain', idx); div.style.opacity = '0.5'; };
+                div.ondragend = () => { div.style.opacity = '1'; grid.querySelectorAll('img').forEach(img => { img.style.border = '1px solid var(--border)'; img.style.opacity = '1'; }); };
+                div.ondragover = (e) => e.preventDefault();
+                div.ondragenter = (e) => { e.preventDefault(); div.querySelector('img').style.border = '2px dashed var(--primary)'; div.querySelector('img').style.opacity = '0.7'; };
+                div.ondragleave = () => { div.querySelector('img').style.border = '1px solid var(--border)'; div.querySelector('img').style.opacity = '1'; };
+                div.ondrop = (e) => {
+                    e.preventDefault();
+                    const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+                    if (!isNaN(fromIdx) && fromIdx !== idx) {
+                        if (!item.photos) { item.photos = [item.photo]; delete item.photo; }
+                        const movedPhoto = item.photos.splice(fromIdx, 1)[0];
+                        item.photos.splice(idx, 0, movedPhoto);
+                        saveData(); saveToCloud(item.path ? 'walks' : 'pins', item);
+                        renderEditPhotos(item); refreshSlideshow(item); updateHighlights();
+                    }
+                };
+
+                div.querySelector('button').onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if(confirm("Delete this photo?")) {
+                        if (item.photos && item.photos.length > 0) {
+                            item.photos.splice(idx, 1);
+                            if (item.photos.length === 0) delete item.photos;
+                        } else if (item.photo) {
+                            item.photo = null;
+                        }
+                        saveData();
+                        saveToCloud(item.path ? 'walks' : 'pins', item);
+                        renderEditPhotos(item);
+                        refreshSlideshow(item);
+                        updateHighlights();
+                    }
+                };
+                grid.appendChild(div);
+            });
+
+            const addBtn = document.createElement('div');
+            addBtn.style.flexShrink = '0';
+            addBtn.style.width = '60px';
+            addBtn.style.height = '60px';
+            addBtn.style.borderRadius = '8px';
+            addBtn.style.border = '2px dashed var(--border)';
+            addBtn.style.display = 'flex'; addBtn.style.alignItems = 'center'; addBtn.style.justifyContent = 'center';
+            addBtn.style.cursor = 'pointer'; addBtn.style.fontSize = '24px'; addBtn.style.color = 'var(--text)';
+            addBtn.style.opacity = '0.5'; addBtn.style.boxSizing = 'border-box'; addBtn.style.transition = '0.2s';
+            addBtn.innerHTML = '+'; addBtn.title = "Add Photo URL";
+            addBtn.onmouseover = () => { addBtn.style.opacity = '1'; addBtn.style.borderColor = 'var(--primary)'; addBtn.style.color = 'var(--primary)'; };
+            addBtn.onmouseout = () => { addBtn.style.opacity = '0.5'; addBtn.style.borderColor = 'var(--border)'; addBtn.style.color = 'var(--text)'; };
+            addBtn.onclick = () => openUrlUploadPopup('edit');
+            grid.appendChild(addBtn);
         }
 
         function toggleEditingLogic() {
@@ -3256,13 +3536,19 @@
             }
 
             document.getElementById('floatDeleteBtn').style.display = 'none'; 
-            document.getElementById('editAddPhotoBtn').style.display = isEditing ? 'block' : 'none'; 
             
             const isWalk = (item.path !== undefined);
             document.getElementById('editTypeContainer').style.display = (isEditing && !isWalk) ? 'block' : 'none';
+            document.getElementById('editCampsiteFields').style.display = (isEditing && !isWalk && item.color === '#14b8a6') ? 'flex' : 'none';
             document.getElementById('editWalkOptions').style.display = (isEditing && isWalk) ? 'block' : 'none';
             document.getElementById('editPrivacyContainer').style.display = isEditing ? 'block' : 'none';
             
+            const editPhotosContainer = document.getElementById('editPhotosContainer');
+            if(editPhotosContainer) {
+                editPhotosContainer.style.display = isEditing ? 'flex' : 'none';
+                if(isEditing) renderEditPhotos(item);
+            }
+
             if(!isEditing) {
                 const facilitiesDiv = document.getElementById('detFacilities');
                 facilitiesDiv.innerHTML = '';
@@ -3278,6 +3564,19 @@
                 const viewText = document.getElementById('viewDescText');
                 const showMoreBtn = document.getElementById('viewDescShowMoreBtn');
                 
+                const campsiteInfo = document.getElementById('detCampsiteInfo');
+                if (campsiteInfo) {
+                    if (item.color === '#14b8a6' && (item.price || item.pitchupUrl)) {
+                        campsiteInfo.style.display = 'flex';
+                        let html = '';
+                        if (item.price) html += `<span style="font-weight:800; color:var(--text); padding: 8px 12px; background:rgba(0,0,0,0.15); border-radius:10px;">From £${item.price}</span>`;
+                        if (item.pitchupUrl) html += `<a href="${item.pitchupUrl}" target="_blank" class="btn" style="flex:1; margin:0; display:flex; align-items:center; justify-content:center; height:36px; border-radius:10px; background:var(--accent); color:white; text-decoration:none;">Book on Pitchup</a>`;
+                        campsiteInfo.innerHTML = html;
+                    } else {
+                        campsiteInfo.style.display = 'none';
+                    }
+                }
+
                 viewText.innerHTML = linkify(descText);
                 viewText.classList.remove('desc-truncated');
                 showMoreBtn.style.display = 'none';
@@ -3294,13 +3593,20 @@
                 updateHighlights();
                 updateMyLogList();
                 renderTypeLabel(item);
+            } else {
+                 document.getElementById('detCampsiteInfo').style.display = 'none';
             }
 
             document.getElementById('detFacilities').style.display = (isEditing || (!item.facilities || item.facilities.length === 0)) ? 'none' : 'flex';
             document.getElementById('editFacilitiesContainer').style.display = isEditing ? 'block' : 'none';
             if(isEditing) renderFacilityPicker('editFacilityPicker', item.facilities || [], true);
             
-            if(isEditing) { setupTypePickers(); walkHistory = []; }
+            if(isEditing) { 
+                const cat = PIN_CATEGORIES.find(c => c.types.some(t => t.color === item.color));
+                window.currentPinCategory = cat ? cat.name : 'all';
+                setupTypePickers(); 
+                walkHistory = []; 
+            }
             
             document.querySelectorAll('.edit-input').forEach(inp => inp.classList.toggle('active', isEditing));
             document.getElementById('editDesc').style.display = isEditing ? 'block' : 'none';
@@ -3319,6 +3625,25 @@
             };
             document.getElementById('editDesc').oninput = () => { item.desc = document.getElementById('editDesc').value; saveData(); updateMyLogList(); saveToCloud(item.path ? 'walks' : 'pins', item); };
             
+            document.getElementById('editCampsitePrice').oninput = function() {
+                item.price = parseFloat(this.value);
+                saveData(); saveToCloud(item.path ? 'walks' : 'pins', item);
+            };
+            document.getElementById('editCampsiteUrl').oninput = function() {
+                item.pitchupUrl = this.value;
+                saveData(); saveToCloud(item.path ? 'walks' : 'pins', item);
+            };
+            if (isEditing) {
+                const ep = document.getElementById('editCampsitePrice');
+                const eu = document.getElementById('editCampsiteUrl');
+                if (ep) ep.value = item.price || '';
+                if (eu) eu.value = item.pitchupUrl || '';
+            }
+
+            document.getElementById('editCampsiteUrl').onchange = function() {
+                if (this.value && !document.getElementById('editCampsitePrice').value) fetchPitchupPrice(this.value, 'editCampsitePrice');
+            };
+
             if(isEditing) {
                 const pubToggle = document.getElementById('editPublicToggle');
                 pubToggle.checked = item.isPublic || false;
@@ -3401,7 +3726,8 @@
             
             saveData(); 
             await saveToCloud(item.path ? 'walks' : 'pins', item);
-            showDetails(item, item.path !== undefined, null);
+            refreshSlideshow(item);
+            if (isEditing) renderEditPhotos(item);
             updateMyLogList();
             cancelUpload();
         }
@@ -3785,7 +4111,7 @@
                         let currentTotal = 0, distData = [0]; for(let i = 1; i < sampledPoints.length; i++){ currentTotal += sampledPoints[i-1].distanceTo(sampledPoints[i]); distData.push(currentTotal / 1000); }
                         document.getElementById('elevation-dock').classList.add('active');
                         const ctx = document.getElementById('elevChart').getContext('2d'); if(chartInstance) chartInstance.destroy();
-                        const labels = distData.map(d => isImp ? (d * 0.621371).toFixed(1) : d.toFixed(1));
+                        const labels = distData.map(d => isImp ? (d * 0.621371).toFixed(2) : d.toFixed(2));
                         const data = elevs.map(e => isImp ? e * 3.28084 : e);
                         chartInstance = new Chart(ctx, createChartConfig(labels, data, isImp));
                     }
@@ -3799,7 +4125,7 @@
                     let currentTotal = 0, distData = [0]; for(let i = 1; i < sampledPoints.length; i++){ currentTotal += sampledPoints[i-1].distanceTo(sampledPoints[i]); distData.push(currentTotal / 1000); }
                     document.getElementById('elevation-dock').classList.add('active');
                     const ctx = document.getElementById('elevChart').getContext('2d'); if(chartInstance) chartInstance.destroy();
-                    const labels = distData.map(d => isImp ? (d * 0.621371).toFixed(1) : d.toFixed(1));
+                    const labels = distData.map(d => isImp ? (d * 0.621371).toFixed(2) : d.toFixed(2));
                     const data = elevs.map(e => isImp ? e * 3.28084 : e);
                     chartInstance = new Chart(ctx, createChartConfig(labels, data, isImp));
                 }
@@ -3952,11 +4278,29 @@
                         pointRadius: 0,
                         pointHoverRadius: 6,
                         borderWidth: 2,
-                        tension: 0.4
+                        tension: 0.1
                     }]
                 },
                 options: {
                     maintainAspectRatio: false,
+                    onClick: (e, elements, chart) => {
+                        if (isFlying) {
+                            const xAxis = chart.scales.x;
+                            const index = xAxis.getValueForPixel(e.x);
+                            if (index !== undefined && chart.data.labels.length > 1) {
+                                const maxIndex = chart.data.labels.length - 1;
+                                const fraction = Math.max(0, Math.min(1, index / maxIndex));
+                                currentFlyDist = fraction * flyTotalDist;
+                            }
+                        }
+                    },
+                    onHover: (e, elements, chart) => {
+                        if (isFlying && e.native && e.native.target) {
+                            e.native.target.style.cursor = 'pointer';
+                        } else if (e.native && e.native.target) {
+                            e.native.target.style.cursor = 'default';
+                        }
+                    },
                     interaction: {
                         mode: 'index',
                         intersect: false,
@@ -3972,8 +4316,8 @@
                         }
                     },
                     scales: {
-                        x: { title: { display: true, text: isImp ? 'mi' : 'km' }, ticks: { maxTicksLimit: 8 } },
-                        y: { title: { display: true, text: isImp ? 'ft' : 'm' }, position: 'right' }
+                        x: { title: { display: true, text: isImp ? 'mi' : 'km' }, ticks: { maxTicksLimit: 8, maxRotation: 0 } },
+                        y: { title: { display: true, text: isImp ? 'ft' : 'm' }, position: 'right', grace: '5%' }
                     }
                 },
                 plugins: [{
@@ -4050,18 +4394,42 @@
                     afterDraw: (chart) => {
                         if (typeof window.flyoverDistance !== 'number' || window.flyoverDistance === null) return;
                         const ctx = chart.ctx; const xAxis = chart.scales.x; const yAxis = chart.scales.y; const labels = chart.data.labels;
-                        if (!labels || labels.length === 0) return; const totalDist = parseFloat(labels[labels.length - 1]); if (!totalDist) return;
-                        const pct = Math.min(1, Math.max(0, window.flyoverDistance / totalDist)); const x = xAxis.left + (xAxis.width * pct);
+                        if (!labels || labels.length === 0) return; 
                         
-                        const exactIndex = pct * (chart.data.datasets[0].data.length - 1);
-                        const idx1 = Math.floor(exactIndex);
-                        const idx2 = Math.min(idx1 + 1, chart.data.datasets[0].data.length - 1);
-                        const t = exactIndex - idx1;
-                        const val1 = chart.data.datasets[0].data[idx1];
-                        const val2 = chart.data.datasets[0].data[idx2];
-                        const interpolatedVal = val1 + (val2 - val1) * t;
+                        const isImp = storage.units === 'imperial';
+                        let targetDist = window.flyoverDistance;
+                        if (isImp) targetDist = targetDist * 0.621371;
+
+                        let idx1 = 0;
+                        let idx2 = 0;
+                        for(let i=0; i<labels.length; i++) {
+                            if (parseFloat(labels[i]) >= targetDist) {
+                                idx2 = i;
+                                idx1 = Math.max(0, i - 1);
+                                break;
+                            }
+                        }
+                        if (idx2 === 0) { idx2 = labels.length - 1; idx1 = Math.max(0, idx2 - 1); }
                         
-                        const y = yAxis.getPixelForValue(interpolatedVal);
+                        const val1 = parseFloat(labels[idx1]);
+                        const val2 = parseFloat(labels[idx2]);
+                        
+                        let t = 0;
+                        if (val2 > val1) {
+                            t = Math.max(0, Math.min(1, (targetDist - val1) / (val2 - val1)));
+                        }
+                        
+                        const meta = chart.getDatasetMeta(0);
+                        if (!meta || !meta.data || meta.data.length === 0) return;
+                        
+                        const pt1 = meta.data[idx1];
+                        const pt2 = meta.data[idx2];
+                        
+                        if (!pt1 || !pt2) return;
+
+                        const x = pt1.x + (pt2.x - pt1.x) * t;
+                        const y = pt1.y + (pt2.y - pt1.y) * t;
+
                         ctx.save(); ctx.beginPath(); ctx.moveTo(x, yAxis.top); ctx.lineTo(x, yAxis.bottom); ctx.lineWidth = 1; ctx.strokeStyle = '#ef4444'; ctx.stroke(); ctx.beginPath(); ctx.arc(x, y, 5, 0, 2 * Math.PI); ctx.fillStyle = '#ef4444'; ctx.fill(); ctx.restore();
                     }
                 }]
@@ -4439,7 +4807,7 @@
 
                 let ratingHtml = '';
                 if (i.rating > 0) {
-                    ratingHtml = `<span style="display:inline-block; background:rgba(251, 191, 36, 0.15); color:#fbbf24; font-weight:800; padding:2px 6px; border-radius:4px; font-size:10px;">★ ${i.rating.toFixed(1)}</span>`;
+                    ratingHtml = `<span style="display:inline-block; background:rgba(15, 23, 42, 0.85); color:#fbbf24; font-weight:800; padding:2px 6px; border-radius:4px; font-size:10px; border: 1px solid rgba(255,255,255,0.1);">★ ${i.rating.toFixed(1)}</span>`;
                 }
 
                 let dateDisplay = '';
@@ -4678,6 +5046,39 @@
                     .setLngLat([p.lng, p.lat])
                     .addTo(map3d);
                 window.map3dMarkers.push(marker);
+            });
+        }
+
+        async function fetchPitchupPrice(url, priceInputId) {
+            if (!url.includes('pitchup.com')) return;
+            const priceInput = document.getElementById(priceInputId);
+            if (priceInput) priceInput.placeholder = 'Fetching price...';
+            try {
+                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const html = data.contents;
+                    const fromMatch = html.match(/from\s*(?:£|&pound;)\s*(\d+(\.\d+)?)/i) || html.match(/(?:£|&pound;)\s*(\d+(\.\d+)?)/i);
+                    if (fromMatch && fromMatch[1]) {
+                        const price = parseFloat(fromMatch[1]);
+                        if (priceInput && !priceInput.value) {
+                            priceInput.value = price;
+                            priceInput.dispatchEvent(new Event('input'));
+                        }
+                    }
+                }
+            } catch(e) {
+                console.error("Failed to fetch pitchup price", e);
+            }
+            if (priceInput) priceInput.placeholder = 'Starting Price (£)';
+        }
+
+        const createCampsiteUrlInput = document.getElementById('campsiteUrl');
+        if (createCampsiteUrlInput) {
+            createCampsiteUrlInput.addEventListener('change', function() {
+                if (this.value && !document.getElementById('campsitePrice').value) {
+                    fetchPitchupPrice(this.value, 'campsitePrice');
+                }
             });
         }
     </script>
