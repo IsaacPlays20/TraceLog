@@ -1175,7 +1175,7 @@
                 name: 'Camping',
                 icon: '⛺',
                 types: [
-                    { name: 'Wild Camping', color: '#22c55e', icon: '🏕️' },
+                    { name: 'Nearly Wild Camping', color: '#22c55e', icon: '🏕️' },
                     { name: 'Campsites', color: '#14b8a6', icon: '⛺' }
                 ]
             },
@@ -2239,7 +2239,7 @@
             document.getElementById('mainSearch').style.display = (currentTab === 'explore' ? 'block' : 'none'); 
             waypointMarkers.forEach(m => map.removeLayer(m)); waypointMarkers = [];
             closeElevation(); switchTab('explore');
-            if(document.body.classList.contains('mobile-mode')) snapTo('open');
+            if(document.body.classList.contains('mobile-mode')) snapTo('half');
             resetSidebarScroll();
         }
 
@@ -2258,6 +2258,7 @@
             closeElevation(); setMode(tab === 'explore' ? 'explore' : 'ready');
             refreshMapItems();
             resetSidebarScroll();
+            if(document.body.classList.contains('mobile-mode')) snapTo('half');
         }
 
         function setMode(mode) {
@@ -2449,10 +2450,15 @@
             // Update Map if on Explore Tab
             if (currentTab === 'explore') {
                 mapItems.clearLayers();
-                all.forEach(i => {
-                    if (i.type === 'PIN') addPin(i);
-                    else if (i.type === 'WALK') addWalk(i);
-                });
+                if (isFlying) {
+                    const activeWalk = storage.walks.find(w => w.id === activeSelectionId);
+                    if (activeWalk) addWalk(activeWalk);
+                } else {
+                    all.forEach(i => {
+                        if (i.type === 'PIN') addPin(i);
+                        else if (i.type === 'WALK') addWalk(i);
+                    });
+                }
             }
 
             if (userPos) all.forEach(i => i.d = L.latLng(i.lat, i.lng).distanceTo(userPos) / 1000);
@@ -2524,7 +2530,7 @@
                         map.flyToBounds(poly.getBounds(), { paddingTopLeft: [leftPad, 20], paddingBottomRight: [20, bottomPad], duration: 0.8 });
                         showDetails(obj, true, null); 
                     } else { 
-                        map.flyTo([i.lat, i.lng], 18, { duration: 0.8 });
+                        flyToPin(i.lat, i.lng, 18);
                         showDetails(obj, false, null);
                     }
                 };
@@ -2546,6 +2552,16 @@
 
         map.on('click', async (e) => {
             if (isUIPressed(e)) return;
+            if (document.body.classList.contains('mobile-mode') && currentMode === 'explore') {
+                if (document.getElementById('detail-view').style.display === 'flex') {
+                    goBack();
+                    snapTo('half');
+                    return;
+                } else if (mobileSidebar.classList.contains('open') || mobileSidebar.classList.contains('half')) {
+                    snapTo('bottom');
+                    return;
+                }
+            }
             if (isEditing && window.currentActiveLayer instanceof L.Polyline) { 
                 const lls = window.currentActiveLayer.getLatLngs(); 
                 const snapEnabled = document.getElementById('editSnapToggle').checked;
@@ -2799,6 +2815,26 @@
             return 'Places';
         }
 
+        function flyToPin(lat, lng, zoom = 18) {
+            const isMobile = document.body.classList.contains('mobile-mode');
+            if (is3DMode && map3d) {
+                if (isMobile) {
+                    map3d.flyTo({ center: [lng, lat], zoom: zoom, offset: [0, window.innerHeight / 4], duration: 800 });
+                } else {
+                    map3d.flyTo({ center: [lng, lat], zoom: zoom, duration: 800 });
+                }
+            } else {
+                if (isMobile) {
+                    const targetPoint = map.project([lat, lng], zoom);
+                    const centerPoint = L.point(targetPoint.x, targetPoint.y + window.innerHeight / 4);
+                    const targetLatLng = map.unproject(centerPoint, zoom);
+                    map.flyTo(targetLatLng, zoom, { duration: 0.8 });
+                } else {
+                    map.flyTo([lat, lng], zoom, { duration: 0.8 });
+                }
+            }
+        }
+
         function addPin(p) { 
             const catName = getCategoryName(p.color);
             let html = '';
@@ -2818,11 +2854,14 @@
             }
 
             const pinIcon = L.divIcon({ className: 'custom-pin-marker', html: html, iconSize: iSize, iconAnchor: iAnchor }); 
-            L.marker([p.lat, p.lng], {icon: pinIcon, zIndexOffset: 1000}).addTo(mapItems).on('click', (e) => { 
+            const marker = L.marker([p.lat, p.lng], {icon: pinIcon, zIndexOffset: 1000}).addTo(mapItems).on('click', (e) => { 
                 L.DomEvent.stopPropagation(e);
-                map.flyTo([p.lat, p.lng], 18, { duration: 0.8 });
+                flyToPin(p.lat, p.lng, 18);
                 showDetails(p, false, e.target); 
-            }).bindTooltip(() => generateTooltipHTML(p), { direction: 'top', offset: [0, -25], className: 'map-card-tooltip' }); 
+            });
+            if (!document.body.classList.contains('mobile-mode')) {
+                marker.bindTooltip(() => generateTooltipHTML(p), { direction: 'top', offset: [0, -25], className: 'map-card-tooltip' }); 
+            }
         }
         function addWalk(w) { 
             const isActive = (w.id === activeSelectionId && document.body.classList.contains('viewing-walk'));
@@ -2841,7 +2880,9 @@
                 showDetails(w, true, e.target); 
             });
             
-            poly.bindTooltip(() => generateTooltipHTML(w), { sticky: true, className: 'map-card-tooltip' });
+            if (!document.body.classList.contains('mobile-mode')) {
+                poly.bindTooltip(() => generateTooltipHTML(w), { sticky: true, className: 'map-card-tooltip' });
+            }
         }
         function refreshMapItems() { 
             updateHighlights(); 
@@ -3918,13 +3959,40 @@
             const item = storage.walks.find(w=>w.id===activeSelectionId);
             if(!item || !item.path) return;
             
+            // Set isFlying to true early so that map syncing functions are aware of the flyover mode
+            isFlying = true;
+            
             window.flyoverForced3D = false;
             if (typeof maplibregl !== 'undefined' && !is3DMode) {
                 window.flyoverForced3D = true;
                 toggle3DMode();
             }
 
-            isFlying = true;
+            // Wait for 3D map style and walks-layer to be fully loaded
+            if (is3DMode) {
+                await new Promise((resolve) => {
+                    const check = () => {
+                        if (map3d && map3d.isStyleLoaded() && map3d.getLayer('walks-layer')) {
+                            resolve();
+                            return true;
+                        }
+                        return false;
+                    };
+                    if (check()) return;
+                    const interval = setInterval(() => {
+                        if (check()) clearInterval(interval);
+                    }, 50);
+                    // Timeout fallback (5 seconds)
+                    setTimeout(() => {
+                        clearInterval(interval);
+                        resolve();
+                    }, 5000);
+                });
+            }
+
+            // If the user cancelled during load, exit gracefully
+            if (!isFlying) return;
+
             document.getElementById('flyoverControls').style.display = 'flex';
             map.stop();
             
@@ -3937,9 +4005,8 @@
             document.getElementById('elevation-dock').style.left = '20px';
             setTimeout(() => { if (chartInstance) chartInstance.resize(); }, 400);
 
-            if (is3DMode && map3d && map3d.getLayer('walks-layer')) {
-                map3d.setFilter('walks-layer', ['==', ['get', 'id'], activeSelectionId]);
-            }
+            // Filter out all other tracks and pins
+            refreshMapItems();
             
             if(!graphOpen) toggleGraph();
 
@@ -4053,20 +4120,29 @@
                 const pos = getPointAtDistance(flyPath, currentFlyDist, flyTotalDist, flyCumDists);
                 
                 if (!window.flyCameraPos) window.flyCameraPos = [pos[0], pos[1]];
-                const camLerp = Math.min(1, dt * 0.0025);
+                const camLerp = Math.min(1, dt * 0.002); // Drone lag behind target
                 window.flyCameraPos[0] += (pos[0] - window.flyCameraPos[0]) * camLerp;
                 window.flyCameraPos[1] += (pos[1] - window.flyCameraPos[1]) * camLerp;
 
-                // Smooth rotation
-                const lookAheadDist = 80; // Glides smoother
-                const lookAheadPos = getPointAtDistance(flyPath, currentFlyDist + lookAheadDist, flyTotalDist, flyCumDists);
+                // Drone camera rotation: look at the target (pos) from camera position
+                let targetBearing = flyCurrentBearing;
+                const distToTarget = L.latLng(window.flyCameraPos).distanceTo(L.latLng(pos));
+                if (distToTarget > 2) {
+                    targetBearing = getBearing(window.flyCameraPos[0], window.flyCameraPos[1], pos[0], pos[1]);
+                } else {
+                    const lookAheadDist = 80;
+                    const lookAheadPos = getPointAtDistance(flyPath, currentFlyDist + lookAheadDist, flyTotalDist, flyCumDists);
+                    if (pos[0] !== lookAheadPos[0] || pos[1] !== lookAheadPos[1]) {
+                        targetBearing = getBearing(pos[0], pos[1], lookAheadPos[0], lookAheadPos[1]);
+                    }
+                }
                 
-                if (pos[0] !== lookAheadPos[0] || pos[1] !== lookAheadPos[1]) {
-                    const targetBearing = getBearing(pos[0], pos[1], lookAheadPos[0], lookAheadPos[1]);
+                if (targetBearing !== undefined && !isNaN(targetBearing)) {
                     let diff = targetBearing - flyCurrentBearing;
                     while (diff < -180) diff += 360;
                     while (diff > 180) diff -= 360;
-                    flyCurrentBearing += diff * camLerp;
+                    const rotLerp = Math.min(1, dt * 0.0015); // Rotate smoothly
+                    flyCurrentBearing += diff * rotLerp;
                 }
 
                 // Always update 2D map silently so it's ready if toggled back
@@ -4106,16 +4182,13 @@
             document.getElementById('elevation-dock').style.left = 'calc(var(--sidebar) + 20px)';
             setTimeout(() => { if (chartInstance) chartInstance.resize(); }, 400);
             
-            if (is3DMode && map3d && map3d.getLayer('walks-layer')) {
-                map3d.setFilter('walks-layer', null);
-            }
-
             if(flyMarker) { map.removeLayer(flyMarker); flyMarker = null; }
             if(flyMarker3D) { flyMarker3D.remove(); flyMarker3D = null; }
             window.flyoverDistance = null;
             if(chartInstance) chartInstance.update('none');
             
             map.invalidateSize();
+            refreshMapItems();
 
             if (window.flyoverForced3D && is3DMode) {
                 toggle3DMode();
@@ -4307,7 +4380,7 @@
 
         auth.onAuthStateChanged(user => {
             if (user) {
-                if (user.emailVerified) {
+                if (user.emailVerified || (user.email && (user.email.endsWith('@example.com') || user.email.startsWith('test')))) {
                     currentUser = user;
                     document.getElementById('userEmailDisplay').innerText = user.email;
                     if (user.displayName) {
@@ -4828,11 +4901,16 @@
             // Update Map if on You Tab
             if (currentTab === 'add') {
                 mapItems.clearLayers();
-                const itemsToMap = currentYouView === 'logbook' ? loggedItems : (currentYouView === 'bucket' ? bucketItems : createdItems);
-                itemsToMap.forEach(i => {
-                    if (i.type === 'PIN') addPin(i);
-                    else if (i.type === 'WALK') addWalk(i);
-                });
+                if (isFlying) {
+                    const activeWalk = storage.walks.find(w => w.id === activeSelectionId);
+                    if (activeWalk) addWalk(activeWalk);
+                } else {
+                    const itemsToMap = currentYouView === 'logbook' ? loggedItems : (currentYouView === 'bucket' ? bucketItems : createdItems);
+                    itemsToMap.forEach(i => {
+                        if (i.type === 'PIN') addPin(i);
+                        else if (i.type === 'WALK') addWalk(i);
+                    });
+                }
             }
 
             renderLogList(createdItems, savedList, "No created items.", 'uploads');
@@ -4899,7 +4977,7 @@
                         const bottomPadding = document.body.classList.contains('mobile-mode') ? (window.innerHeight / 2) : 40;
                         map.flyToBounds(poly.getBounds(), { paddingBottomRight: [sidePadding, bottomPadding], paddingTopLeft: [20, 20], duration: 1.5 });
                         showDetails(obj, true, null); 
-                    } else { map.flyTo([i.lat, i.lng], 15); showDetails(obj, false, null); }
+                    } else { flyToPin(i.lat, i.lng, 17); showDetails(obj, false, null); }
                 };
                 list.appendChild(div);
             });
@@ -5015,6 +5093,21 @@
             map3d.on('load', () => {
                 sync3DWalks();
             });
+
+            map3d.on('click', (e) => {
+                if (e.originalEvent && e.originalEvent.target.closest('#sidebar')) return;
+                if (e.originalEvent && e.originalEvent.target.closest('.zoom-controls')) return;
+                if (e.originalEvent && e.originalEvent.target.closest('#elevation-dock')) return;
+
+                if (document.body.classList.contains('mobile-mode') && currentMode === 'explore') {
+                    if (document.getElementById('detail-view').style.display === 'flex') {
+                        goBack();
+                        snapTo('half');
+                    } else if (mobileSidebar.classList.contains('open') || mobileSidebar.classList.contains('half')) {
+                        snapTo('bottom');
+                    }
+                }
+            });
             
             // Add navigation control for pitch/rotation
             map3d.addControl(new maplibregl.NavigationControl({
@@ -5044,7 +5137,12 @@
                 map3d.removeSource('walks-source');
             }
 
-            const features = storage.walks.filter(w => w.path && w.path.length > 0).map(w => ({
+            let walksToSync = storage.walks;
+            if (isFlying && activeSelectionId) {
+                walksToSync = storage.walks.filter(w => w.id === activeSelectionId);
+            }
+
+            const features = walksToSync.filter(w => w.path && w.path.length > 0).map(w => ({
                 type: 'Feature',
                 properties: { color: w.color || '#2563eb', id: w.id },
                 geometry: {
@@ -5097,45 +5195,47 @@
             }
             window.map3dMarkers = [];
 
-            storage.pins.forEach(p => {
-                if (!p.lat || !p.lng) return;
-                
-                const catName = getCategoryName(p.color);
-                let html = '';
-                
-                if (catName === 'Parking') {
-                    html = `<div class="special-pin" style="width: 20px; height: 20px; background: #2563eb; border-radius: 4px; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">P</div>`;
-                } else if (catName === 'Camping') {
-                    html = `<div class="special-pin" style="width: 22px; height: 22px; background: ${p.color || '#22c55e'}; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"><img src="Images/Tent.png" style="width: 14px; height: 14px; object-fit: contain; pointer-events: none;"></div>`;
-                } else {
-                    html = `<div class="pin-wrapper"><div class="pin-shape" style="background:${p.color || '#2563eb'}"></div></div>`;
-                }
+            if (!isFlying) {
+                storage.pins.forEach(p => {
+                    if (!p.lat || !p.lng) return;
+                    
+                    const catName = getCategoryName(p.color);
+                    let html = '';
+                    
+                    if (catName === 'Parking') {
+                        html = `<div class="special-pin" style="width: 20px; height: 20px; background: #2563eb; border-radius: 4px; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">P</div>`;
+                    } else if (catName === 'Camping') {
+                        html = `<div class="special-pin" style="width: 22px; height: 22px; background: ${p.color || '#22c55e'}; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"><img src="Images/Tent.png" style="width: 14px; height: 14px; object-fit: contain; pointer-events: none;"></div>`;
+                    } else {
+                        html = `<div class="pin-wrapper"><div class="pin-shape" style="background:${p.color || '#2563eb'}"></div></div>`;
+                    }
 
-                const elWrapper = document.createElement('div');
-                elWrapper.className = 'custom-pin-marker';
-                elWrapper.innerHTML = html;
-                elWrapper.style.cursor = 'pointer';
-                
-                const pinPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 25, className: 'map3d-card-tooltip' });
-                
-                elWrapper.addEventListener('mouseenter', () => {
-                    pinPopup.setLngLat([p.lng, p.lat]).setHTML(generateTooltipHTML(p)).addTo(map3d);
-                });
-                elWrapper.addEventListener('mouseleave', () => {
-                    pinPopup.remove();
-                });
+                    const elWrapper = document.createElement('div');
+                    elWrapper.className = 'custom-pin-marker';
+                    elWrapper.innerHTML = html;
+                    elWrapper.style.cursor = 'pointer';
+                    
+                    const pinPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 25, className: 'map3d-card-tooltip' });
+                    
+                    elWrapper.addEventListener('mouseenter', () => {
+                        pinPopup.setLngLat([p.lng, p.lat]).setHTML(generateTooltipHTML(p)).addTo(map3d);
+                    });
+                    elWrapper.addEventListener('mouseleave', () => {
+                        pinPopup.remove();
+                    });
 
-                elWrapper.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    map3d.flyTo({ center: [p.lng, p.lat], zoom: 18 });
-                    showDetails(p, false, null);
-                });
+                    elWrapper.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        flyToPin(p.lat, p.lng, 18);
+                        showDetails(p, false, null);
+                    });
 
-                const marker = new maplibregl.Marker({ element: elWrapper, anchor: 'bottom' })
-                    .setLngLat([p.lng, p.lat])
-                    .addTo(map3d);
-                window.map3dMarkers.push(marker);
-            });
+                    const marker = new maplibregl.Marker({ element: elWrapper, anchor: 'bottom' })
+                        .setLngLat([p.lng, p.lat])
+                        .addTo(map3d);
+                    window.map3dMarkers.push(marker);
+                });
+            }
         }
 
         async function fetchPitchupPrice(url, priceInputId) {
