@@ -579,6 +579,26 @@
         body.viewing-walk path.walk-poly:not(.active-walk) { display: none !important; pointer-events: none !important; }
         body.is-flying path.walk-poly:not(.active-walk) { display: none !important; pointer-events: none !important; }
 
+        .map-card-tooltip.leaflet-tooltip, .map3d-card-tooltip .maplibregl-popup-content {
+            background: var(--card);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            font-family: 'Inter', sans-serif;
+            text-align: left;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            width: 220px;
+        }
+        .map-card-tooltip.leaflet-tooltip::before, .map3d-card-tooltip .maplibregl-popup-tip {
+            display: none;
+        }
+        .map3d-card-tooltip {
+            pointer-events: none;
+            z-index: 5000;
+        }
     </style>
 </head>
 <body class="dark-theme auth-active">
@@ -2729,6 +2749,49 @@
             } catch(e){}
         }
 
+        function generateTooltipHTML(item) {
+            const isWalk = (item.type === 'WALK' || item.path !== undefined);
+            let typeText = '', typeColor = item.color || '#2563eb', typeIcon = '📍';
+            if (isWalk) {
+                const act = item.activity || 'walk';
+                typeText = act.toUpperCase();
+                typeColor = ACTIVITY_COLORS[act] || '#2563eb';
+                typeIcon = act === 'cycle' ? '🚲' : (act === 'run' ? '⚡' : (act === 'hike' ? '🥾' : '🚶'));
+            } else {
+                const cat = PIN_TYPES.find(t => t.color === item.color);
+                typeText = cat ? cat.name.toUpperCase() : 'PIN';
+                typeIcon = cat ? cat.icon : '📍';
+            }
+
+            let distText = '';
+            let lat = item.lat;
+            let lng = item.lng;
+            if (isWalk && item.path && item.path.length > 0) {
+                lat = item.path[0][0];
+                lng = item.path[0][1];
+            }
+            if (userPos && lat && lng) {
+                const d = userPos.distanceTo(L.latLng(lat, lng)) / 1000;
+                distText = formatDist(d) + ' away';
+            }
+
+            const thumb = (item.photos && item.photos.length > 0) ? item.photos[0] : (item.photo || 'https://placehold.co/300x200?text=No+Photo');
+            
+            let ratingHtml = '';
+            if (item.rating > 0) {
+                ratingHtml = `<div style="position: absolute; top: 10px; right: 10px; background: rgba(15, 23, 42, 0.85); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; color: #fbbf24; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px);">★ ${item.rating.toFixed(1)}</div>`;
+            }
+
+            let bottomInfo = '';
+            if (isWalk && item.dist) bottomInfo = `<span>${formatDist(item.dist)}</span>`;
+            if (distText) bottomInfo += `<span style="${bottomInfo ? 'margin-left:auto;' : ''}">${distText}</span>`;
+
+            let infoBar = '';
+            if (bottomInfo) infoBar = `<div style="padding: 10px 12px; background: var(--card); font-size: 11px; font-weight: 700; color: var(--text); display: flex; justify-content: ${isWalk ? 'space-between' : 'flex-end'}; border-top: 1px solid var(--border);">${bottomInfo}</div>`;
+
+            return `<div style="position: relative; height: 140px; background: #ddd; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover; display: block;"><div style="position: absolute; top: 10px; left: 10px; background: ${typeColor}; padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 900; color: white; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); letter-spacing: 0.5px; text-transform: uppercase;"><span>${typeIcon} ${typeText}</span></div>${ratingHtml}<div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%); padding: 40px 12px 10px 12px; display: flex; flex-direction: column; justify-content: flex-end;"><div style="color: white; font-weight: 900; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name || 'Untitled'}</div></div></div>${infoBar}`;
+        }
+
         function getCategoryName(color) {
             for (let cat of PIN_CATEGORIES) {
                 if (cat.types.some(t => t.color === color)) return cat.name;
@@ -2759,7 +2822,7 @@
                 L.DomEvent.stopPropagation(e);
                 map.flyTo([p.lat, p.lng], 18, { duration: 0.8 });
                 showDetails(p, false, e.target); 
-            }); 
+            }).bindTooltip(() => generateTooltipHTML(p), { direction: 'top', offset: [0, -25], className: 'map-card-tooltip' }); 
         }
         function addWalk(w) { 
             const isActive = (w.id === activeSelectionId && document.body.classList.contains('viewing-walk'));
@@ -2776,7 +2839,9 @@
                 const bottomPad = isMobile ? (window.innerHeight / 2) : 40;
                 map.flyToBounds(e.target.getBounds(), { paddingTopLeft: [leftPad, 20], paddingBottomRight: [20, bottomPad], duration: 0.8 });
                 showDetails(w, true, e.target); 
-            }); 
+            });
+            
+            poly.bindTooltip(() => generateTooltipHTML(w), { sticky: true, className: 'map-card-tooltip' });
         }
         function refreshMapItems() { 
             updateHighlights(); 
@@ -5006,6 +5071,21 @@
                     'line-width': 5
                 }
             });
+            
+            if (!window.hovered3DPopup) {
+                window.hovered3DPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'map3d-card-tooltip' });
+                
+                map3d.on('mouseenter', 'walks-layer', (e) => {
+                    map3d.getCanvas().style.cursor = 'pointer';
+                    const feature = e.features[0];
+                    const walk = storage.walks.find(w => w.id === feature.properties.id);
+                    if (walk) {
+                        window.hovered3DPopup.setLngLat(e.lngLat).setHTML(generateTooltipHTML(walk)).addTo(map3d);
+                    }
+                });
+                map3d.on('mousemove', 'walks-layer', (e) => { if(window.hovered3DPopup.isOpen()) window.hovered3DPopup.setLngLat(e.lngLat); });
+                map3d.on('mouseleave', 'walks-layer', () => { map3d.getCanvas().style.cursor = ''; window.hovered3DPopup.remove(); });
+            }
 
             if (isFlying && activeSelectionId) {
                 map3d.setFilter('walks-layer', ['==', ['get', 'id'], activeSelectionId]);
@@ -5036,6 +5116,15 @@
                 elWrapper.innerHTML = html;
                 elWrapper.style.cursor = 'pointer';
                 
+                const pinPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 25, className: 'map3d-card-tooltip' });
+                
+                elWrapper.addEventListener('mouseenter', () => {
+                    pinPopup.setLngLat([p.lng, p.lat]).setHTML(generateTooltipHTML(p)).addTo(map3d);
+                });
+                elWrapper.addEventListener('mouseleave', () => {
+                    pinPopup.remove();
+                });
+
                 elWrapper.addEventListener('click', (e) => {
                     e.stopPropagation();
                     map3d.flyTo({ center: [p.lng, p.lat], zoom: 18 });
