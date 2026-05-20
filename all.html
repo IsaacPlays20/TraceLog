@@ -26,6 +26,11 @@
             color-scheme: light;
         }
 
+        @keyframes flash-danger {
+            0% { background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+            100% { background: #b91c1c; box-shadow: 0 0 20px rgba(185, 28, 28, 0.8); }
+        }
+
         .dark-theme { 
             --bg: #0f172a; 
             --card: rgba(30, 41, 59, 0.9); 
@@ -249,12 +254,10 @@
             display: flex; align-items: flex-end; padding: 10px 15px; pointer-events: none; z-index: 20;
         }
 
-        #editTitle { 
-            font-size: 1.4rem; font-weight: 900; color: white; background: transparent; 
-            border: none; width: 100%; padding: 0; margin: 0; line-height: 1.1;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5); resize: none; overflow: hidden; pointer-events: none;
+        #detTitle { 
+            font-size: 1.4rem; font-weight: 900; color: white; margin: 0; line-height: 1.1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6); word-break: break-word; pointer-events: none;
         }
-        #editTitle.active { color: var(--text); background: var(--bg); border: 1px solid var(--border); padding: 5px; border-radius: 6px; text-shadow: none; pointer-events: auto; }
 
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 5px 0 10px 0; }
         .stat-card { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: none; display: flex; flex-direction: column; gap: 4px; }
@@ -301,7 +304,7 @@
         .sub-toggle-btn.active { background: var(--primary) !important; color: white !important; border: none; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3); }
         .sub-toggle-btn .filter-icon { font-size: 24px; line-height: 1; margin-bottom: 2px; }
 
-        .gps-indicator-wrapper { position: relative; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; }
+        .gps-indicator-wrapper { position: relative; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; pointer-events: none; }
         .gps-indicator { width: 16px !important; height: 16px !important; background: #2563eb; border: 3px solid white; border-radius: 50% !important; z-index: 2; flex-shrink: 0; aspect-ratio: 1/1; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
         .gps-pulse { position: absolute; width: 45px !important; height: 45px !important; background: rgba(37, 99, 235, 0.6); border: 2px solid rgba(37, 99, 235, 0.8); border-radius: 50% !important; animation: pulse 1.8s ease-out infinite; z-index: 1; flex-shrink: 0; aspect-ratio: 1/1; }
         @keyframes pulse { 0% { transform: scale(0.4); opacity: 1; } 100% { transform: scale(3.5); opacity: 0; } }
@@ -317,9 +320,8 @@
         .filter-btn { height: 40px !important; }
 
         #detail-view { display: none; flex-direction: column; gap: 8px; }
-        .edit-input { width: 100%; background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 2px 5px; color: var(--text); font-family: inherit; box-sizing: border-box; }
-        #editDesc { font-size: 1.05rem; line-height: 1.5; opacity: 0.9; pointer-events: none; }
-        #editDesc.active { pointer-events: auto; }
+        #editFormContainer { display: none; flex-direction: column; gap: 15px; padding: 5px 0; }
+        .edit-field-group { display: flex; flex-direction: column; gap: 5px; }
         .info-card { background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; border: none; }
 
         #explore-panel, #add-panel, #settings-panel, #detail-view { padding-bottom: 20px; }
@@ -390,22 +392,31 @@
         /* RECORDING UI POPOUT */
         #recording-popout { 
             display: none; position: fixed; 
-            top: 20px; left: calc(var(--sidebar) + 20px); right: 20px;
-            background: var(--primary); color: white; padding: 15px; 
-            border-radius: 20px; z-index: 9000; flex-direction: column; gap: 10px;
+            top: 20px; left: 50%; transform: translateX(-50%);
+            width: 320px;
+            background: var(--card); backdrop-filter: blur(10px);
+            color: var(--text); padding: 15px; border: 1px solid var(--border);
+            border-radius: 20px; z-index: 9999; flex-direction: column; gap: 8px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: transform 0.3s, top 0.3s;
+            box-sizing: border-box;
         }
-        body.mobile-mode #recording-popout { left: 10px; right: 10px; top: 10px; }
+        body.mobile-mode #recording-popout { 
+            left: 10px; right: 10px; width: auto; transform: none; top: 10px; 
+        }
         
         .hud-stats { display: flex; justify-content: space-between; font-size: 13px; font-weight: 900; text-transform: uppercase; }
         .hud-btns { display: flex; gap: 8px; }
         .hud-btn { 
-            flex: 1; background: rgba(255,255,255,0.2); border: none; 
-            color: white; padding: 10px; border-radius: 10px; 
-            font-weight: 800; cursor: pointer; font-size: 11px;
+            flex: 1; height: 36px; border-radius: 10px; border: none;
+            font-weight: 800; font-size: 11px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: 0.2s; background: var(--border); color: var(--text); text-transform: uppercase;
         }
-        .hud-btn.stop { background: var(--danger); }
-        .hud-btn.elev-toggle { background: rgba(0,0,0,0.2); }
+        .hud-btn:hover { background: var(--primary); color: white; }
+        .hud-btn.stop { background: var(--danger); color: white; }
+        .hud-btn.stop:hover { background: #dc2626; }
+        .hud-btn.elev-toggle { background: var(--border); color: var(--text); }
+        .hud-btn.elev-toggle:hover { background: var(--primary); color: white; }
         
         .elev-minmax { display: flex; justify-content: space-between; font-size: 10px; opacity: 0.9; font-weight: 800; }
         .pulse-red { width: 8px; height: 8px; background: #ff4444; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blink 1s infinite; }
@@ -675,19 +686,69 @@
             </div>
         </div>
 
+        <div id="navigationControls" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); display: none; flex-direction: column; gap: 8px; z-index: 9999; width: 320px; background: var(--card); backdrop-filter: blur(10px); padding: 15px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2); box-sizing: border-box;">
+            <div style="font-size: 10px; font-weight: 900; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; text-align: center;">🧭 Route Navigation</div>
+            <div class="nav-stats-row" style="display:flex; justify-content:space-between; width:100%; margin-bottom:5px; font-size:11px; font-weight:800; color:var(--text); background:rgba(0,0,0,0.15); padding:10px; border-radius:12px; box-sizing: border-box; gap: 5px;">
+                <div style="display:flex; flex-direction:column; align-items:center; flex:1;">
+                    <span style="font-size:8px; opacity:0.6; font-weight:800; text-transform:uppercase;">Walked</span>
+                    <span id="navStatDist" style="font-size:11px; font-variant-numeric: tabular-nums;">0.00 km</span>
+                </div>
+                <div style="width:1px; background:var(--border); align-self:stretch;"></div>
+                <div style="display:flex; flex-direction:column; align-items:center; flex:1;">
+                    <span style="font-size:8px; opacity:0.6; font-weight:800; text-transform:uppercase;">Time</span>
+                    <span id="navStatTime" style="font-size:11px; font-variant-numeric: tabular-nums;">00:00</span>
+                </div>
+                <div style="width:1px; background:var(--border); align-self:stretch;"></div>
+                <div style="display:flex; flex-direction:column; align-items:center; flex:1;">
+                    <span style="font-size:8px; opacity:0.6; font-weight:800; text-transform:uppercase;">Progress</span>
+                    <span id="navStatProgress" style="font-size:11px; font-variant-numeric: tabular-nums;">0%</span>
+                </div>
+                <div style="width:1px; background:var(--border); align-self:stretch;"></div>
+                <div style="display:flex; flex-direction:column; align-items:center; flex:1;">
+                    <span style="font-size:8px; opacity:0.6; font-weight:800; text-transform:uppercase;">Remaining</span>
+                    <span id="navStatRemaining" style="font-size:11px; font-variant-numeric: tabular-nums;">0.00 km</span>
+                </div>
+            </div>
+            <div id="navOffTrackAlert" style="display: none; background: #ef4444; color: white; text-align: center; padding: 6px 12px; border-radius: 10px; font-size: 11px; font-weight: 800; animation: flash-danger 1s infinite alternate; box-sizing: border-box;">
+                ⚠️ YOU ARE OFF TRACK!
+            </div>
+            <div class="nav-control-row" style="display: flex; gap: 8px;">
+                <button class="fly-btn" onclick="toggleGraph()" style="margin:0;">📈 GRAPH</button>
+                <button class="fly-btn danger" onclick="stopNavigation()" style="margin:0;">⏹ EXIT</button>
+            </div>
+        </div>
+
         <div id="recording-popout">
-            <div class="hud-stats">
-                <span><div class="pulse-red"></div><span id="hudTimer">00:00</span></span>
-                <span id="hudDist">0.00 km</span>
+            <div style="font-size: 10px; font-weight: 900; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap;">
+                <div class="pulse-red" style="margin-right: 0;"></div> <span>Recording Route</span>
             </div>
-            <div class="elev-minmax">
-                <span id="hudMinHeight">MIN: --m</span>
-                <span id="hudMaxHeight">MAX: --m</span>
+            
+            <div class="nav-stats-row" style="display:flex; justify-content:space-between; width:100%; margin-bottom:5px; font-size:11px; font-weight:800; color:var(--text); background:rgba(0,0,0,0.1); padding:8px 4px; border-radius:12px; box-sizing: border-box; gap: 4px;">
+                <div style="display:flex; flex-direction:column; align-items:center; flex:1; min-width:0;">
+                    <span style="font-size:7.5px; opacity:0.6; font-weight:800; text-transform:uppercase; white-space:nowrap;">Duration</span>
+                    <span id="hudTimer" style="font-size:10px; font-variant-numeric: tabular-nums; white-space:nowrap;">00:00</span>
+                </div>
+                <div style="width:1px; background:var(--border); align-self:stretch;"></div>
+                <div style="display:flex; flex-direction:column; align-items:center; flex:1; min-width:0;">
+                    <span style="font-size:7.5px; opacity:0.6; font-weight:800; text-transform:uppercase; white-space:nowrap;">Distance</span>
+                    <span id="hudDist" style="font-size:10px; font-variant-numeric: tabular-nums; white-space:nowrap;">0.00 km</span>
+                </div>
+                <div style="width:1px; background:var(--border); align-self:stretch;"></div>
+                <div style="display:flex; flex-direction:column; align-items:center; flex:1; min-width:0;">
+                    <span style="font-size:7.5px; opacity:0.6; font-weight:800; text-transform:uppercase; white-space:nowrap;">Min Elev</span>
+                    <span id="hudMinHeight" style="font-size:10px; font-variant-numeric: tabular-nums; white-space:nowrap;">--m</span>
+                </div>
+                <div style="width:1px; background:var(--border); align-self:stretch;"></div>
+                <div style="display:flex; flex-direction:column; align-items:center; flex:1; min-width:0;">
+                    <span style="font-size:7.5px; opacity:0.6; font-weight:800; text-transform:uppercase; white-space:nowrap;">Max Elev</span>
+                    <span id="hudMaxHeight" style="font-size:10px; font-variant-numeric: tabular-nums; white-space:nowrap;">--m</span>
+                </div>
             </div>
-            <div class="hud-btns">
-                <button class="hud-btn elev-toggle" onclick="toggleGraph()">⛰️ GRAPH</button>
-                <button class="hud-btn" id="hudPausePlay">⏸ PAUSE</button>
-                <button class="hud-btn stop" id="hudStop">⏹ END</button>
+            
+            <div class="hud-btns" style="display: flex; gap: 6px; width: 100%;">
+                <button class="hud-btn elev-toggle" onclick="toggleGraph()" style="margin:0; white-space:nowrap;">📈 GRAPH</button>
+                <button class="hud-btn" id="hudPausePlay" style="margin:0; white-space:nowrap;">⏸ PAUSE</button>
+                <button class="hud-btn stop" id="hudStop" style="margin:0; white-space:nowrap;">⏹ END</button>
             </div>
         </div>
 
@@ -783,7 +844,8 @@
                         <button id="campsiteModeBtn" class="btn btn-main" style="height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">⛺</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Campsite</span></button>
                         <button id="parkingModeBtn" class="btn btn-main" style="height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">🅿️</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Parking</span></button>
                         <button id="walkModeBtn" class="btn btn-main" style="height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">🗺️</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Trace</span></button>
-                        <button id="recordModeBtn" class="btn btn-main" style="grid-column: span 2; height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">🔴</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Record Activity</span></button>
+                        <button id="recordModeBtn" class="btn btn-main" style="height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">🔴</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Record</span></button>
+                        <button id="gpxModeBtn" class="btn btn-main" style="height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">📥</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Import GPX</span></button>
                     </div>
                     
                     <div class="list-divider"></div>
@@ -804,6 +866,7 @@
                                 <select class="custom-select" onchange="setMyLogPrivacy(this.value)" style="flex:1; height:34px; border-radius:10px;">
                                     <option value="all">👁️ ALL VISIBILITY</option>
                                     <option value="public">🌍 PUBLIC</option>
+                                    <option value="friends">👥 FRIENDS</option>
                                     <option value="private">🔒 PRIVATE</option>
                                 </select>
                             </div>
@@ -904,10 +967,18 @@
                         <button class="settings-header" onclick="toggleSettingsSection('accSettings', this)">
                             <span>Account</span> <span class="chevron" style="transform:rotate(-90deg)">▼</span>
                         </button>
-                        <div id="accSettings" class="settings-content" style="display:none; gap:8px;">
-                            <button class="btn" onclick="makeAllPrivate()" style="background:rgba(0,0,0,0.15); border:none; color:var(--text); opacity:0.8; font-size:11px; margin:0;">🔒 Make All Items Private</button>
-                            <button class="btn" onclick="signOut()" style="background:var(--danger); border:none; color:white; font-size:11px; margin:0;">Sign Out</button>
-                            <button class="btn" onclick="deleteAccount()" style="background:rgba(239, 68, 68, 0.1); border:none; color:var(--danger); font-size:11px; margin:0;">⚠️ Delete Account</button>
+                        <div id="accSettings" class="settings-content" style="display:none; flex-direction:column; gap:12px; padding:12px; box-sizing:border-box;">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%;">
+                                <button class="btn" onclick="makeAllPrivate()" style="background:rgba(0,0,0,0.15); border:none; color:var(--text); opacity:0.8; font-size:11px; margin:0; height:40px; display:flex; align-items:center; justify-content:center; gap:6px;">🔒 Make Private</button>
+                                <button class="btn" onclick="signOut()" style="background:var(--primary); border:none; color:white; font-size:11px; margin:0; height:40px; display:flex; align-items:center; justify-content:center; gap:6px;">🚪 Sign Out</button>
+                            </div>
+                            <div style="border-top:1px dashed var(--border); padding-top:10px; display:flex; flex-direction:column; gap:6px;">
+                                <div style="font-size:9px; font-weight:800; color:var(--danger); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">⚠️ Danger Zone</div>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%;">
+                                    <button class="btn" onclick="deleteAllItems()" style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); color:var(--danger); font-size:11px; margin:0; height:40px; display:flex; align-items:center; justify-content:center; gap:4px;">🗑️ Delete Items</button>
+                                    <button class="btn" onclick="deleteAccount()" style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); color:var(--danger); font-size:11px; margin:0; height:40px; display:flex; align-items:center; justify-content:center; gap:4px;">⚠️ Delete Acc</button>
+                                </div>
+                            </div>
                         </div>
 
                         <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 15px;">
@@ -931,60 +1002,124 @@
                         <button class="floating-action-btn btn-delete-float" id="floatDeleteBtn" onclick="deleteAction()" style="display:none;" title="Delete">🗑️</button>
                         <div id="detRating" style="display:none;"></div>
                         <div class="image-scrim">
-                            <textarea id="editTitle" class="edit-input" rows="1"></textarea>
+                            <h3 id="detTitle" style="font-size: 1.4rem; font-weight: 900; color: white; margin: 0; line-height: 1.1; text-shadow: 0 2px 4px rgba(0,0,0,0.6); word-break: break-word; pointer-events: none;"></h3>
                         </div>
-                    </div>
-                    <div id="detCreator" style="margin-bottom: 8px; padding: 0 5px;"></div>
-                    <div id="detTypeLabel" class="info-card" style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
-                    <div id="detCampsiteInfo" style="display:none; gap: 10px; margin-bottom: 10px;"></div>
-                <div id="editPhotosContainer" style="display:none; margin-bottom:10px; flex-direction:column; gap:5px;">
-                    <span class="settings-label" style="font-size:12px;">Photos</span>
-                    <div id="editPhotoGrid" style="display:flex; gap:8px; overflow-x:auto; padding: 6px 6px 10px 2px; align-items: center;"></div>
-                </div>
-
-                    <div id="editWalkOptions" style="display:none; margin: 10px 0; padding: 12px; background: rgba(37, 99, 235, 0.1); border-radius: 12px; border: none;">
-                        <div class="mode-selector" id="editModeSelector">
-                            <button class="mode-btn" data-mode="walk"><span>🚶</span><b>Walk</b></button>
-                            <button class="mode-btn" data-mode="hike"><span>🥾</span><b>Hike</b></button>
-                            <button class="mode-btn" data-mode="run"><span>⚡</span><b>Run</b></button>
-                            <button class="mode-btn" data-mode="cycle"><span>🚲</span><b>Cycle</b></button>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span class="settings-label" style="text-transform:none; font-size:12px; color: var(--primary);">Snap new points to paths</span>
-                            <label class="switch"><input type="checkbox" id="editSnapToggle"><span class="slider"></span></label>
-                        </div>
-                        <button class="btn" id="undoEditBtn" style="margin-top:10px; height:32px; background:rgba(0,0,0,0.15); border: none; font-size:11px;">↩ Undo Last Point</button>
                     </div>
 
-                    <div id="editTypeContainer" style="display:none; margin-bottom: 10px;">
-                        <span class="stat-label">Pin Category</span>
-                        <div class="pin-type-grid" id="detailTypePicker"></div>
-                    </div>
-                    <div id="editCampsiteFields" style="display:none; flex-direction:column; gap:8px; margin-bottom: 10px;">
-                        <input type="number" id="editCampsitePrice" class="edit-input" placeholder="Starting Price (£)" style="background:rgba(0,0,0,0.15); border:none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 500;">
-                        <input type="url" id="editCampsiteUrl" class="edit-input" placeholder="Pitchup Booking URL" style="background:rgba(0,0,0,0.15); border:none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 500;">
-                    </div>
-                    <div id="editPrivacyContainer" style="display:none; margin-bottom: 10px; padding: 12px; background: rgba(0,0,0,0.15); border-radius: 12px; border: none;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span class="settings-label" style="text-transform:none; font-size:12px;">Publicly Visible</span>
-                            <label class="switch"><input type="checkbox" id="editPublicToggle"><span class="slider"></span></label>
+                    <!-- VIEW MODE CONTENT -->
+                    <div id="viewModeContent">
+                        <div id="detCreator" style="margin-bottom: 8px; padding: 0 5px; display: flex; justify-content: space-between; align-items: center;"></div>
+                        <div id="detTypeLabel" class="info-card" style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                        <div id="detCampsiteInfo" style="display:none; gap: 10px; margin-bottom: 10px;"></div>
+                        <div id="detFacilities" class="info-card" style="display:none; flex-wrap:wrap; margin-bottom:10px; gap:4px;"></div>
+                        <div id="detStats" class="info-card" style="display:none; margin-bottom:10px;"></div>
+                        <div class="info-card" style="margin-bottom: 10px;">
+                            <div id="viewDescContainer">
+                                <p id="viewDescText" style="margin:0; font-size:1.05rem; line-height:1.5; opacity:0.9; white-space: pre-wrap; word-break: break-word;"></p>
+                                <button id="viewDescShowMoreBtn" style="display:none; background:none; border:none; color:var(--primary); font-weight:700; font-size:11px; padding:0; margin-top:5px; cursor:pointer;">Show More</button>
+                            </div>
                         </div>
-                    </div>
-                    <div id="detFacilities" class="info-card" style="display:none; flex-wrap:wrap; margin-bottom:10px; gap:4px;"></div>
-                    <div id="editFacilitiesContainer" style="display:none; margin-bottom:10px;">
-                        <span class="settings-label">Facilities</span>
-                        <div class="facility-grid" id="editFacilityPicker"></div>
+                        <div id="exportGpxContainer" class="info-card" style="display:none; margin-bottom: 10px; padding: 10px; box-sizing: border-box;">
+                            <button class="btn" id="exportGpxBtn" style="width:100%; margin:0; display:flex; align-items:center; justify-content:center; gap:8px; height:44px; border-radius:12px; font-weight:800; font-size:12px; background:rgba(0,0,0,0.1); color:var(--text); border:none; cursor:pointer;">
+                                📥 Export as GPX File
+                            </button>
+                        </div>
+                        <div id="commentsSection" class="comments-section info-card"></div>
                     </div>
 
-                    <div id="detStats" class="info-card" style="display:none; margin-bottom:10px;"></div>
-                    <div class="info-card" style="margin-bottom: 10px;">
-                        <div id="viewDescContainer">
-                            <p id="viewDescText" style="margin:0; font-size:1.05rem; line-height:1.5; opacity:0.9; white-space: pre-wrap; word-break: break-word;"></p>
-                            <button id="viewDescShowMoreBtn" style="display:none; background:none; border:none; color:var(--primary); font-weight:700; font-size:11px; padding:0; margin-top:5px; cursor:pointer;">Show More</button>
+                    <!-- EDIT MODE CONTENT -->
+                    <div id="editFormContainer" style="display:none; flex-direction:column; gap:15px; padding: 5px 0;">
+                        <!-- Form Header/Actions -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:5px;">
+                            <span style="font-weight:900; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary);">Edit Details</span>
+                            <div style="display:flex; gap:8px;">
+                                <button class="btn" onclick="deleteAction()" style="background:rgba(239,68,68,0.1); border:none; color:var(--danger); margin:0; width:auto; height:32px; padding:0 12px; font-size:11px; border-radius:8px; font-weight:700; display:flex; align-items:center; gap:4px;">🗑️ Delete</button>
+                                <button class="btn btn-save-action" onclick="toggleEditingLogic()" style="margin:0; width:auto; height:32px; padding:0 12px; font-size:11px; border-radius:8px; border:none; font-weight:700; display:flex; align-items:center; gap:4px;">💾 Save</button>
+                            </div>
                         </div>
-                        <textarea id="editDesc" class="edit-input" rows="4" placeholder="No notes added..." style="display:none;"></textarea>
+
+                        <!-- General Details Card -->
+                        <div class="info-card" style="display:flex; flex-direction:column; gap:12px; margin:0;">
+                            <div class="edit-field-group">
+                                <span class="settings-label" style="display:block; margin-bottom:5px; font-size:11px; opacity:0.7;">Name / Title</span>
+                                <input type="text" id="editTitle" class="modal-input" placeholder="Location Name" style="margin:0; font-weight:700;">
+                            </div>
+                            <div class="edit-field-group">
+                                <span class="settings-label" style="display:block; margin-bottom:5px; font-size:11px; opacity:0.7;">Notes & Description</span>
+                                <textarea id="editDesc" class="modal-input" rows="4" placeholder="Add some notes about this place..." style="height:100px; resize:none; margin:0; font-size:13px; font-weight:500;"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Photos Manager Card (Positioned near the top) -->
+                        <div id="editPhotosContainer" style="display:none; flex-direction:column; gap:8px; margin:0;" class="info-card">
+                            <span class="settings-label" style="font-size:11px; opacity:0.7;">Photos</span>
+                            <div id="editPhotoGrid" style="display:flex; gap:8px; overflow-x:auto; padding: 6px 6px 10px 2px; align-items:center;"></div>
+                        </div>
+
+                        <!-- Route Options Card (Only shown for Walks) -->
+                        <div id="editWalkOptions" style="display:none; margin:0; padding:12px; background: rgba(37, 99, 235, 0.1); border-radius:12px; border:none; display:flex; flex-direction:column; gap:10px;">
+                            <span class="settings-label" style="font-size:11px; opacity:0.7;">Activity Type</span>
+                            <div class="mode-selector" id="editModeSelector" style="margin:0;">
+                                <button class="mode-btn" data-mode="walk"><span>🚶</span><b>Walk</b></button>
+                                <button class="mode-btn" data-mode="hike"><span>🥾</span><b>Hike</b></button>
+                                <button class="mode-btn" data-mode="run"><span>⚡</span><b>Run</b></button>
+                                <button class="mode-btn" data-mode="cycle"><span>🚲</span><b>Cycle</b></button>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; margin-top:5px;">
+                                <span class="settings-label" style="text-transform:none; font-size:12px; color: var(--primary);">Snap to paths</span>
+                                <label class="switch"><input type="checkbox" id="editSnapToggle"><span class="slider"></span></label>
+                            </div>
+                            <button class="btn" id="undoEditBtn" style="margin:0; height:32px; background:rgba(0,0,0,0.15); border:none; font-size:11px; border-radius:8px;">↩ Undo Last Point</button>
+                        </div>
+
+                        <!-- Category Card (Only shown for Pins) -->
+                        <div id="editTypeContainer" style="display:none; margin:0;" class="info-card">
+                            <span class="settings-label" style="display:block; margin-bottom:8px; font-size:11px; opacity:0.7;">Pin Category</span>
+                            <div class="pin-type-grid" id="detailTypePicker" style="margin:0;"></div>
+                        </div>
+
+                        <!-- Campsite Price & Booking (Only shown for Campsite category) -->
+                        <div id="editCampsiteFields" style="display:none; flex-direction:column; gap:10px; margin:0;" class="info-card">
+                            <span class="settings-label" style="font-size:11px; opacity:0.7;">Campsite Details</span>
+                            <input type="number" id="editCampsitePrice" class="modal-input" placeholder="Starting Price (£)" style="margin:0;">
+                            <input type="url" id="editCampsiteUrl" class="modal-input" placeholder="Pitchup Booking URL" style="margin:0;">
+                        </div>
+
+                        <!-- Facilities Picker Card -->
+                        <div id="editFacilitiesContainer" style="display:none; margin:0;" class="info-card">
+                            <span class="settings-label" style="display:block; margin-bottom:8px; font-size:11px; opacity:0.7;">Facilities</span>
+                            <div class="facility-grid" id="editFacilityPicker" style="margin:0;"></div>
+                        </div>
+
+                        <!-- Privacy & Visibility Settings Card -->
+                        <div id="editPrivacyContainer" style="display:none; margin:0;" class="info-card">
+                            <div id="editPrivacyToggleWrapper" style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <span class="settings-label" style="text-transform:none; font-size:13px; display:block; font-weight:700;">Visibility</span>
+                                    <span style="font-size:10px; opacity:0.6; display:block; margin-top:2px;">Set who can view this item</span>
+                                </div>
+                                <select id="editVisibilitySelect" class="custom-select" style="max-width: 140px;">
+                                    <option value="private">🔒 Private</option>
+                                    <option value="friends">👥 Friends</option>
+                                    <option value="public">🌍 Public</option>
+                                </select>
+                            </div>
+                            <div id="editWildCampNotice" style="display:none; color:var(--danger); font-size:11px; font-weight:700; margin-top:5px; padding:8px; background:rgba(239,68,68,0.1); border-radius:8px; line-height:1.4; text-align:center;">
+                                🌲 <strong>Wild camping spots can't be made public</strong>, they are your unique special places.
+                                <div style="margin-top: 8px; border-top: 1px solid rgba(239, 68, 68, 0.2); padding-top: 6px; text-align: left; font-size: 10px; font-weight: normal; opacity: 0.95;">
+                                    <div style="font-weight: 800; font-size: 11px; margin-bottom: 6px; color: var(--danger); line-height: 1.3;">⚠️ Wild camping is illegal in England, however if you choose to do so follow the golden rules:</div>
+                                    <ul style="margin: 0; padding-left: 14px; display: flex; flex-direction: column; gap: 2px;">
+                                        <li>Leave no trace.</li>
+                                        <li>Only camp from dusk till dawn.</li>
+                                        <li>Pitch out of sight.</li>
+                                        <li>Absolutely no campfires of any kind.</li>
+                                        <li>If asked to move on by a landowner, do so without any hesitation.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div id="commentsSection" class="comments-section info-card"></div>
+
                     <div class="scroll-spacer"></div>
                 </div>
             </div>
@@ -1051,6 +1186,15 @@
                     <div id="modalPhotoList" style="display:flex; gap:5px; overflow-x:auto; margin-bottom:5px;"></div>
                 <button class="btn" onclick="openUrlUploadPopup('create')" style="background:rgba(0,0,0,0.15); border:none; font-size:11px; height:32px;">📷 Add Photo</button>
                 </div>
+                <div id="modalActivitySelectSection" style="display:none; justify-content:space-between; align-items:center; padding:0 5px;">
+                    <span class="settings-label" style="font-size:12px;">Activity Type</span>
+                    <select id="modalActivitySelect" class="custom-select" style="max-width: 140px;">
+                        <option value="walk">🚶 Walk</option>
+                        <option value="hike">🥾 Hike</option>
+                        <option value="run">⚡ Run</option>
+                        <option value="cycle">🚲 Cycle</option>
+                    </select>
+                </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:0 5px;">
                     <span class="settings-label" style="font-size:12px;">Log Status</span>
                     <select id="logStatusSelect" class="custom-select" style="max-width: 140px;">
@@ -1059,9 +1203,26 @@
                         <option value="visited">Visited</option>
                     </select>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:0 5px;">
-                    <span class="settings-label" style="font-size:12px;">Make Public</span>
-                    <label class="switch"><input type="checkbox" id="publicToggle"><span class="slider"></span></label>
+                <div id="createVisibilityWrapper" style="display:flex; justify-content:space-between; align-items:center; padding:0 5px;">
+                    <span class="settings-label" style="font-size:12px;">Visibility</span>
+                    <select id="visibilitySelect" class="custom-select" style="max-width: 140px;">
+                        <option value="private">🔒 Private</option>
+                        <option value="friends">👥 Friends with Link</option>
+                        <option value="public">🌍 Public</option>
+                    </select>
+                </div>
+                <div id="wildCampNotice" style="display:none; color:var(--danger); font-size:11px; font-weight:700; margin-top:5px; padding:8px; background:rgba(239,68,68,0.1); border-radius:8px; line-height:1.4; text-align:center;">
+                    🌲 <strong>Wild camping spots can't be made public</strong>, they are your unique special places.
+                    <div style="margin-top: 8px; border-top: 1px solid rgba(239, 68, 68, 0.2); padding-top: 6px; text-align: left; font-size: 10px; font-weight: normal; opacity: 0.95;">
+                        <div style="font-weight: 800; font-size: 11px; margin-bottom: 6px; color: var(--danger); line-height: 1.3;">⚠️ Wild camping is illegal in England, however if you choose to do so follow the golden rules:</div>
+                        <ul style="margin: 0; padding-left: 14px; display: flex; flex-direction: column; gap: 2px;">
+                            <li>Leave no trace.</li>
+                            <li>Only camp from dusk till dawn.</li>
+                            <li>Pitch out of sight.</li>
+                            <li>Absolutely no campfires of any kind.</li>
+                            <li>If asked to move on by a landowner, do so without any hesitation.</li>
+                        </ul>
+                    </div>
                 </div>
                 <div id="modalFacilitiesSection">
                     <span class="settings-label" style="font-size:12px; margin-bottom:5px; display:block;">Facilities</span>
@@ -1072,7 +1233,7 @@
             </div>
             <div class="modal-btns">
                 <button class="btn btn-save-action" id="confirmSaveBtn" style="height: 48px; font-size: 14px;">✅ Save to Library</button>
-            <button class="btn" style="background:rgba(0,0,0,0.15); color: var(--text); border: none; height: 44px;" onclick="document.getElementById('modal-overlay').style.display='none'">Cancel</button>
+            <button class="btn" style="background:rgba(0,0,0,0.15); color: var(--text); border: none; height: 44px;" onclick="cancelPinCreation()">Cancel</button>
             </div>
         </div>
     </div>
@@ -1175,8 +1336,9 @@
                 name: 'Camping',
                 icon: '⛺',
                 types: [
+                    { name: 'Campsites', color: '#14b8a6', icon: '⛺' },
                     { name: 'Nearly Wild Camping', color: '#22c55e', icon: '🏕️' },
-                    { name: 'Campsites', color: '#14b8a6', icon: '⛺' }
+                    { name: 'Wild Camping', color: '#065f46', icon: '🌲' }
                 ]
             },
             {
@@ -1407,7 +1569,82 @@
                 applyVisitedStatus();
                 refreshMapItems();
                 updateHighlights();
+                await checkSharedUrlItem();
             } catch (e) { console.error("Database load error:", e); }
+        }
+
+        async function checkSharedUrlItem() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedPinId = urlParams.get('pin');
+            const sharedWalkId = urlParams.get('walk') || urlParams.get('activity');
+
+            if (sharedPinId) {
+                try {
+                    const doc = await db.collection("pins").doc(sharedPinId).get();
+                    if (doc.exists) {
+                        const pinData = doc.data();
+                        const isOwner = currentUser && pinData.userId === currentUser.uid;
+                        if (pinData.isPublic || pinData.visibility === 'friends' || isOwner) {
+                            // Add to storage if not already there
+                            if (!storage.pins.some(p => p.id.toString() === sharedPinId)) {
+                                storage.pins.push(pinData);
+                                refreshMapItems();
+                            }
+                            const matchedPin = storage.pins.find(p => p.id.toString() === sharedPinId);
+                            if (matchedPin) {
+                                // Center map
+                                map.setView([matchedPin.lat, matchedPin.lng], 14);
+                                if (is3DMode && map3d) {
+                                    map3d.setCenter([matchedPin.lng, matchedPin.lat]);
+                                    map3d.setZoom(13);
+                                }
+                                // Show details
+                                showDetails(matchedPin, false);
+                            }
+                        } else {
+                            alert("This pin is private and cannot be viewed.");
+                        }
+                    } else {
+                        console.log("Shared pin not found in database.");
+                    }
+                } catch (err) {
+                    console.error("Error loading shared pin:", err);
+                }
+            } else if (sharedWalkId) {
+                try {
+                    const doc = await db.collection("walks").doc(sharedWalkId).get();
+                    if (doc.exists) {
+                        let walkData = doc.data();
+                        if (walkData.path && walkData.path.length > 0 && typeof walkData.path[0] === 'object' && !Array.isArray(walkData.path[0])) {
+                            walkData.path = walkData.path.map(p => [p.lat, p.lng]);
+                        }
+                        const isOwner = currentUser && walkData.userId === currentUser.uid;
+                        if (walkData.isPublic || walkData.visibility === 'friends' || isOwner) {
+                            if (!storage.walks.some(w => w.id.toString() === sharedWalkId)) {
+                                storage.walks.push(walkData);
+                                refreshMapItems();
+                            }
+                            const matchedWalk = storage.walks.find(w => w.id.toString() === sharedWalkId);
+                            if (matchedWalk) {
+                                // Center map
+                                map.setView([matchedWalk.lat, matchedWalk.lng], 14);
+                                if (is3DMode && map3d) {
+                                    map3d.setCenter([matchedWalk.lng, matchedWalk.lat]);
+                                    map3d.setZoom(13);
+                                }
+                                // Show details
+                                showDetails(matchedWalk, true);
+                            }
+                        } else {
+                            alert("This activity is private and cannot be viewed.");
+                        }
+                    } else {
+                        console.log("Shared activity not found in database.");
+                    }
+                } catch (err) {
+                    console.error("Error loading shared activity:", err);
+                }
+            }
         }
 
         async function saveToCloud(collection, data) {
@@ -1502,7 +1739,7 @@
                     const sliderDiv = document.createElement('div');
                     sliderDiv.id = 'campsitePriceFilterContainer';
                     sliderDiv.style.gridColumn = '1 / -1';
-                    sliderDiv.style.display = activeFilters.categories.includes('Campsites') ? 'block' : 'none';
+                    sliderDiv.style.display = (activeFilters.categories.includes('Campsites') || activeFilters.categories.includes('Nearly Wild Camping')) ? 'block' : 'none';
                     sliderDiv.innerHTML = `
                         <div id="campsitePriceFilter" style="padding: 10px 15px; background: rgba(0,0,0,0.08); border-radius: 12px; margin-top: 5px;">
                             <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
@@ -1616,7 +1853,7 @@
 
             if (categoryName === 'Camping') {
                 const cpf = tab === 'explore' ? document.getElementById('campsitePriceFilterContainer') : null;
-                if (cpf) cpf.style.display = isChecked && filtersObj.categories.includes('Campsites') ? 'block' : 'none';
+                if (cpf) cpf.style.display = isChecked && (filtersObj.categories.includes('Campsites') || filtersObj.categories.includes('Nearly Wild Camping')) ? 'block' : 'none';
             }
 
             if (tab === 'explore') updateHighlights();
@@ -1656,9 +1893,10 @@
                 if (isActive) activeFilters.categories.push(val);
                 else activeFilters.categories = activeFilters.categories.filter(c => c !== val);
                 
-                if (val === 'Campsites') {
+                if (val === 'Campsites' || val === 'Nearly Wild Camping') {
                     const cpf = document.getElementById('campsitePriceFilterContainer');
-                    if (cpf) cpf.style.display = isActive ? 'block' : 'none';
+                    const showPriceFilter = activeFilters.categories.includes('Campsites') || activeFilters.categories.includes('Nearly Wild Camping');
+                    if (cpf) cpf.style.display = showPriceFilter ? 'block' : 'none';
                 }
             }
             updateHighlights();
@@ -2022,7 +2260,11 @@
                         fetchLivePointElevation(latlng.lat, latlng.lng);
                     }
                 }
+                if (window.isNavigating) {
+                    updateNavigationStats(latlng);
+                }
                 updateHighlights();
+                updateUserMarker3D();
             }, (error) => console.error(error), { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
         }
 
@@ -2157,29 +2399,139 @@
                         btn.innerHTML = `${t.icon}<span>${t.name}</span>`;
                         btn.onclick = (e) => {
                             e.preventDefault();
+                            const prevColor = selectedColor;
                             selectedColor = t.color; 
                             el.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active')); 
                             btn.classList.add('active');
+
+                            if (id === 'modalTypePicker') {
+                                const campsiteFields = document.getElementById('campsiteFields');
+                                if (campsiteFields) {
+                                    campsiteFields.style.display = (t.name === 'Campsites' || t.name === 'Nearly Wild Camping') ? 'flex' : 'none';
+                                }
+                                const vSelect = document.getElementById('visibilitySelect');
+                                const vWrapper = document.getElementById('createVisibilityWrapper');
+                                const wildNotice = document.getElementById('wildCampNotice');
+                                const facilitiesSection = document.getElementById('modalFacilitiesSection');
+                                
+                                if (t.name === 'Wild Camping') {
+                                    if (vSelect) {
+                                        const optPublic = vSelect.querySelector('option[value="public"]');
+                                        if (optPublic) optPublic.style.display = 'none';
+                                        if (vSelect.value === 'public') vSelect.value = 'private';
+                                    }
+                                    if (vWrapper) vWrapper.style.display = 'flex';
+                                    if (wildNotice) wildNotice.style.display = 'block';
+                                    if (facilitiesSection) facilitiesSection.style.display = 'none';
+                                } else {
+                                    if (vSelect) {
+                                        const optPublic = vSelect.querySelector('option[value="public"]');
+                                        if (optPublic) optPublic.style.display = 'block';
+                                    }
+                                    if (vWrapper) vWrapper.style.display = 'flex';
+                                    if (wildNotice) wildNotice.style.display = 'none';
+                                    if (facilitiesSection) facilitiesSection.style.display = 'block';
+                                }
+                            }
+
                             if(id === 'detailTypePicker' && isEditing) {
                                 const item = storage.pins.find(p=>p.id===activeSelectionId) || storage.walks.find(w=>w.id===activeSelectionId);
                                 if(item) { 
-                                    item.color = t.color; 
-                                    saveData(); 
-                                    saveToCloud(item.path ? 'walks' : 'pins', item);
-                                    refreshMapItems(); 
-                                    renderTypeLabel(item);
+                                    const editCampsiteFields = document.getElementById('editCampsiteFields');
+                                    if (editCampsiteFields) {
+                                        editCampsiteFields.style.display = (t.name === 'Campsites' || t.name === 'Nearly Wild Camping') ? 'flex' : 'none';
+                                    }
+
+                                    if (t.name === 'Wild Camping') {
+                                        if (confirm("Wild camping spots cannot be public. Changing this to a Wild Camp will automatically revoke public visibility.\n\nWild camping is illegal in England, however if you choose to do so follow the golden rules:\n- Leave no trace\n- Only camp from dusk till dawn\n- Pitch out of sight\n- Absolutely no campfires of any kind\n- If asked to move on by a landowner, do so without any hesitation.\n\nDo you want to proceed?")) {
+                                            if (item.visibility === 'public') {
+                                                item.isPublic = false;
+                                                item.visibility = 'private';
+                                            }
+                                            item.facilities = [];
+                                            
+                                            const vSelect = document.getElementById('editVisibilitySelect');
+                                            if (vSelect) {
+                                                const optPublic = vSelect.querySelector('option[value="public"]');
+                                                if (optPublic) optPublic.style.display = 'none';
+                                                if (item.visibility === 'public') vSelect.value = 'private';
+                                                else vSelect.value = item.visibility || 'private';
+                                            }
+                                            const vWrapper = document.getElementById('editPrivacyToggleWrapper');
+                                            if (vWrapper) vWrapper.style.display = 'flex';
+                                            const eWildNotice = document.getElementById('editWildCampNotice');
+                                            if (eWildNotice) eWildNotice.style.display = 'block';
+                                            const editFacilities = document.getElementById('editFacilitiesContainer');
+                                            if (editFacilities) editFacilities.style.display = 'none';
+
+                                            item.color = t.color; 
+                                            saveData(); 
+                                            saveToCloud(item.path ? 'walks' : 'pins', item);
+                                            refreshMapItems(); 
+                                            renderTypeLabel(item);
+                                            updateHighlights();
+                                        } else {
+                                            selectedColor = prevColor;
+                                            setupTypePickers();
+                                            return;
+                                        }
+                                    } else {
+                                        const vSelect = document.getElementById('editVisibilitySelect');
+                                        if (vSelect) {
+                                            const optPublic = vSelect.querySelector('option[value="public"]');
+                                            if (optPublic) optPublic.style.display = 'block';
+                                        }
+                                        const vWrapper = document.getElementById('editPrivacyToggleWrapper');
+                                        if (vWrapper) vWrapper.style.display = 'flex';
+                                        const eWildNotice = document.getElementById('editWildCampNotice');
+                                        if (eWildNotice) eWildNotice.style.display = 'none';
+                                        const editFacilities = document.getElementById('editFacilitiesContainer');
+                                        if (editFacilities) editFacilities.style.display = 'block';
+
+                                        item.color = t.color; 
+                                        saveData(); 
+                                        saveToCloud(item.path ? 'walks' : 'pins', item);
+                                        refreshMapItems(); 
+                                        renderTypeLabel(item);
+                                    }
                                 }
                             }
                         }; el.appendChild(btn);
                         
                         if(t.color === selectedColor) {
-                            const campsiteFields = document.getElementById('campsiteFields');
-                            if(campsiteFields && id === 'modalTypePicker') {
-                                campsiteFields.style.display = (t.name === 'Campsites') ? 'flex' : 'none';
+                            if (id === 'modalTypePicker') {
+                                const campsiteFields = document.getElementById('campsiteFields');
+                                if (campsiteFields) {
+                                    campsiteFields.style.display = (t.name === 'Campsites' || t.name === 'Nearly Wild Camping') ? 'flex' : 'none';
+                                }
+                                const pubToggle = document.getElementById('publicToggle');
+                                const pWrapper = document.getElementById('createPublicToggleWrapper');
+                                const wildNotice = document.getElementById('wildCampNotice');
+                                if (t.name === 'Wild Camping') {
+                                    if (pubToggle) pubToggle.checked = false;
+                                    if (pWrapper) pWrapper.style.display = 'none';
+                                    if (wildNotice) wildNotice.style.display = 'block';
+                                } else {
+                                    if (pWrapper) pWrapper.style.display = 'flex';
+                                    if (wildNotice) wildNotice.style.display = 'none';
+                                }
                             }
-                            const editCampsiteFields = document.getElementById('editCampsiteFields');
-                            if(editCampsiteFields && id === 'detailTypePicker') {
-                                editCampsiteFields.style.display = (t.name === 'Campsites') ? 'flex' : 'none';
+                            if (id === 'detailTypePicker') {
+                                const editCampsiteFields = document.getElementById('editCampsiteFields');
+                                if (editCampsiteFields) {
+                                    editCampsiteFields.style.display = (t.name === 'Campsites' || t.name === 'Nearly Wild Camping') ? 'flex' : 'none';
+                                }
+                                const pubToggle = document.getElementById('editPublicToggle');
+                                const pWrapper = document.getElementById('editPrivacyToggleWrapper');
+                                const eWildNotice = document.getElementById('editWildCampNotice');
+                                if (t.name === 'Wild Camping') {
+                                    if (pubToggle) pubToggle.checked = false;
+                                    if (pWrapper) pWrapper.style.display = 'none';
+                                    if (eWildNotice) eWildNotice.style.display = 'block';
+                                } else {
+                                    if (pWrapper) pWrapper.style.display = 'flex';
+                                    if (eWildNotice) eWildNotice.style.display = 'none';
+                                }
                             }
                         }
                     });
@@ -2230,6 +2582,27 @@
         }
 
         function goBack() {
+            if (window.isNavigating) {
+                window.isNavigating = false;
+                window.navigatingWalk = null;
+                window.flyoverDistance = null;
+                document.body.classList.remove('is-navigating');
+                document.getElementById('sidebar').classList.remove('minimized');
+                document.getElementById('expandBtn').style.display = 'none';
+                document.getElementById('elevation-dock').style.left = 'calc(var(--sidebar) + 20px)';
+                setTimeout(() => { if (chartInstance) chartInstance.resize(); }, 400);
+                
+                if (window.navigationTimerInterval) {
+                    clearInterval(window.navigationTimerInterval);
+                    window.navigationTimerInterval = null;
+                }
+                
+                const navCtrl = document.getElementById('navigationControls');
+                if (navCtrl) navCtrl.style.display = 'none';
+                if (chartInstance) {
+                    chartInstance.update();
+                }
+            }
             document.body.classList.remove('viewing-walk');
             document.getElementById('backBtn').style.display = 'none';
             document.getElementById('minimizeBtn').style.display = 'flex';
@@ -2241,6 +2614,7 @@
             closeElevation(); switchTab('explore');
             if(document.body.classList.contains('mobile-mode')) snapTo('half');
             resetSidebarScroll();
+            updateMapOpacities();
         }
 
         function switchTab(tab) {
@@ -2261,9 +2635,26 @@
             if(document.body.classList.contains('mobile-mode')) snapTo('half');
         }
 
-        function setMode(mode) {
+        function cancelPinCreation() {
+            document.getElementById('modal-overlay').style.display = 'none';
+            setMode('ready');
+            switchTab('explore');
+        }
+
+        function ensure2DMode() {
+            if (is3DMode && typeof toggle3DMode === 'function') {
+                toggle3DMode();
+            }
+        }
+
+        function setMode(mode, activeBtnId = null) {
+            if (mode === 'pin' || mode === 'walk' || mode === 'record') {
+                ensure2DMode();
+            }
             currentMode = mode; document.querySelectorAll('.btn-main').forEach(b => b.classList.remove('active-mode'));
-            if (document.getElementById(mode + 'ModeBtn')) document.getElementById(mode + 'ModeBtn').classList.add('active-mode');
+            const targetBtnId = activeBtnId || (mode + 'ModeBtn');
+            const targetBtn = document.getElementById(targetBtnId);
+            if (targetBtn) targetBtn.classList.add('active-mode');
             
             document.getElementById('route-stats').style.display = (mode === 'walk' ? 'block' : 'none');
             document.getElementById('walk-options').style.display = (mode === 'walk' ? 'block' : 'none');
@@ -2298,11 +2689,11 @@
             }
         }
 
-        if (pinModeBtn) pinModeBtn.onclick = () => { window.currentPinCategory = 'Places'; selectedColor = PIN_TYPES[0].color; setupTypePickers(); setMode('pin'); };
+        if (pinModeBtn) pinModeBtn.onclick = () => { window.currentPinCategory = 'Places'; selectedColor = PIN_TYPES[0].color; setupTypePickers(); setMode('pin', 'pinModeBtn'); };
         const campsiteModeBtn = document.getElementById('campsiteModeBtn');
-        if (campsiteModeBtn) campsiteModeBtn.onclick = () => { window.currentPinCategory = 'Camping'; selectedColor = '#14b8a6'; setupTypePickers(); setMode('pin'); };
+        if (campsiteModeBtn) campsiteModeBtn.onclick = () => { window.currentPinCategory = 'Camping'; selectedColor = '#14b8a6'; setupTypePickers(); setMode('pin', 'campsiteModeBtn'); };
         const parkingModeBtn = document.getElementById('parkingModeBtn');
-        if (parkingModeBtn) parkingModeBtn.onclick = () => { window.currentPinCategory = 'Parking'; selectedColor = '#f59e0b'; setupTypePickers(); setMode('pin'); };
+        if (parkingModeBtn) parkingModeBtn.onclick = () => { window.currentPinCategory = 'Parking'; selectedColor = '#f59e0b'; setupTypePickers(); setMode('pin', 'parkingModeBtn'); };
         if (walkModeBtn) walkModeBtn.onclick = () => { 
             const activityMode = document.querySelector('#addModeSelector .mode-btn.active').dataset.mode;
             selectedColor = ACTIVITY_COLORS[activityMode];
@@ -2312,6 +2703,147 @@
             setMode('walk'); 
         };
         if (recordModeBtn) recordModeBtn.onclick = startRecording;
+
+        function handleGpxImport(file) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const gpxText = e.target.result;
+                try {
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(gpxText, "text/xml");
+                    
+                    let pts = xmlDoc.getElementsByTagName("trkpt");
+                    if (!pts || pts.length === 0) {
+                        pts = xmlDoc.getElementsByTagName("rtept");
+                    }
+                    if (!pts || pts.length === 0) {
+                        pts = xmlDoc.getElementsByTagName("wpt");
+                    }
+                    
+                    if (!pts || pts.length === 0) {
+                        alert("No path coordinates found in this GPX file.");
+                        return;
+                    }
+                    
+                    const path = [];
+                    const elevs = [];
+                    for (let i = 0; i < pts.length; i++) {
+                        const lat = parseFloat(pts[i].getAttribute("lat"));
+                        const lon = parseFloat(pts[i].getAttribute("lon"));
+                        if (!isNaN(lat) && !isNaN(lon)) {
+                            path.push([lat, lon]);
+                            
+                            const eleNode = pts[i].getElementsByTagName("ele")[0];
+                            if (eleNode) {
+                                const eleVal = parseFloat(eleNode.textContent);
+                                if (!isNaN(eleVal)) {
+                                    elevs.push(eleVal);
+                                } else {
+                                    elevs.push(0);
+                                }
+                            } else {
+                                elevs.push(0);
+                            }
+                        }
+                    }
+                    
+                    if (path.length < 2) {
+                        alert("GPX path is too short (needs at least 2 points).");
+                        return;
+                    }
+                    
+                    tempPath = path;
+                    liveElevData = elevs;
+                    finalRecordedTime = 0;
+                    
+                    tempPoly.setLatLngs(tempPath);
+                    const polyBounds = L.polyline(tempPath).getBounds();
+                    map.fitBounds(polyBounds);
+                    
+                    // Call resetModal FIRST so it doesn't wipe out our imported values
+                    resetModal();
+
+                    // Parse GPX metadata
+                    let gpxName = "";
+                    const nameNodes = xmlDoc.getElementsByTagName("name");
+                    if (nameNodes && nameNodes.length > 0) {
+                        gpxName = nameNodes[0].textContent.trim();
+                    }
+                    if (!gpxName) {
+                        gpxName = file.name.replace(/\.[^/.]+$/, "");
+                    }
+
+                    let gpxDesc = "";
+                    const descNodes = xmlDoc.getElementsByTagName("desc");
+                    if (descNodes && descNodes.length > 0) {
+                        gpxDesc = descNodes[0].textContent.trim();
+                    }
+
+                    // Extract Author
+                    const authorNodes = xmlDoc.getElementsByTagName("author");
+                    if (authorNodes && authorNodes.length > 0) {
+                        const authorNameNode = authorNodes[0].getElementsByTagName("name")[0] || authorNodes[0];
+                        const authorName = authorNameNode.textContent.trim();
+                        if (authorName) {
+                            if (gpxDesc) gpxDesc += "\n\n";
+                            gpxDesc += "Author: " + authorName;
+                        }
+                    }
+
+                    // Extract Timestamp
+                    const timeNodes = xmlDoc.getElementsByTagName("time");
+                    if (timeNodes && timeNodes.length > 0) {
+                        const gpxTime = timeNodes[0].textContent.trim();
+                        if (gpxTime) {
+                            try {
+                                const formattedTime = new Date(gpxTime).toLocaleString();
+                                if (formattedTime && formattedTime !== "Invalid Date") {
+                                    if (gpxDesc) gpxDesc += "\n";
+                                    gpxDesc += "Date Created: " + formattedTime;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+
+                    const nameField = document.getElementById('itemName');
+                    if (nameField) nameField.value = gpxName;
+
+                    const descField = document.getElementById('itemDesc');
+                    if (descField) descField.value = gpxDesc;
+                    
+                    const activityMode = 'walk';
+                    selectedColor = ACTIVITY_COLORS[activityMode] || ACTIVITY_COLORS.walk;
+                    setupTypePickers();
+                    document.getElementById('pinTypeSelect').style.display = 'none';
+                    const mas = document.getElementById('modalActivitySelectSection');
+                    if (mas) {
+                        mas.style.display = 'flex';
+                        document.getElementById('modalActivitySelect').value = 'walk';
+                    }
+                    document.getElementById('modal-overlay').style.display = 'flex';
+                    
+                } catch (err) {
+                    console.error(err);
+                    alert("Error parsing GPX file: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        const gpxModeBtn = document.getElementById('gpxModeBtn');
+        if (gpxModeBtn) {
+            const gpxFileInput = document.createElement('input');
+            gpxFileInput.type = 'file';
+            gpxFileInput.accept = '.gpx';
+            gpxFileInput.onchange = (e) => {
+                if (e.target.files.length > 0) {
+                    handleGpxImport(e.target.files[0]);
+                }
+            };
+            gpxModeBtn.onclick = () => {
+                gpxFileInput.click();
+            };
+        }
 
         document.getElementById('cancelAddBtn').onclick = () => {
             if(confirm("Discard current plot?")) {
@@ -2369,7 +2901,7 @@
         document.getElementById('hudPausePlay').onclick = () => {
             isPaused = !isPaused;
             document.getElementById('hudPausePlay').innerText = isPaused ? '▶ RESUME' : '⏸ PAUSE';
-            document.getElementById('hudPausePlay').style.background = isPaused ? 'var(--accent)' : 'rgba(255,255,255,0.2)';
+            document.getElementById('hudPausePlay').style.background = isPaused ? 'var(--accent)' : 'var(--border)';
             if(isPaused) { pauseStart = Date.now(); } 
             else { recordStartTime += (Date.now() - pauseStart); }
         };
@@ -2383,6 +2915,11 @@
                 setupTypePickers();
                 resetModal();
                 document.getElementById('pinTypeSelect').style.display = 'none'; 
+                const mas = document.getElementById('modalActivitySelectSection');
+                if (mas) {
+                    mas.style.display = 'flex';
+                    document.getElementById('modalActivitySelect').value = activityMode || 'walk';
+                }
                 document.getElementById('modal-overlay').style.display = 'flex';
             } else {
                 tempPath = [];
@@ -2399,6 +2936,11 @@
             setupTypePickers();
             resetModal();
             document.getElementById('pinTypeSelect').style.display = 'none';
+            const mas = document.getElementById('modalActivitySelectSection');
+            if (mas) {
+                mas.style.display = 'flex';
+                document.getElementById('modalActivitySelect').value = activityMode || 'walk';
+            }
             document.getElementById('modal-overlay').style.display = 'flex';
         };
 
@@ -2428,7 +2970,7 @@
                     const cat = PIN_TYPES.find(t => t.color === i.color);
                     if (!cat || !activeFilters.categories.includes(cat.name)) return false;
                     
-                    if (cat.name === 'Campsites' && activeFilters.maxPrice !== undefined && activeFilters.maxPrice < 50) {
+                    if ((cat.name === 'Campsites' || cat.name === 'Nearly Wild Camping') && activeFilters.maxPrice !== undefined && activeFilters.maxPrice < 50) {
                         if (i.price === undefined || i.price === null || i.price > activeFilters.maxPrice) return false;
                     }
                     return true;
@@ -2536,6 +3078,7 @@
                 };
                 list.appendChild(div);
             });
+            updateMapOpacities();
         }
 
         async function getSnappedPath(startLatLng, endLatLng) {
@@ -2552,6 +3095,18 @@
 
         map.on('click', async (e) => {
             if (isUIPressed(e)) return;
+            if (window.isNavigating) {
+                const latlng = e.latlng;
+                userPos = latlng;
+                if (!userMarker) {
+                    userMarker = L.marker(latlng, { icon: L.divIcon({ className: '', html: '<div class="gps-indicator-wrapper"><div class="gps-indicator"></div><div class="gps-pulse"></div></div>', iconSize: [14, 14], iconAnchor: [7, 7] }) }).addTo(map);
+                } else {
+                    userMarker.setLatLng(latlng);
+                }
+                updateUserMarker3D();
+                updateNavigationStats(latlng);
+                return;
+            }
             if (document.body.classList.contains('mobile-mode') && currentMode === 'explore') {
                 if (document.getElementById('detail-view').style.display === 'flex') {
                     goBack();
@@ -2650,6 +3205,16 @@
             document.getElementById('logStatusSelect').value = 'none'; 
             const cp = document.getElementById('campsitePrice'); if(cp) cp.value = '';
             const cu = document.getElementById('campsiteUrl'); if(cu) cu.value = '';
+            const vs = document.getElementById('visibilitySelect');
+            if (vs) {
+                vs.value = 'private';
+                const optPublic = vs.querySelector('option[value="public"]');
+                if (optPublic) optPublic.style.display = 'block';
+            }
+            const vw = document.getElementById('createVisibilityWrapper'); if(vw) vw.style.display = 'flex';
+            const wn = document.getElementById('wildCampNotice'); if(wn) wn.style.display = 'none';
+            const mfs = document.getElementById('modalFacilitiesSection'); if(mfs) mfs.style.display = 'block';
+            const mas = document.getElementById('modalActivitySelectSection'); if(mas) mas.style.display = 'none';
             setupTypePickers(); 
             tempCreationPhotos = []; 
             document.getElementById('modalPhotoList').innerHTML = ''; 
@@ -2661,9 +3226,16 @@
             const id = Date.now();
             const name = document.getElementById('itemName').value || "Untitled";
             const desc = document.getElementById('itemDesc').value || "";
-            const facilities = getSelectedFacilities('modalFacilityPicker');
-            const activityMode = document.querySelector('#addModeSelector .mode-btn.active').dataset.mode;
-            const isPublic = document.getElementById('publicToggle').checked;
+            const facilities = (selectedColor === '#065f46') ? [] : getSelectedFacilities('modalFacilityPicker');
+            let activityMode = 'walk';
+            if (tempPath.length >= 2) {
+                activityMode = document.getElementById('modalActivitySelect').value || 'walk';
+            } else {
+                const activeModeBtn = document.querySelector('#addModeSelector .mode-btn.active');
+                activityMode = activeModeBtn ? activeModeBtn.dataset.mode : 'walk';
+            }
+            const visibility = document.getElementById('visibilitySelect').value;
+            const isPublic = (visibility === 'public');
             
             const logStatus = document.getElementById('logStatusSelect').value;
             const isVisited = (logStatus === 'visited');
@@ -2698,7 +3270,16 @@
             if (tempPath.length < 2) { 
                 flat = pendingCoords.lat; 
                 flon = pendingCoords.lng; 
-                entry = { id, name, desc, rating: 0, lat: flat, lng: flon, color: selectedColor, type: 'PIN', userId: currentUser.uid, creatorName: currentUser.displayName || "User", isPublic: isPublic, photos: [...tempCreationPhotos], facilities: facilities, visited: isVisited, visitedDate: visitedDate, bucketList: isBucket };
+                const isCampingColor = (selectedColor === '#14b8a6' || selectedColor === '#22c55e');
+                entry = { 
+                    id, name, desc, rating: 0, lat: flat, lng: flon, color: selectedColor, type: 'PIN', 
+                    userId: currentUser.uid, creatorName: currentUser.displayName || "User", isPublic: isPublic, 
+                    visibility: visibility,
+                    photos: [...tempCreationPhotos], facilities: facilities, visited: isVisited, 
+                    visitedDate: visitedDate, bucketList: isBucket,
+                    price: isCampingColor ? price : null,
+                    pitchupUrl: isCampingColor ? pitchupUrl : ""
+                };
                 storage.pins.push(entry); 
                 addPin(entry);
                 await saveToCloud('pins', entry);
@@ -2721,6 +3302,7 @@
                     type: 'WALK',
                     userId: currentUser.uid,
                     isPublic: isPublic,
+                    visibility: visibility,
                     creatorName: currentUser.displayName || "User",
                     photos: [...tempCreationPhotos],
                     facilities: facilities,
@@ -2808,9 +3390,14 @@
             return `<div style="position: relative; height: 140px; background: #ddd; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover; display: block;"><div style="position: absolute; top: 10px; left: 10px; background: ${typeColor}; padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 900; color: white; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); letter-spacing: 0.5px; text-transform: uppercase;"><span>${typeIcon} ${typeText}</span></div>${ratingHtml}<div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%); padding: 40px 12px 10px 12px; display: flex; flex-direction: column; justify-content: flex-end;"><div style="color: white; font-weight: 900; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name || 'Untitled'}</div></div></div>${infoBar}`;
         }
 
+        function isSameColor(c1, c2) {
+            if (!c1 || !c2) return false;
+            return c1.toLowerCase() === c2.toLowerCase();
+        }
+
         function getCategoryName(color) {
             for (let cat of PIN_CATEGORIES) {
-                if (cat.types.some(t => t.color === color)) return cat.name;
+                if (cat.types.some(t => isSameColor(t.color, color))) return cat.name;
             }
             return 'Places';
         }
@@ -2854,10 +3441,12 @@
             }
 
             const pinIcon = L.divIcon({ className: 'custom-pin-marker', html: html, iconSize: iSize, iconAnchor: iAnchor }); 
-            const marker = L.marker([p.lat, p.lng], {icon: pinIcon, zIndexOffset: 1000}).addTo(mapItems).on('click', (e) => { 
+            const marker = L.marker([p.lat, p.lng], {icon: pinIcon, zIndexOffset: 1000}).addTo(mapItems);
+            marker.pinId = p.id;
+            marker.on('click', (e) => { 
                 L.DomEvent.stopPropagation(e);
                 flyToPin(p.lat, p.lng, 18);
-                showDetails(p, false, e.target); 
+                showDetails(p, false, marker); 
             });
             if (!document.body.classList.contains('mobile-mode')) {
                 marker.bindTooltip(() => generateTooltipHTML(p), { direction: 'top', offset: [0, -25], className: 'map-card-tooltip' }); 
@@ -2890,8 +3479,129 @@
             if (typeof sync3DWalks === 'function') sync3DWalks();
         }
 
+        function updateMapOpacities() {
+            const hasSelection = (typeof activeSelectionId !== 'undefined' && activeSelectionId !== null && (document.getElementById('detail-view').style.display === 'flex'));
+            
+            mapItems.getLayers().forEach(layer => {
+                if (layer instanceof L.Marker && layer.pinId) {
+                    if (hasSelection) {
+                        layer.setOpacity(layer.pinId === activeSelectionId ? 1.0 : 0.15);
+                    } else {
+                        layer.setOpacity(1.0);
+                    }
+                } else if (layer instanceof L.Polyline && layer.walkId) {
+                    if (hasSelection) {
+                        if (layer.walkId === activeSelectionId) {
+                            layer.setStyle({ opacity: 1.0, weight: 6 });
+                        } else {
+                            layer.setStyle({ opacity: 0.15, weight: 2 });
+                        }
+                    } else {
+                        layer.setStyle({ opacity: 1.0, weight: 5 });
+                    }
+                }
+            });
+        }
+
+        function renderFacilitiesTags(facilities) {
+            const facilitiesDiv = document.getElementById('detFacilities');
+            if (!facilitiesDiv) return;
+            facilitiesDiv.innerHTML = '';
+            if (!facilities || facilities.length === 0) return;
+            
+            const renderList = (showAll) => {
+                facilitiesDiv.innerHTML = '';
+                const limit = showAll ? facilities.length : 4;
+                const toRender = facilities.slice(0, limit);
+                
+                toRender.forEach(fid => {
+                    const f = FACILITIES.find(x => x.id === fid);
+                    if (f) {
+                        facilitiesDiv.innerHTML += `<div class="facility-tag">${f.icon} ${f.label}</div>`;
+                    }
+                });
+                
+                if (facilities.length > 4) {
+                    const diff = facilities.length - 4;
+                    const toggleBtn = document.createElement('button');
+                    toggleBtn.className = 'facility-tag';
+                    toggleBtn.style.cursor = 'pointer';
+                    toggleBtn.style.fontWeight = 'bold';
+                    toggleBtn.style.background = 'var(--primary)';
+                    toggleBtn.style.color = 'white';
+                    toggleBtn.style.border = 'none';
+                    toggleBtn.style.outline = 'none';
+                    toggleBtn.style.display = 'inline-flex';
+                    toggleBtn.style.alignItems = 'center';
+                    toggleBtn.style.justifyContent = 'center';
+                    toggleBtn.innerText = showAll ? 'Show Less' : `+ ${diff} more`;
+                    toggleBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        renderList(!showAll);
+                    };
+                    facilitiesDiv.appendChild(toggleBtn);
+                }
+            };
+            
+            renderList(false);
+        }
+
+        function exportToGpx(item) {
+            if (!item || !item.path || item.path.length === 0) {
+                alert("No route data to export.");
+                return;
+            }
+            
+            let gpx = '<?xml version="1.0" encoding="UTF-8"?>\n';
+            gpx += '<gpx version="1.1" creator="TraceLog" xmlns="http://www.topografix.com/GPX/1/1">\n';
+            gpx += '  <metadata>\n';
+            gpx += `    <name>${item.name || 'Exported Walk'}</name>\n`;
+            if (item.desc) {
+                gpx += `    <desc>${item.desc}</desc>\n`;
+            }
+            gpx += '  </metadata>\n';
+            gpx += '  <trk>\n';
+            gpx += `    <name>${item.name || 'Exported Walk'}</name>\n`;
+            gpx += '    <trkseg>\n';
+            
+            item.path.forEach((pt, i) => {
+                const lat = pt[0];
+                const lon = pt[1];
+                const ele = (item.elevData && item.elevData[i] !== undefined) ? item.elevData[i] : null;
+                
+                gpx += `      <trkpt lat="${lat}" lon="${lon}">`;
+                if (ele !== null) {
+                    gpx += `<ele>${ele}</ele>`;
+                }
+                gpx += '</trkpt>\n';
+            });
+            
+            gpx += '    </trkseg>\n';
+            gpx += '  </trk>\n';
+            gpx += '</gpx>';
+            
+            const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${(item.name || 'route').replace(/[^a-z0-9]/gi, '_').toLowerCase()}.gpx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
         function showDetails(item, isWalk, layer) {
             if (!item) return;
+            const exportGpxContainer = document.getElementById('exportGpxContainer');
+            if (exportGpxContainer) {
+                if (isWalk) {
+                    exportGpxContainer.style.display = 'block';
+                    document.getElementById('exportGpxBtn').onclick = () => exportToGpx(item);
+                } else {
+                    exportGpxContainer.style.display = 'none';
+                }
+            }
             // Ensure we work with the original storage object, not a filtered copy
             const realItem = storage.pins.find(p => p.id === item.id) || storage.walks.find(w => w.id === item.id);
             if (realItem) item = realItem;
@@ -2933,6 +3643,8 @@
             }).catch(e => console.log("Background fetch failed", e));
 
             editingCommentId = null;
+            document.getElementById('viewModeContent').style.display = 'block';
+            document.getElementById('editFormContainer').style.display = 'none';
             document.getElementById('editTypeContainer').style.display = 'none'; document.getElementById('explore-panel').style.display = 'none'; document.getElementById('add-panel').style.display = 'none'; document.getElementById('settings-panel').style.display = 'none'; document.getElementById('mainTabs').style.display = 'none'; document.getElementById('mainSearch').style.display = 'none'; 
             document.getElementById('backBtn').style.display = 'flex'; document.getElementById('minimizeBtn').style.display = 'none';
             document.getElementById('detail-view').style.display = 'flex';
@@ -2946,6 +3658,8 @@
             if(document.body.classList.contains('mobile-mode')) snapTo('half');
             const floatEdit = document.getElementById('floatEditBtn'); floatEdit.innerHTML = '🖋️'; floatEdit.classList.remove('is-editing');
             document.getElementById('floatDeleteBtn').style.display = 'none'; 
+
+
             
             // Slideshow Logic
             if(slideshowInterval) { clearInterval(slideshowInterval); slideshowInterval = null; }
@@ -3021,12 +3735,14 @@
                 imgEl.onclick = null; 
             }
 
+            const detTitleEl = document.getElementById('detTitle');
+            if (detTitleEl) detTitleEl.innerText = item.name;
+
             const titleEl = document.getElementById('editTitle');
-            titleEl.value = item.name; 
-            titleEl.style.height = 'auto';
-            titleEl.style.height = titleEl.scrollHeight + 'px';
+            if (titleEl) titleEl.value = item.name;
             
-            document.getElementById('editDesc').value = item.desc || "";
+            const descEl = document.getElementById('editDesc');
+            if (descEl) descEl.value = item.desc || "";
             
             // Description View Logic
             const descText = item.desc || "No notes added...";
@@ -3044,10 +3760,6 @@
                  showMoreBtn.style.display = 'block';
                  showMoreBtn.onclick = () => { const isTrunc = viewText.classList.toggle('desc-truncated'); showMoreBtn.innerText = isTrunc ? 'Show More' : 'Show Less'; };
             }
-
-            document.querySelectorAll('.edit-input').forEach(i=>i.classList.remove('active'));
-            document.getElementById('editDesc').style.display = 'none';
-            document.getElementById('viewDescContainer').style.display = 'block';
             
             const creatorDiv = document.getElementById('detCreator');
             let creatorName = item.creatorName || 'Unknown';
@@ -3066,30 +3778,52 @@
                 return `<div style="display:flex; align-items:center; gap:10px; padding:5px 0;"><div class="comment-avatar" style="width:32px; height:32px; font-size:14px; background:${color}">${avatar}</div><div style="display:flex; flex-direction:column; justify-content:center;"><span style="font-weight:700; font-size:13px;">${name}</span><span style="font-size:11px; opacity:0.6;">Uploaded on ${dateStr}</span></div></div>`;
             };
 
-            creatorDiv.innerHTML = renderCreator(creatorName, creatorColor, creatorAvatar);
+            const updateCreatorHtml = (leftHtml) => {
+                creatorDiv.innerHTML = leftHtml + `
+                    <button class="btn" id="detShareBtn" style="margin: 0; padding: 0; width: 28px; height: 28px; min-width: 28px; border-radius: 8px; background: rgba(0,0,0,0.06); color: var(--text); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; transition: background 0.2s; flex-shrink: 0;" title="Share Link">
+                        🔗
+                    </button>
+                `;
+                // Add hover feedback style dynamically
+                const shareBtn = document.getElementById('detShareBtn');
+                if (shareBtn) {
+                    shareBtn.onmouseover = () => { shareBtn.style.background = 'rgba(0,0,0,0.12)'; };
+                    shareBtn.onmouseout = () => { shareBtn.style.background = 'rgba(0,0,0,0.06)'; };
+                    shareBtn.onclick = () => {
+                        const paramName = isWalk ? 'walk' : 'pin';
+                        const shareUrl = `${window.location.origin}${window.location.pathname}?${paramName}=${item.id}`;
+                        navigator.clipboard.writeText(shareUrl).then(() => {
+                            alert("Share link copied to clipboard!");
+                        }).catch(err => {
+                            console.error("Could not copy link: ", err);
+                            alert("Could not copy link automatically. Here is the URL:\n" + shareUrl);
+                        });
+                    };
+                }
+            };
+
+            updateCreatorHtml(renderCreator(creatorName, creatorColor, creatorAvatar));
 
             if(item.userId && (item.userId !== currentUser?.uid)) {
                 const reqId = item.id;
                 db.collection('users').doc(item.userId).get().then(doc => {
                     if(activeSelectionId !== reqId) return;
-                    if(doc.exists) { const d = doc.data(); creatorDiv.innerHTML = renderCreator(d.displayName || 'Unknown', d.color || creatorColor, d.avatarText || creatorAvatar); }
+                    if(doc.exists) { 
+                        const d = doc.data(); 
+                        updateCreatorHtml(renderCreator(d.displayName || 'Unknown', d.color || creatorColor, d.avatarText || creatorAvatar)); 
+                    }
                 }).catch(()=>{});
             }
 
             renderTypeLabel(item);
             updateVisitedButton(item);
 
+            const isWildCamping = (item.color === '#065f46');
+            renderFacilitiesTags(item.facilities);
             const facilitiesDiv = document.getElementById('detFacilities');
-            facilitiesDiv.innerHTML = '';
-            if(item.facilities && item.facilities.length > 0) {
-                item.facilities.forEach(fid => {
-                    const f = FACILITIES.find(x => x.id === fid);
-                    if(f) {
-                        facilitiesDiv.innerHTML += `<div class="facility-tag">${f.icon} ${f.label}</div>`;
-                    }
-                });
-                facilitiesDiv.style.display = 'flex';
-            } else { facilitiesDiv.style.display = 'none'; }
+            if (facilitiesDiv) {
+                facilitiesDiv.style.display = (!isWildCamping && item.facilities && item.facilities.length > 0) ? 'flex' : 'none';
+            }
 
             waypointMarkers.forEach(m => map.removeLayer(m)); waypointMarkers = [];
             renderComments(item);
@@ -3097,7 +3831,7 @@
             
             const campsiteInfo = document.getElementById('detCampsiteInfo');
             if (campsiteInfo) {
-                if (item.color === '#14b8a6' && (item.price || item.pitchupUrl)) {
+                if ((isSameColor(item.color, '#14b8a6') || isSameColor(item.color, '#22c55e')) && (item.price || item.pitchupUrl)) {
                     campsiteInfo.style.display = 'flex';
                     let html = '';
                     if (item.price) html += `<span style="font-weight:800; color:var(--text); padding: 8px 12px; background:rgba(0,0,0,0.15); border-radius:10px;">From £${item.price}</span>`;
@@ -3123,6 +3857,7 @@
             }
             nodeHandles.forEach(h=>map.removeLayer(h));
             resetSidebarScroll();
+            updateMapOpacities();
         }
 
         function refreshSlideshow(item) {
@@ -3448,7 +4183,9 @@
             if (graphOpen) { 
                 if(document.body.classList.contains('mobile-mode') && !isRecording) snapTo('bottom');
                 if(isRecording) renderLiveRecordingGraph();
-                else if (currentMode === 'walk' && tempPath.length > 0) {
+                else if (window.isNavigating && window.navigatingWalk) {
+                    renderInstantGraph(window.navigatingWalk);
+                } else if (currentMode === 'walk' && tempPath.length > 0) {
                     document.getElementById('elevation-dock').classList.add('active');
                     fetchElevation(tempPath, true);
                 } else {
@@ -3538,7 +4275,7 @@
             }
 
             let hours = Math.floor(totalMins / 60), mins = totalMins % 60;            
-            document.getElementById('detStats').innerHTML = `<div class="stats-grid"><div class="stat-card"><span class="stat-label">Length</span><span class="stat-value">${formatDist(item.dist)}</span></div><div class="stat-card"><span class="stat-label">${timeLabel}</span><span class="stat-value">${hours > 0 ? hours + 'h ' : ''}${mins}m</span></div><div class="stat-card-dual"><div class="dual-row"><span class="stat-sub-label">Total Climb</span><span class="stat-sub-value">${formatElev(ascent)}</span></div><div class="dual-divider"></div><div class="dual-row"><span class="stat-sub-label">Total Descent</span><span class="stat-sub-value">${formatElev(descent)}</span></div></div><div class="stat-card-dual"><div class="dual-row"><span class="stat-sub-label">Min Height</span><span class="stat-sub-value">${formatElev(minE)}</span></div><div class="dual-divider"></div><div class="dual-row"><span class="stat-sub-label">Max Height</span><span class="stat-sub-value">${formatElev(maxE)}</span></div></div><button class="elev-toggle-btn" onclick="startFlyover()" style="margin-bottom:5px;">✈️ Flyover</button><button id="toggleGraphBtn" class="elev-toggle-btn" onclick="toggleGraph()"><span>${graphOpen ? '📉' : '📈'}</span> ${graphOpen ? 'Hide Height Graph' : 'Show Height Graph'}</button></div>`;
+            document.getElementById('detStats').innerHTML = `<div class="stats-grid"><div class="stat-card"><span class="stat-label">Length</span><span class="stat-value">${formatDist(item.dist)}</span></div><div class="stat-card"><span class="stat-label">${timeLabel}</span><span class="stat-value">${hours > 0 ? hours + 'h ' : ''}${mins}m</span></div><div class="stat-card-dual"><div class="dual-row"><span class="stat-sub-label">Total Climb</span><span class="stat-sub-value">${formatElev(ascent)}</span></div><div class="dual-divider"></div><div class="dual-row"><span class="stat-sub-label">Total Descent</span><span class="stat-sub-value">${formatElev(descent)}</span></div></div><div class="stat-card-dual"><div class="dual-row"><span class="stat-sub-label">Min Height</span><span class="stat-sub-value">${formatElev(minE)}</span></div><div class="dual-divider"></div><div class="dual-row"><span class="stat-sub-label">Max Height</span><span class="stat-sub-value">${formatElev(maxE)}</span></div></div><button class="elev-toggle-btn" onclick="startNavigation()" style="margin-bottom:5px;">🧭 Begin Route</button><div style="grid-column: span 2; display:flex; gap:8px; width:100%; margin-top:5px;"><button class="elev-toggle-btn" onclick="startFlyover()" style="grid-column:auto; width:100%; margin:0; flex:1;">✈️ Flyover</button><button id="toggleGraphBtn" class="elev-toggle-btn" onclick="toggleGraph()" style="grid-column:auto; width:100%; margin:0; flex:1;"><span>${graphOpen ? '📉' : '📈'}</span> ${graphOpen ? 'Hide Graph' : 'Show Graph'}</button></div></div>`;
             updateWalkWaypoints(); saveData();
             saveToCloud('walks', item);
             updateMyLogList();
@@ -3628,12 +4365,17 @@
                 return;
             }
 
-            isEditing = !isEditing; const editBtn = document.getElementById('floatEditBtn'); editBtn.innerHTML = isEditing ? '✅' : '🖋️'; editBtn.classList.toggle('is-editing', isEditing);
+            isEditing = !isEditing; 
+            const editBtn = document.getElementById('floatEditBtn'); 
+            if (editBtn) {
+                editBtn.innerHTML = isEditing ? '✅' : '🖋️'; 
+                editBtn.classList.toggle('is-editing', isEditing);
+            }
             
             const bigBtn = document.getElementById('bigEditBtn');
             const bigDelBtn = document.getElementById('bigDeleteBtn');
             if(bigBtn) {
-                    bigBtn.innerHTML = isEditing ? '✅ Save' : '🖋️ Edit';
+                bigBtn.innerHTML = isEditing ? '✅ Save' : '🖋️ Edit';
                 bigBtn.style.background = isEditing ? 'var(--accent)' : 'var(--primary)';
             }
             
@@ -3641,11 +4383,12 @@
                 bigDelBtn.style.display = isEditing ? 'flex' : 'none';
             }
 
-            document.getElementById('floatDeleteBtn').style.display = 'none'; 
+            const floatDelBtn = document.getElementById('floatDeleteBtn');
+            if (floatDelBtn) floatDelBtn.style.display = 'none'; 
             
             const isWalk = (item.path !== undefined);
             document.getElementById('editTypeContainer').style.display = (isEditing && !isWalk) ? 'block' : 'none';
-            document.getElementById('editCampsiteFields').style.display = (isEditing && !isWalk && item.color === '#14b8a6') ? 'flex' : 'none';
+            document.getElementById('editCampsiteFields').style.display = (isEditing && !isWalk && (isSameColor(item.color, '#14b8a6') || isSameColor(item.color, '#22c55e'))) ? 'flex' : 'none';
             document.getElementById('editWalkOptions').style.display = (isEditing && isWalk) ? 'block' : 'none';
             document.getElementById('editPrivacyContainer').style.display = isEditing ? 'block' : 'none';
             
@@ -3655,15 +4398,38 @@
                 if(isEditing) renderEditPhotos(item);
             }
 
+            // Toggles view mode vs edit form
+            document.getElementById('viewModeContent').style.display = isEditing ? 'none' : 'block';
+            document.getElementById('editFormContainer').style.display = isEditing ? 'flex' : 'none';
+
             if(!isEditing) {
-                const facilitiesDiv = document.getElementById('detFacilities');
-                facilitiesDiv.innerHTML = '';
-                if(item.facilities && item.facilities.length > 0) {
-                    item.facilities.forEach(fid => {
-                        const f = FACILITIES.find(x => x.id === fid);
-                        if(f) facilitiesDiv.innerHTML += `<div class="facility-tag">${f.icon} ${f.label}</div>`;
-                    });
+                // Read and sync values from the form inputs at save time
+                item.name = document.getElementById('editTitle').value.trim() || item.name || "Unnamed";
+                item.desc = document.getElementById('editDesc').value.trim();
+                if (!isWalk && (isSameColor(item.color, '#14b8a6') || isSameColor(item.color, '#22c55e'))) {
+                    item.price = parseFloat(document.getElementById('editCampsitePrice').value) || 0;
+                    item.pitchupUrl = document.getElementById('editCampsiteUrl').value;
                 }
+                
+                const isWild = (item.color === '#065f46');
+                if (isWild) {
+                    item.facilities = [];
+                    item.visibility = 'private';
+                    item.isPublic = false;
+                } else {
+                    item.facilities = getSelectedFacilities('editFacilityPicker');
+                    const visSelect = document.getElementById('editVisibilitySelect');
+                    if (visSelect) {
+                        item.visibility = visSelect.value;
+                        item.isPublic = (visSelect.value === 'public');
+                    }
+                }
+
+                // Sync view-only elements
+                const detTitleEl = document.getElementById('detTitle');
+                if (detTitleEl) detTitleEl.innerText = item.name;
+
+                renderFacilitiesTags(item.facilities);
                 
                 // Update Description View
                 const descText = item.desc || "No notes added...";
@@ -3672,7 +4438,7 @@
                 
                 const campsiteInfo = document.getElementById('detCampsiteInfo');
                 if (campsiteInfo) {
-                    if (item.color === '#14b8a6' && (item.price || item.pitchupUrl)) {
+                    if ((isSameColor(item.color, '#14b8a6') || isSameColor(item.color, '#22c55e')) && (item.price || item.pitchupUrl)) {
                         campsiteInfo.style.display = 'flex';
                         let html = '';
                         if (item.price) html += `<span style="font-weight:800; color:var(--text); padding: 8px 12px; background:rgba(0,0,0,0.15); border-radius:10px;">From £${item.price}</span>`;
@@ -3703,9 +4469,10 @@
                  document.getElementById('detCampsiteInfo').style.display = 'none';
             }
 
-            document.getElementById('detFacilities').style.display = (isEditing || (!item.facilities || item.facilities.length === 0)) ? 'none' : 'flex';
-            document.getElementById('editFacilitiesContainer').style.display = isEditing ? 'block' : 'none';
-            if(isEditing) renderFacilityPicker('editFacilityPicker', item.facilities || [], true);
+            const isWildCamping = (item.color === '#065f46');
+            document.getElementById('detFacilities').style.display = (isEditing || isWildCamping || (!item.facilities || item.facilities.length === 0)) ? 'none' : 'flex';
+            document.getElementById('editFacilitiesContainer').style.display = (isEditing && !isWildCamping) ? 'block' : 'none';
+            if(isEditing && !isWildCamping) renderFacilityPicker('editFacilityPicker', item.facilities || [], true);
             
             if(isEditing) { 
                 const cat = PIN_CATEGORIES.find(c => c.types.some(t => t.color === item.color));
@@ -3714,53 +4481,52 @@
                 walkHistory = []; 
             }
             
-            document.querySelectorAll('.edit-input').forEach(inp => inp.classList.toggle('active', isEditing));
-            document.getElementById('editDesc').style.display = isEditing ? 'block' : 'none';
-            document.getElementById('viewDescContainer').style.display = isEditing ? 'none' : 'block';
-            
             if(isEditing && window.currentActiveLayer instanceof L.Polyline) { createNodes(window.currentActiveLayer); } 
             else { nodeHandles.forEach(h=>map.removeLayer(h)); nodeHandles = []; }
-            document.getElementById('editTitle').oninput = function() { 
-                this.style.height = 'auto';
-                this.style.height = this.scrollHeight + 'px';
-                item.name = this.value; 
-                saveData(); 
-                updateHighlights(); 
-                updateMyLogList(); 
-                saveToCloud(item.path ? 'walks' : 'pins', item); 
-            };
-            document.getElementById('editDesc').oninput = () => { item.desc = document.getElementById('editDesc').value; saveData(); updateMyLogList(); saveToCloud(item.path ? 'walks' : 'pins', item); };
-            
-            document.getElementById('editCampsitePrice').oninput = function() {
-                item.price = parseFloat(this.value);
-                saveData(); saveToCloud(item.path ? 'walks' : 'pins', item);
-            };
-            document.getElementById('editCampsiteUrl').oninput = function() {
-                item.pitchupUrl = this.value;
-                saveData(); saveToCloud(item.path ? 'walks' : 'pins', item);
-            };
+
+            // Pre-populate input fields
             if (isEditing) {
+                document.getElementById('editTitle').value = item.name || '';
+                document.getElementById('editDesc').value = item.desc || '';
+                
                 const ep = document.getElementById('editCampsitePrice');
                 const eu = document.getElementById('editCampsiteUrl');
                 if (ep) ep.value = item.price || '';
                 if (eu) eu.value = item.pitchupUrl || '';
+                
+                const visSelect = document.getElementById('editVisibilitySelect');
+                if (visSelect) {
+                    if (item.visibility) {
+                        visSelect.value = item.visibility;
+                    } else {
+                        visSelect.value = item.isPublic ? 'public' : 'private';
+                    }
+                }
+
+                const isWild = (item.color === '#065f46');
+                const pWrapper = document.getElementById('editPrivacyToggleWrapper');
+                const eWildNotice = document.getElementById('editWildCampNotice');
+                if (isWild) {
+                    if (visSelect) {
+                        const optPublic = visSelect.querySelector('option[value="public"]');
+                        if (optPublic) optPublic.style.display = 'none';
+                        if (visSelect.value === 'public') visSelect.value = 'private';
+                    }
+                    if (pWrapper) pWrapper.style.display = 'flex';
+                    if (eWildNotice) eWildNotice.style.display = 'block';
+                } else {
+                    if (visSelect) {
+                        const optPublic = visSelect.querySelector('option[value="public"]');
+                        if (optPublic) optPublic.style.display = 'block';
+                    }
+                    if (pWrapper) pWrapper.style.display = 'flex';
+                    if (eWildNotice) eWildNotice.style.display = 'none';
+                }
             }
 
             document.getElementById('editCampsiteUrl').onchange = function() {
                 if (this.value && !document.getElementById('editCampsitePrice').value) fetchPitchupPrice(this.value, 'editCampsitePrice');
             };
-
-            if(isEditing) {
-                const pubToggle = document.getElementById('editPublicToggle');
-                pubToggle.checked = item.isPublic || false;
-                pubToggle.onchange = (e) => {
-                    item.isPublic = e.target.checked;
-                    saveData();
-                    saveToCloud(item.path ? 'walks' : 'pins', item);
-                    updateHighlights();
-                    updateMyLogList();
-                };
-            }
         }
 
         function openUrlUploadPopup(context) {
@@ -3953,6 +4719,137 @@
                 }
             }
             return path[path.length - 1];
+        }
+
+        function startNavigation() {
+            const item = storage.walks.find(w => w.id === activeSelectionId);
+            if (!item || !item.path || item.path.length < 2) {
+                alert("This route does not have enough coordinates to navigate.");
+                return;
+            }
+            
+            window.navigatingWalk = item;
+            window.isNavigating = true;
+            
+            // Set body classes / states similar to flyover
+            document.body.classList.add('is-navigating');
+            document.getElementById('sidebar').classList.add('minimized');
+            document.getElementById('expandBtn').style.display = 'none';
+            document.getElementById('elevation-dock').style.left = '20px';
+            setTimeout(() => { if (chartInstance) chartInstance.resize(); }, 400);
+            
+            // Show navigation control panel
+            document.getElementById('navigationControls').style.display = 'flex';
+            
+            // Reset off-track notice
+            const alertEl = document.getElementById('navOffTrackAlert');
+            if (alertEl) alertEl.style.display = 'none';
+
+            // Reset navigation timer
+            window.navigationStartTime = Date.now();
+            if (window.navigationTimerInterval) clearInterval(window.navigationTimerInterval);
+            const timeEl = document.getElementById('navStatTime');
+            if (timeEl) timeEl.innerText = '00:00';
+            
+            window.navigationTimerInterval = setInterval(() => {
+                if (!window.isNavigating) return;
+                const elapsedSecs = Math.floor((Date.now() - window.navigationStartTime) / 1000);
+                const hrs = Math.floor(elapsedSecs / 3600);
+                const mins = Math.floor((elapsedSecs % 3600) / 60);
+                const secs = elapsedSecs % 60;
+                
+                let timeStr = '';
+                if (hrs > 0) {
+                    timeStr += (hrs < 10 ? '0' + hrs : hrs) + ':';
+                }
+                timeStr += (mins < 10 ? '0' + mins : mins) + ':';
+                timeStr += (secs < 10 ? '0' + secs : secs);
+                
+                const timeEl = document.getElementById('navStatTime');
+                if (timeEl) timeEl.innerText = timeStr;
+            }, 1000);
+            
+            const startPt = L.latLng(item.path[0][0], item.path[0][1]);
+            
+            // If there's no userPos yet, mock it to the start of the walk
+            if (!userPos) {
+                userPos = startPt;
+            }
+            
+            if (!userMarker) {
+                userMarker = L.marker(userPos, { icon: L.divIcon({ className: '', html: '<div class="gps-indicator-wrapper"><div class="gps-indicator"></div><div class="gps-pulse"></div></div>', iconSize: [14, 14], iconAnchor: [7, 7] }) }).addTo(map);
+            } else {
+                userMarker.setLatLng(userPos);
+            }
+            
+            map.setView(userPos, 16);
+            updateNavigationStats(userPos);
+            updateUserMarker3D();
+        }
+        
+        function stopNavigation() {
+            goBack();
+        }
+        
+        function updateNavigationStats(userLatLng) {
+            if (!window.isNavigating || !window.navigatingWalk) return;
+            
+            const route = window.navigatingWalk.path; // Array of [lat, lng]
+            if (!route || route.length < 2) return;
+            
+            // 1. Find the index of the closest point in the route to userLatLng
+            let minD = Infinity;
+            let closestIdx = 0;
+            for (let i = 0; i < route.length; i++) {
+                const d = userLatLng.distanceTo(L.latLng(route[i][0], route[i][1]));
+                if (d < minD) {
+                    minD = d;
+                    closestIdx = i;
+                }
+            }
+            
+            // 2. Off-track detection: if the distance to the closest point is > 40 meters, show "Off Track"
+            const offTrackThreshold = 40; // 40 meters
+            const alertEl = document.getElementById('navOffTrackAlert');
+            if (alertEl) {
+                if (minD > offTrackThreshold) {
+                    alertEl.style.display = 'block';
+                } else {
+                    alertEl.style.display = 'none';
+                }
+            }
+            
+            // 3. Calculate distance walked along the route (from index 0 to closestIdx)
+            let walkedDist = 0;
+            for (let i = 1; i <= closestIdx; i++) {
+                walkedDist += L.latLng(route[i-1][0], route[i-1][1]).distanceTo(L.latLng(route[i][0], route[i][1]));
+            }
+            
+            // Calculate remaining distance along the route (from closestIdx to end)
+            let remainingDist = 0;
+            for (let i = closestIdx + 1; i < route.length; i++) {
+                remainingDist += L.latLng(route[i-1][0], route[i-1][1]).distanceTo(L.latLng(route[i][0], route[i][1]));
+            }
+            
+            const totalDist = walkedDist + remainingDist;
+            let completion = 0;
+            if (totalDist > 0) {
+                completion = Math.round((walkedDist / totalDist) * 100);
+            }
+            
+            // 4. Update HUD
+            document.getElementById('navStatDist').innerText = (walkedDist / 1000).toFixed(2) + " km";
+            document.getElementById('navStatProgress').innerText = completion + "%";
+            document.getElementById('navStatRemaining').innerText = (remainingDist / 1000).toFixed(2) + " km";
+            
+            // 5. Update elevation graph cursor position
+            window.flyoverDistance = walkedDist / 1000;
+            if (chartInstance) {
+                chartInstance.update();
+            }
+            
+            // Keep map centered on user's location
+            map.setView(userLatLng);
         }
 
         async function startFlyover() {
@@ -4300,22 +5197,95 @@
             if(!currentUser) return;
             if(!confirm("WARNING: This will make ALL your pins and activities private. They will no longer be visible to other users. This action cannot be easily undone. Continue?")) return;
             
-            const myPins = storage.pins.filter(p => p.userId === currentUser.uid);
-            for(let p of myPins) {
-                p.isPublic = false;
-                await saveToCloud('pins', p);
+            const btn = document.querySelector('button[onclick="makeAllPrivate()"]');
+            const originalText = btn ? btn.innerHTML : "🔒 Make All Items Private";
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "⏳ Processing...";
             }
             
-            const myWalks = storage.walks.filter(w => w.userId === currentUser.uid);
-            for(let w of myWalks) {
-                w.isPublic = false;
-                await saveToCloud('walks', w);
+            try {
+                const myPins = storage.pins.filter(p => p.userId === currentUser.uid);
+                myPins.forEach(p => p.isPublic = false);
+
+                const myWalks = storage.walks.filter(w => w.userId === currentUser.uid);
+                myWalks.forEach(w => w.isPublic = false);
+
+                const promises = [];
+                myPins.forEach(p => {
+                    promises.push(db.collection('pins').doc(p.id.toString()).set({ isPublic: false }, { merge: true }));
+                });
+                myWalks.forEach(w => {
+                    promises.push(db.collection('walks').doc(w.id.toString()).set({ isPublic: false }, { merge: true }));
+                });
+
+                await Promise.all(promises);
+                saveData();
+                refreshMapItems();
+                updateHighlights();
+                updateMyLogList();
+                alert("All your items have been set to private.");
+            } catch (e) {
+                console.error("Error setting items private:", e);
+                alert("An error occurred: " + e.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            }
+        }
+
+        async function deleteAllItems() {
+            if(!currentUser) return;
+            if(!confirm("DANGER: This will permanently delete ALL your pins and activities from both the cloud and your local device. This action is irreversible. Are you absolutely sure you want to proceed?")) return;
+            
+            const typedConfirm = prompt("To confirm deletion, please type DELETE in the box below:");
+            if (typedConfirm !== "DELETE") {
+                alert("Deletion cancelled. Confirmation text did not match.");
+                return;
             }
             
-            saveData();
-            updateHighlights();
-            updateMyLogList();
-            alert("All items set to private.");
+            const btn = document.querySelector('button[onclick="deleteAllItems()"]');
+            const originalText = btn ? btn.innerHTML : "🗑️ Delete All Your Items";
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "⏳ Deleting...";
+            }
+            
+            try {
+                const myPins = storage.pins.filter(p => p.userId === currentUser.uid);
+                const myWalks = storage.walks.filter(w => w.userId === currentUser.uid);
+                
+                const promises = [];
+                myPins.forEach(p => {
+                    promises.push(db.collection('pins').doc(p.id.toString()).delete());
+                });
+                myWalks.forEach(w => {
+                    promises.push(db.collection('walks').doc(w.id.toString()).delete());
+                });
+                
+                await Promise.all(promises);
+                
+                // Remove from in-memory storage
+                storage.pins = storage.pins.filter(p => p.userId !== currentUser.uid);
+                storage.walks = storage.walks.filter(w => w.userId !== currentUser.uid);
+                
+                saveData();
+                refreshMapItems();
+                updateHighlights();
+                updateMyLogList();
+                goBack();
+                alert("All your pins and activities have been deleted successfully.");
+            } catch (e) {
+                console.error("Error deleting items:", e);
+                alert("An error occurred: " + e.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            }
         }
 
         function deleteAccount() {
@@ -4796,8 +5766,8 @@
             
             createdItems = createdItems.filter(i => {
                 if (myLogFilters.privacy !== 'all') {
-                    if (myLogFilters.privacy === 'public' && !i.isPublic) return false;
-                    if (myLogFilters.privacy === 'private' && i.isPublic) return false;
+                    const itemVis = i.visibility || (i.isPublic ? 'public' : 'private');
+                    if (myLogFilters.privacy !== itemVis) return false;
                 }
 
                 if (i.type === 'PIN') {
@@ -4935,7 +5905,14 @@
                 
                 let visibilityLabel = '';
                 if (listType === 'uploads') {
-                    visibilityLabel = i.isPublic ? `<span class="type-label" style="background:#10b981;">PUBLIC</span>` : `<span class="type-label" style="background:#ef4444;">PRIVATE</span>`;
+                    const itemVis = i.visibility || (i.isPublic ? 'public' : 'private');
+                    if (itemVis === 'public') {
+                        visibilityLabel = `<span class="type-label" style="background:#10b981;">PUBLIC</span>`;
+                    } else if (itemVis === 'friends') {
+                        visibilityLabel = `<span class="type-label" style="background:#3b82f6;">FRIENDS</span>`;
+                    } else {
+                        visibilityLabel = `<span class="type-label" style="background:#ef4444;">PRIVATE</span>`;
+                    }
                 }
                 
                 const thumb = (i.photos && i.photos.length > 0) ? i.photos[0] : (i.photo || 'https://placehold.co/100x100?text=No+Photo');
@@ -5029,11 +6006,15 @@
                     
                     if (!map3d) {
                         // Slight delay allows the browser to paint the 3D div's dimensions before WebGL takes over
-                        setTimeout(() => init3DMap(), 50);
+                        setTimeout(() => {
+                            init3DMap();
+                            updateUserMarker3D();
+                        }, 50);
                     } else {
                         const center = map.getCenter();
                         map3d.setCenter([center.lng, center.lat]);
                         map3d.setZoom(map.getZoom() - 1);
+                        updateUserMarker3D();
                         setTimeout(() => { map3d.resize(); sync3DWalks(); }, 50);
                     }
                 } else {
@@ -5046,6 +6027,7 @@
                         const center = map3d.getCenter();
                         map.setView([center.lat, center.lng], map3d.getZoom() + 1);
                     }
+                    updateUserMarker3D();
                     setTimeout(() => map.invalidateSize(), 50);
                 }
             } catch (e) {
@@ -5099,6 +6081,19 @@
                 if (e.originalEvent && e.originalEvent.target.closest('.zoom-controls')) return;
                 if (e.originalEvent && e.originalEvent.target.closest('#elevation-dock')) return;
 
+                if (window.isNavigating) {
+                    const latlng = L.latLng(e.lngLat.lat, e.lngLat.lng);
+                    userPos = latlng;
+                    if (!userMarker) {
+                        userMarker = L.marker(latlng, { icon: L.divIcon({ className: '', html: '<div class="gps-indicator-wrapper"><div class="gps-indicator"></div><div class="gps-pulse"></div></div>', iconSize: [14, 14], iconAnchor: [7, 7] }) }).addTo(map);
+                    } else {
+                        userMarker.setLatLng(latlng);
+                    }
+                    updateUserMarker3D();
+                    updateNavigationStats(latlng);
+                    return;
+                }
+
                 if (document.body.classList.contains('mobile-mode') && currentMode === 'explore') {
                     if (document.getElementById('detail-view').style.display === 'flex') {
                         goBack();
@@ -5127,6 +6122,28 @@
             }, 500);
         }
 
+        function updateUserMarker3D() {
+            if (!is3DMode || !map3d) {
+                if (window.userMarker3D) {
+                    window.userMarker3D.remove();
+                    window.userMarker3D = null;
+                }
+                return;
+            }
+            if (!userPos) return;
+            
+            if (!window.userMarker3D) {
+                const el = document.createElement('div');
+                el.className = 'gps-indicator-wrapper';
+                el.innerHTML = '<div class="gps-indicator"></div><div class="gps-pulse"></div>';
+                window.userMarker3D = new maplibregl.Marker({ element: el })
+                    .setLngLat([userPos.lng, userPos.lat])
+                    .addTo(map3d);
+            } else {
+                window.userMarker3D.setLngLat([userPos.lng, userPos.lat]);
+            }
+        }
+
         let map3dMarkers = [];
 
         function sync3DWalks() {
@@ -5137,9 +6154,20 @@
                 map3d.removeSource('walks-source');
             }
 
+            const activeWalkIds = new Set();
+            const activePinIds = new Set();
+            if (typeof mapItems !== 'undefined' && mapItems) {
+                mapItems.getLayers().forEach(layer => {
+                    if (layer.walkId) activeWalkIds.add(layer.walkId);
+                    if (layer.pinId) activePinIds.add(layer.pinId);
+                });
+            }
+
             let walksToSync = storage.walks;
             if (isFlying && activeSelectionId) {
                 walksToSync = storage.walks.filter(w => w.id === activeSelectionId);
+            } else {
+                walksToSync = walksToSync.filter(w => activeWalkIds.has(w.id));
             }
 
             const features = walksToSync.filter(w => w.path && w.path.length > 0).map(w => ({
@@ -5198,6 +6226,7 @@
             if (!isFlying) {
                 storage.pins.forEach(p => {
                     if (!p.lat || !p.lng) return;
+                    if (!activePinIds.has(p.id)) return;
                     
                     const catName = getCategoryName(p.color);
                     let html = '';
@@ -5236,6 +6265,7 @@
                     window.map3dMarkers.push(marker);
                 });
             }
+            updateUserMarker3D();
         }
 
         async function fetchPitchupPrice(url, priceInputId) {
