@@ -1082,7 +1082,12 @@
                         <div id="editCampsiteFields" style="display:none; flex-direction:column; gap:10px; margin:0;" class="info-card">
                             <span class="settings-label" style="font-size:11px; opacity:0.7;">Campsite Details</span>
                             <input type="number" id="editCampsitePrice" class="modal-input" placeholder="Starting Price (£)" style="margin:0;">
-                            <input type="url" id="editCampsiteUrl" class="modal-input" placeholder="Pitchup Booking URL" style="margin:0;">
+                            <div style="display:flex; align-items:center; gap:8px; padding:8px; background:rgba(0,0,0,0.08); border-radius:10px;">
+                                <input type="checkbox" id="editCampsiteNotOnPitchup" style="transform:scale(1.2); cursor:pointer; flex-shrink:0;" onchange="toggleCampsiteUrlMode('edit')">
+                                <label for="editCampsiteNotOnPitchup" style="font-size:11px; font-weight:700; cursor:pointer; opacity:0.8;">This campsite isn't on Pitchup</label>
+                            </div>
+                            <input type="url" id="editCampsiteUrl" class="modal-input" placeholder="🏕️ Pitchup Booking URL" style="margin:0;">
+                            <input type="url" id="editCampsiteAltUrl" class="modal-input" placeholder="🔗 Other Booking Website URL" style="display:none; margin:0;">
                         </div>
 
                         <!-- Facilities Picker Card -->
@@ -1179,7 +1184,12 @@
                    <div class="pin-type-grid" id="modalTypePicker"></div>
                    <div id="campsiteFields" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
                         <input type="number" id="campsitePrice" class="modal-input" placeholder="Starting Price (£)">
-                        <input type="url" id="campsiteUrl" class="modal-input" placeholder="Pitchup Booking URL">
+                        <div style="display:flex; align-items:center; gap:8px; padding:8px; background:rgba(0,0,0,0.08); border-radius:10px;">
+                            <input type="checkbox" id="campsiteNotOnPitchup" style="transform:scale(1.2); cursor:pointer; flex-shrink:0;" onchange="toggleCampsiteUrlMode('create')">
+                            <label for="campsiteNotOnPitchup" style="font-size:11px; font-weight:700; cursor:pointer; opacity:0.8;">This campsite isn't on Pitchup</label>
+                        </div>
+                        <input type="url" id="campsiteUrl" class="modal-input" placeholder="🏕️ Pitchup Booking URL">
+                        <input type="url" id="campsiteAltUrl" class="modal-input" placeholder="🔗 Other Booking Website URL" style="display:none;">
                    </div>
                 </div>
                 <div id="modalPhotoSection">
@@ -2347,19 +2357,14 @@
             const isOwner = currentUser && item.userId === currentUser.uid;
             let ownerHtml = '';
             if (isOwner) {
-                const btnText = isEditing ? '✅ Save' : '🖋️ Edit';
-                const btnBg = isEditing ? 'var(--accent)' : 'var(--primary)';
                 const delDisplay = isEditing ? 'flex' : 'none';
-
                 ownerHtml = `
-                    <button class="btn" id="bigEditBtn" onclick="toggleEditingLogic()" style="flex:1; min-width:0; min-height:38px; height:auto; font-size:12px; background:${btnBg}; border:none; color:white; display:flex; align-items:center; justify-content:center; gap:4px; font-weight:700; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin:0; padding:5px; white-space:nowrap; line-height:1.2; text-align:center;">
-                        ${btnText}
-                    </button>
                     <button class="btn" id="bigDeleteBtn" onclick="deleteAction()" style="display:${delDisplay}; width:38px; min-height:38px; height:auto; background:var(--danger); border:none; color:white; align-items:center; justify-content:center; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin:0; padding:0; flex-shrink:0;">🗑️</button>
                 `;
             }
 
             typeLabelDiv.innerHTML = `
+                <button class="btn" id="detShareLabelBtn" style="flex:1; min-width:0; min-height:38px; height:auto; font-size:12px; background:rgba(0,0,0,0.12); border:none; color:var(--text); display:flex; align-items:center; justify-content:center; gap:6px; font-weight:700; border-radius:10px; margin:0; padding:5px; white-space:nowrap; line-height:1.2; text-align:center;" title="Share Link">🔗 Share</button>
                 ${ownerHtml}
                 <button class="btn" id="markVisitedBtn" style="flex:1; min-width:0; min-height:38px; height:auto; font-size:12px; font-weight:700; border:1px solid var(--border); border-radius:10px; margin:0; padding:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.2; display:flex; align-items:center; justify-content:center; text-align:center;">🏷️ Add Label</button>
                 <a href="${navUrl}" target="_blank" style="flex:1; min-width:0; text-decoration:none; display:flex;">
@@ -2368,6 +2373,21 @@
                         ${distText ? `<span>${distText}</span>` : ''}
                     </button>
                 </a>`;
+
+            // Wire up share button
+            const shareLabelBtn = document.getElementById('detShareLabelBtn');
+            if (shareLabelBtn) {
+                const _isWalk = !!(item.path);
+                shareLabelBtn.onclick = () => {
+                    const paramName = _isWalk ? 'walk' : 'pin';
+                    const shareUrl = `${window.location.origin}${window.location.pathname}?${paramName}=${item.id}`;
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                        alert("Share link copied to clipboard!");
+                    }).catch(err => {
+                        alert("Could not copy link automatically. Here is the URL:\n" + shareUrl);
+                    });
+                };
+            }
                 
             updateVisitedButton(item);
         }
@@ -3242,7 +3262,10 @@
             const isBucket = (logStatus === 'bucket');
             
             const price = document.getElementById('campsitePrice') ? parseFloat(document.getElementById('campsitePrice').value) : null;
-            const pitchupUrl = document.getElementById('campsiteUrl') ? document.getElementById('campsiteUrl').value : "";
+            const campsiteNotOnPitchupEl = document.getElementById('campsiteNotOnPitchup');
+            const notOnPitchup = campsiteNotOnPitchupEl ? campsiteNotOnPitchupEl.checked : false;
+            const pitchupUrl = (!notOnPitchup && document.getElementById('campsiteUrl')) ? document.getElementById('campsiteUrl').value : "";
+            const bookingUrl = (notOnPitchup && document.getElementById('campsiteAltUrl')) ? document.getElementById('campsiteAltUrl').value : "";
             
             const visitedDate = isVisited ? Date.now() : null;
             
@@ -3278,7 +3301,9 @@
                     photos: [...tempCreationPhotos], facilities: facilities, visited: isVisited, 
                     visitedDate: visitedDate, bucketList: isBucket,
                     price: isCampingColor ? price : null,
-                    pitchupUrl: isCampingColor ? pitchupUrl : ""
+                    pitchupUrl: isCampingColor ? pitchupUrl : "",
+                    bookingUrl: isCampingColor ? bookingUrl : "",
+                    notOnPitchup: isCampingColor ? notOnPitchup : false
                 };
                 storage.pins.push(entry); 
                 addPin(entry);
@@ -3779,27 +3804,16 @@
             };
 
             const updateCreatorHtml = (leftHtml) => {
-                creatorDiv.innerHTML = leftHtml + `
-                    <button class="btn" id="detShareBtn" style="margin: 0; padding: 0; width: 28px; height: 28px; min-width: 28px; border-radius: 8px; background: rgba(0,0,0,0.06); color: var(--text); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; transition: background 0.2s; flex-shrink: 0;" title="Share Link">
-                        🔗
-                    </button>
-                `;
-                // Add hover feedback style dynamically
-                const shareBtn = document.getElementById('detShareBtn');
-                if (shareBtn) {
-                    shareBtn.onmouseover = () => { shareBtn.style.background = 'rgba(0,0,0,0.12)'; };
-                    shareBtn.onmouseout = () => { shareBtn.style.background = 'rgba(0,0,0,0.06)'; };
-                    shareBtn.onclick = () => {
-                        const paramName = isWalk ? 'walk' : 'pin';
-                        const shareUrl = `${window.location.origin}${window.location.pathname}?${paramName}=${item.id}`;
-                        navigator.clipboard.writeText(shareUrl).then(() => {
-                            alert("Share link copied to clipboard!");
-                        }).catch(err => {
-                            console.error("Could not copy link: ", err);
-                            alert("Could not copy link automatically. Here is the URL:\n" + shareUrl);
-                        });
-                    };
+                const isOwner = currentUser && item.userId === currentUser.uid;
+                let editBtnHtml = '';
+                if (isOwner) {
+                    const btnIcon = isEditing ? '✅' : '🖋️';
+                    const btnTitle = isEditing ? 'Save' : 'Edit';
+                    const btnBg = isEditing ? 'var(--accent)' : 'rgba(0,0,0,0.10)';
+                    const btnColor = isEditing ? 'white' : 'var(--text)';
+                    editBtnHtml = `<button class="btn" id="bigEditBtn" onclick="toggleEditingLogic()" style="margin:0; padding:0; width:32px; height:32px; min-width:32px; border-radius:8px; background:${btnBg}; color:${btnColor}; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; transition:background 0.2s; flex-shrink:0;" title="${btnTitle}">${btnIcon}</button>`;
                 }
+                creatorDiv.innerHTML = leftHtml + editBtnHtml;
             };
 
             updateCreatorHtml(renderCreator(creatorName, creatorColor, creatorAvatar));
@@ -3831,11 +3845,33 @@
             
             const campsiteInfo = document.getElementById('detCampsiteInfo');
             if (campsiteInfo) {
-                if ((isSameColor(item.color, '#14b8a6') || isSameColor(item.color, '#22c55e')) && (item.price || item.pitchupUrl)) {
+                const bookingUrl = item.bookingUrl || item.pitchupUrl || '';
+                const notOnPitchup = item.notOnPitchup === true;
+                const isCampsite = isSameColor(item.color, '#14b8a6') || isSameColor(item.color, '#22c55e');
+                if (isCampsite && (item.price || bookingUrl)) {
                     campsiteInfo.style.display = 'flex';
                     let html = '';
-                    if (item.price) html += `<span style="font-weight:800; color:var(--text); padding: 8px 12px; background:rgba(0,0,0,0.15); border-radius:10px;">From £${item.price}</span>`;
-                    if (item.pitchupUrl) html += `<a href="${item.pitchupUrl}" target="_blank" class="btn" style="flex:1; margin:0; display:flex; align-items:center; justify-content:center; height:36px; border-radius:10px; background:var(--accent); color:white; text-decoration:none;">Book on Pitchup</a>`;
+                    const priceStr = item.price ? `From £${item.price}` : '';
+                    if (bookingUrl) {
+                        if (notOnPitchup) {
+                            html += `<a href="${bookingUrl}" target="_blank" class="btn" style="flex:1; margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; height:${priceStr ? '54px' : '44px'}; border-radius:12px; background:var(--primary); color:white; text-decoration:none; padding:0 16px;">
+                                <span style="font-weight:800; font-size:13px;">🔗 Book now online</span>
+                                ${priceStr ? `<span style="font-size:11px; opacity:0.85; font-weight:600;">${priceStr}</span>` : ''}
+                            </a>`;
+                        } else {
+                            html += `<a href="${bookingUrl}" target="_blank" class="btn" style="flex:1; margin:0; display:flex; flex-direction:row; align-items:stretch; height:${priceStr ? '64px' : '52px'}; border-radius:12px; background:#00a651; color:white; text-decoration:none; overflow:hidden; padding:0;">
+                                <div style="display:flex; align-items:center; justify-content:center; padding:0 14px; flex-shrink:0; height:100%;">
+                                    <img src="https://www.pitchup.com/_nuxt/pitchup-logo-v2.49Qhm04M.png" onerror="this.style.display='none'" style="height:36px; width:auto; filter:brightness(0) invert(1); display:block;">
+                                </div>
+                                <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:0 12px; border-left:1px solid rgba(255,255,255,0.2);">
+                                    <span style="font-weight:800; font-size:13px; white-space:nowrap;">Book now on Pitchup</span>
+                                    ${priceStr ? `<span style="font-size:11px; opacity:0.9; font-weight:600;">Starting from: £${item.price}</span>` : ''}
+                                </div>
+                            </a>`;
+                        }
+                    } else if (item.price) {
+                        html += `<span style="font-weight:800; color:var(--text); padding: 8px 14px; background:rgba(0,0,0,0.15); border-radius:10px; font-size:13px;">From £${item.price}</span>`;
+                    }
                     campsiteInfo.innerHTML = html;
                 } else {
                     campsiteInfo.style.display = 'none';
@@ -4408,7 +4444,17 @@
                 item.desc = document.getElementById('editDesc').value.trim();
                 if (!isWalk && (isSameColor(item.color, '#14b8a6') || isSameColor(item.color, '#22c55e'))) {
                     item.price = parseFloat(document.getElementById('editCampsitePrice').value) || 0;
-                    item.pitchupUrl = document.getElementById('editCampsiteUrl').value;
+                    const editNotOnPitchup = document.getElementById('editCampsiteNotOnPitchup');
+                    const editAltUrl = document.getElementById('editCampsiteAltUrl');
+                    const editPitchUrl = document.getElementById('editCampsiteUrl');
+                    item.notOnPitchup = editNotOnPitchup ? editNotOnPitchup.checked : false;
+                    if (item.notOnPitchup) {
+                        item.bookingUrl = editAltUrl ? editAltUrl.value : '';
+                        item.pitchupUrl = '';
+                    } else {
+                        item.pitchupUrl = editPitchUrl ? editPitchUrl.value : '';
+                        item.bookingUrl = '';
+                    }
                 }
                 
                 const isWild = (item.color === '#065f46');
@@ -4438,11 +4484,33 @@
                 
                 const campsiteInfo = document.getElementById('detCampsiteInfo');
                 if (campsiteInfo) {
-                    if ((isSameColor(item.color, '#14b8a6') || isSameColor(item.color, '#22c55e')) && (item.price || item.pitchupUrl)) {
+                    const bookingUrl = item.bookingUrl || item.pitchupUrl || '';
+                    const notOnPitchup = item.notOnPitchup === true;
+                    const isCampsite = isSameColor(item.color, '#14b8a6') || isSameColor(item.color, '#22c55e');
+                    if (isCampsite && (item.price || bookingUrl)) {
                         campsiteInfo.style.display = 'flex';
                         let html = '';
-                        if (item.price) html += `<span style="font-weight:800; color:var(--text); padding: 8px 12px; background:rgba(0,0,0,0.15); border-radius:10px;">From £${item.price}</span>`;
-                        if (item.pitchupUrl) html += `<a href="${item.pitchupUrl}" target="_blank" class="btn" style="flex:1; margin:0; display:flex; align-items:center; justify-content:center; height:36px; border-radius:10px; background:var(--accent); color:white; text-decoration:none;">Book on Pitchup</a>`;
+                        const priceStr = item.price ? `From £${item.price}` : '';
+                        if (bookingUrl) {
+                            if (notOnPitchup) {
+                                html += `<a href="${bookingUrl}" target="_blank" class="btn" style="flex:1; margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; height:${priceStr ? '54px' : '44px'}; border-radius:12px; background:var(--primary); color:white; text-decoration:none; padding:0 16px;">
+                                    <span style="font-weight:800; font-size:13px;">🔗 Book Online</span>
+                                    ${priceStr ? `<span style="font-size:11px; opacity:0.85; font-weight:600;">${priceStr}</span>` : ''}
+                                </a>`;
+                            } else {
+                                html += `<a href="${bookingUrl}" target="_blank" class="btn" style="flex:1; margin:0; display:flex; flex-direction:row; align-items:stretch; height:${priceStr ? '64px' : '52px'}; border-radius:12px; background:#00a651; color:white; text-decoration:none; overflow:hidden; padding:0;">
+                                    <div style="display:flex; align-items:center; justify-content:center; padding:0 14px; flex-shrink:0; height:100%;">
+                                        <img src="https://www.pitchup.com/_nuxt/pitchup-logo-v2.49Qhm04M.png" onerror="this.style.display='none'" style="height:36px; width:auto; filter:brightness(0) invert(1); display:block;">
+                                    </div>
+                                    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:0 12px; border-left:1px solid rgba(255,255,255,0.2);">
+                                        <span style="font-weight:800; font-size:13px; white-space:nowrap;">Book on Pitchup</span>
+                                        ${priceStr ? `<span style="font-size:11px; opacity:0.9; font-weight:600;">Starting from: £${item.price}</span>` : ''}
+                                    </div>
+                                </a>`;
+                            }
+                        } else if (item.price) {
+                            html += `<span style="font-weight:800; color:var(--text); padding: 8px 14px; background:rgba(0,0,0,0.15); border-radius:10px; font-size:13px;">From £${item.price}</span>`;
+                        }
                         campsiteInfo.innerHTML = html;
                     } else {
                         campsiteInfo.style.display = 'none';
@@ -4491,8 +4559,20 @@
                 
                 const ep = document.getElementById('editCampsitePrice');
                 const eu = document.getElementById('editCampsiteUrl');
+                const eAlt = document.getElementById('editCampsiteAltUrl');
+                const eNotPitchup = document.getElementById('editCampsiteNotOnPitchup');
                 if (ep) ep.value = item.price || '';
-                if (eu) eu.value = item.pitchupUrl || '';
+                if (eNotPitchup) {
+                    eNotPitchup.checked = item.notOnPitchup === true;
+                    toggleCampsiteUrlMode('edit');
+                }
+                if (item.notOnPitchup) {
+                    if (eu) eu.value = '';
+                    if (eAlt) eAlt.value = item.bookingUrl || '';
+                } else {
+                    if (eu) eu.value = item.pitchupUrl || '';
+                    if (eAlt) eAlt.value = '';
+                }
                 
                 const visSelect = document.getElementById('editVisibilitySelect');
                 if (visSelect) {
@@ -4527,6 +4607,15 @@
             document.getElementById('editCampsiteUrl').onchange = function() {
                 if (this.value && !document.getElementById('editCampsitePrice').value) fetchPitchupPrice(this.value, 'editCampsitePrice');
             };
+
+            // Sync bigEditBtn style after toggleEditingLogic call
+            const bigEditBtn = document.getElementById('bigEditBtn');
+            if (bigEditBtn) {
+                bigEditBtn.innerHTML = isEditing ? '✅' : '🖋️';
+                bigEditBtn.title = isEditing ? 'Save' : 'Edit';
+                bigEditBtn.style.background = isEditing ? 'var(--accent)' : 'rgba(0,0,0,0.10)';
+                bigEditBtn.style.color = isEditing ? 'white' : 'var(--text)';
+            }
         }
 
         function openUrlUploadPopup(context) {
@@ -6299,6 +6388,36 @@
                     fetchPitchupPrice(this.value, 'campsitePrice');
                 }
             });
+        }
+
+        function toggleCampsiteUrlMode(context) {
+            if (context === 'create') {
+                const checkbox = document.getElementById('campsiteNotOnPitchup');
+                const pitchupInput = document.getElementById('campsiteUrl');
+                const altInput = document.getElementById('campsiteAltUrl');
+                if (!checkbox || !pitchupInput || !altInput) return;
+                const notOnPitchup = checkbox.checked;
+                pitchupInput.style.display = notOnPitchup ? 'none' : 'block';
+                altInput.style.display = notOnPitchup ? 'block' : 'none';
+                if (notOnPitchup) {
+                    pitchupInput.value = '';
+                } else {
+                    altInput.value = '';
+                }
+            } else if (context === 'edit') {
+                const checkbox = document.getElementById('editCampsiteNotOnPitchup');
+                const pitchupInput = document.getElementById('editCampsiteUrl');
+                const altInput = document.getElementById('editCampsiteAltUrl');
+                if (!checkbox || !pitchupInput || !altInput) return;
+                const notOnPitchup = checkbox.checked;
+                pitchupInput.style.display = notOnPitchup ? 'none' : 'block';
+                altInput.style.display = notOnPitchup ? 'block' : 'none';
+                if (notOnPitchup) {
+                    pitchupInput.value = '';
+                } else {
+                    altInput.value = '';
+                }
+            }
         }
     </script>
 </body>
