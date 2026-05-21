@@ -24,6 +24,7 @@
             --border: #e2e8f0;
             --transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             color-scheme: light;
+            --logo-filter: brightness(0);
         }
 
         @keyframes flash-danger {
@@ -37,6 +38,7 @@
             --text: #f1f5f9; 
             --border: #334155; 
             color-scheme: dark;
+            --logo-filter: brightness(0) invert(1);
         }
 
         body, html { 
@@ -216,7 +218,7 @@
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(18px); }
 
-        .detail-header-container { position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 12px; height: 180px; background: #ddd; flex-shrink: 0; }
+        .detail-header-container { position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 0; height: 180px; background: #ddd; flex-shrink: 0; }
         #detPhoto { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 1s ease-in-out; position: absolute; inset: 0; z-index: 1; opacity: 0; }
         #detPhoto.active { opacity: 1; z-index: 2; }
         #detPhotoBack { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; z-index: 0; }
@@ -243,10 +245,14 @@
 
         .floating-action-btn { top: 12px; right: 12px; left: auto; color: white; width: 34px; height: 34px; padding: 0; align-items: center; justify-content: center; cursor: pointer; background: rgba(15, 23, 42, 0.7); border-radius: 10px; }
         #floatEditBtn:hover, #floatEditBtn.is-editing { background: var(--primary); } 
-        .floating-action-btn.btn-delete-float { right: 54px; left: auto; }
+        .floating-action-btn.btn-delete-float { right: 76px; left: auto; }
         .floating-action-btn.btn-delete-float:hover { background: var(--danger); }
         .btn-save-action { background: var(--border); color: var(--text); }
         .btn-save-action:hover { background: var(--accent) !important; color: white !important; }
+        .btn-booking:hover {
+            background: rgba(0,0,0,0.15) !important;
+            color: var(--text) !important;
+        }
 
         .image-scrim { 
             position: absolute; bottom: 0; left: 0; right: 0; min-height: 40%; 
@@ -998,7 +1004,7 @@
                         <img id="detPhotoBack" src="">
                         <img id="detPhoto" src="">
                         <div id="detTypeOverlay"></div>
-                        <button class="floating-action-btn" id="floatEditBtn" title="Edit">🖋️</button>
+                        <button class="floating-action-btn" id="floatEditBtn" title="Edit" style="width: auto; height: 34px; padding: 0 12px; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center;">Edit</button>
                         <button class="floating-action-btn btn-delete-float" id="floatDeleteBtn" onclick="deleteAction()" style="display:none;" title="Delete">🗑️</button>
                         <div id="detRating" style="display:none;"></div>
                         <div class="image-scrim">
@@ -1008,12 +1014,22 @@
 
                     <!-- VIEW MODE CONTENT -->
                     <div id="viewModeContent">
-                        <div id="detCreator" style="margin-bottom: 8px; padding: 0 5px; display: flex; justify-content: space-between; align-items: center;"></div>
+                        <div id="detCreator" style="margin-top: 4px; margin-bottom: 12px; padding: 0 5px; display: flex; justify-content: space-between; align-items: center;"></div>
                         <div id="detTypeLabel" class="info-card" style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
                         <div id="detCampsiteInfo" style="display:none; gap: 10px; margin-bottom: 10px;"></div>
                         <div id="detFacilities" class="info-card" style="display:none; flex-wrap:wrap; margin-bottom:10px; gap:4px;"></div>
                         <div id="detStats" class="info-card" style="display:none; margin-bottom:10px;"></div>
                         <div class="info-card" style="margin-bottom: 10px;">
+                            <div id="viewWildCampNotice" style="display:none; color:var(--danger); font-size:11px; margin-bottom:12px; padding:8px; background:rgba(239,68,68,0.1); border-radius:8px; line-height:1.4;">
+                                <div style="font-weight: 800; font-size: 11px; margin-bottom: 6px; color: var(--danger); line-height: 1.3;">⚠️ Wild camping is illegal in England, however if you choose to do so follow the golden rules:</div>
+                                <ul style="margin: 0; padding-left: 14px; display: flex; flex-direction: column; gap: 2px; font-weight: normal; opacity: 0.95;">
+                                    <li>Leave no trace.</li>
+                                    <li>Only camp from dusk till dawn.</li>
+                                    <li>Pitch out of sight.</li>
+                                    <li>Absolutely no campfires of any kind.</li>
+                                    <li>If asked to move on by a landowner, do so without any hesitation.</li>
+                                </ul>
+                            </div>
                             <div id="viewDescContainer">
                                 <p id="viewDescText" style="margin:0; font-size:1.05rem; line-height:1.5; opacity:0.9; white-space: pre-wrap; word-break: break-word;"></p>
                                 <button id="viewDescShowMoreBtn" style="display:none; background:none; border:none; color:var(--primary); font-weight:700; font-size:11px; padding:0; margin-top:5px; cursor:pointer;">Show More</button>
@@ -1111,16 +1127,6 @@
                             </div>
                             <div id="editWildCampNotice" style="display:none; color:var(--danger); font-size:11px; font-weight:700; margin-top:5px; padding:8px; background:rgba(239,68,68,0.1); border-radius:8px; line-height:1.4; text-align:center;">
                                 🌲 <strong>Wild camping spots can't be made public</strong>, they are your unique special places.
-                                <div style="margin-top: 8px; border-top: 1px solid rgba(239, 68, 68, 0.2); padding-top: 6px; text-align: left; font-size: 10px; font-weight: normal; opacity: 0.95;">
-                                    <div style="font-weight: 800; font-size: 11px; margin-bottom: 6px; color: var(--danger); line-height: 1.3;">⚠️ Wild camping is illegal in England, however if you choose to do so follow the golden rules:</div>
-                                    <ul style="margin: 0; padding-left: 14px; display: flex; flex-direction: column; gap: 2px;">
-                                        <li>Leave no trace.</li>
-                                        <li>Only camp from dusk till dawn.</li>
-                                        <li>Pitch out of sight.</li>
-                                        <li>Absolutely no campfires of any kind.</li>
-                                        <li>If asked to move on by a landowner, do so without any hesitation.</li>
-                                    </ul>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -1205,7 +1211,7 @@
                         <option value="cycle">🚲 Cycle</option>
                     </select>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:0 5px;">
+                <div id="modalLogStatusSection" style="display:flex; justify-content:space-between; align-items:center; padding:0 5px;">
                     <span class="settings-label" style="font-size:12px;">Log Status</span>
                     <select id="logStatusSelect" class="custom-select" style="max-width: 140px;">
                         <option value="none">None</option>
@@ -1309,6 +1315,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
     <script>
+        
         // --- 1. FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyBG6ip3Uh6bDNgdr54Oy6sEtKxJROw4DC4",
@@ -1355,9 +1362,9 @@
                 name: 'Parking',
                 icon: '🅿️',
                 types: [
-                    { name: 'Paid Parking', color: '#f59e0b', icon: '🪙' },
-                    { name: 'Free Parking', color: '#84cc16', icon: '🆓' },
-                    { name: 'Roadside Parking', color: '#64748b', icon: '🛣️' }
+                    { name: 'Paid Parking', color: '#1e3a8a', icon: '🪙' },
+                    { name: 'Free Parking', color: '#2563eb', icon: '🆓' },
+                    { name: 'Roadside Parking', color: '#60a5fa', icon: '🛣️' }
                 ]
             }
         ];
@@ -1365,16 +1372,29 @@
         const PIN_TYPES = PIN_CATEGORIES.reduce((acc, cat) => acc.concat(cat.types), []);
 
         const FACILITIES = [
-            { id: 'parking', label: 'Car Park Nearby', icon: '🅿️' },
-            { id: 'free_parking', label: 'Free Parking Nearby', icon: '🆓' },
-            { id: 'transport', label: 'Public Transport Nearby', icon: '🚌' },
-            { id: 'toilets', label: 'Toilets Nearby', icon: '🚻' },
-            { id: 'shop', label: 'Shop Nearby', icon: '🛒' },
-            { id: 'cafe', label: 'Cafe Nearby', icon: '☕' },
-            { id: 'bins', label: 'Bins Nearby', icon: '🗑️' },
-            { id: 'pets', label: 'Pets Allowed', icon: '🐾' },
-            { id: 'camping', label: 'Camping Nearby', icon: '⛺' },
-            { id: 'wheelchair', label: 'Wheelchair Accessable', icon: '♿' }
+            // Camping Facilities
+            { id: 'electricity', label: 'Electricity', icon: '🔌', category: 'Camping' },
+            { id: 'water', label: 'Water', icon: '🚰', category: 'Camping' },
+            { id: 'sewage_disposal', label: 'Sewage Disposal', icon: '🚽', category: 'Camping' },
+            { id: 'showers', label: 'Showers', icon: '🚿', category: 'Camping' },
+            { id: 'toilets', label: 'Toilets', icon: '🚻', category: 'Camping' },
+            { id: 'pot_washing', label: 'Pot washing', icon: '🧽', category: 'Camping' },
+            { id: 'bins', label: 'Bins', icon: '🗑️', category: 'Camping' },
+            { id: 'shop', label: 'Shop', icon: '🛒', category: 'Camping' },
+            { id: 'cafe', label: 'Cafe', icon: '☕', category: 'Camping' },
+            { id: 'parking', label: 'Parking', icon: '🅿️', category: 'Camping' },
+            { id: 'motorhomes_caravans', label: 'Motorhomes & Caravans', icon: '🚐', category: 'Camping' },
+            { id: 'tents', label: 'Tents', icon: '⛺', category: 'Camping' },
+            { id: 'transport_nearby', label: 'Transport nearby', icon: '🚌', category: 'Camping' },
+            { id: 'pets_allowed', label: 'Pets allowed', icon: '🐾', category: 'Camping' },
+
+            // Parking Facilities
+            { id: 'disabled_parking', label: 'Disabled parking', icon: '♿', category: 'Parking' },
+            { id: 'electric_charging', label: 'Electric charging', icon: '⚡', category: 'Parking' },
+            { id: 'cafe_nearby', label: 'Cafe nearby', icon: '☕', category: 'Parking' },
+            { id: 'shop_nearby', label: 'Shop nearby', icon: '🛒', category: 'Parking' },
+            { id: 'toilets_nearby', label: 'Toilets nearby', icon: '🚻', category: 'Parking' },
+            { id: 'bin', label: 'Bin', icon: '🗑️', category: 'Parking' }
         ];
 
         const AVATAR_COLORS = [
@@ -1549,8 +1569,18 @@
                 
                 // Merge Pins (Map by ID to dedup)
                 const pinMap = new Map();
-                pubPins.docs.forEach(doc => pinMap.set(doc.id, doc.data()));
-                myPins.docs.forEach(doc => pinMap.set(doc.id, doc.data()));
+                const processPinDoc = (doc) => {
+                    const data = doc.data();
+                    if (data && data.color) {
+                        const c = data.color.toLowerCase();
+                        if (c === '#f59e0b') data.color = '#1e3a8a';
+                        else if (c === '#84cc16') data.color = '#2563eb';
+                        else if (c === '#64748b') data.color = '#60a5fa';
+                    }
+                    pinMap.set(doc.id, data);
+                };
+                pubPins.docs.forEach(processPinDoc);
+                myPins.docs.forEach(processPinDoc);
                 storage.pins = Array.from(pinMap.values());
                 
                 // Load Public Walks
@@ -2363,10 +2393,15 @@
                 `;
             }
 
+            const catName = getCategoryName(item.color);
+            const isParking = !item.path && catName === 'Parking';
+            const visitedBtnHtml = isParking ? '' : `
+                <button class="btn" id="markVisitedBtn" style="flex:1; min-width:0; min-height:38px; height:auto; font-size:12px; font-weight:700; border:1px solid var(--border); border-radius:10px; margin:0; padding:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.2; display:flex; align-items:center; justify-content:center; text-align:center;">🏷️ Add Label</button>
+            `;
             typeLabelDiv.innerHTML = `
                 <button class="btn" id="detShareLabelBtn" style="flex:1; min-width:0; min-height:38px; height:auto; font-size:12px; background:rgba(0,0,0,0.12); border:none; color:var(--text); display:flex; align-items:center; justify-content:center; gap:6px; font-weight:700; border-radius:10px; margin:0; padding:5px; white-space:nowrap; line-height:1.2; text-align:center;" title="Share Link">🔗 Share</button>
                 ${ownerHtml}
-                <button class="btn" id="markVisitedBtn" style="flex:1; min-width:0; min-height:38px; height:auto; font-size:12px; font-weight:700; border:1px solid var(--border); border-radius:10px; margin:0; padding:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.2; display:flex; align-items:center; justify-content:center; text-align:center;">🏷️ Add Label</button>
+                ${visitedBtnHtml}
                 <a href="${navUrl}" target="_blank" style="flex:1; min-width:0; text-decoration:none; display:flex;">
                     <button class="btn" style="width:100%; min-height:38px; height:auto; font-size:12px; background:rgba(0,0,0,0.15); border:none; color:var(--text); display:flex; align-items:center; justify-content:center; gap:6px; font-weight:700; border-radius:10px; box-shadow:none; margin:0; padding:5px; white-space:nowrap; line-height:1.2; text-align:center;">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Google_Maps_icon_%282026%29.svg/1280px-Google_Maps_icon_%282026%29.svg.png" style="width:20px; height:20px; flex-shrink:0;">
@@ -2424,6 +2459,8 @@
                             el.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active')); 
                             btn.classList.add('active');
 
+                            const catName = getCategoryByColor(t.color);
+
                             if (id === 'modalTypePicker') {
                                 const campsiteFields = document.getElementById('campsiteFields');
                                 if (campsiteFields) {
@@ -2433,7 +2470,12 @@
                                 const vWrapper = document.getElementById('createVisibilityWrapper');
                                 const wildNotice = document.getElementById('wildCampNotice');
                                 const facilitiesSection = document.getElementById('modalFacilitiesSection');
+                                const logStatusWrapper = document.getElementById('modalLogStatusSection');
                                 
+                                if (logStatusWrapper) {
+                                    logStatusWrapper.style.display = (catName === 'Parking') ? 'none' : 'flex';
+                                }
+
                                 if (t.name === 'Wild Camping') {
                                     if (vSelect) {
                                         const optPublic = vSelect.querySelector('option[value="public"]');
@@ -2450,7 +2492,12 @@
                                     }
                                     if (vWrapper) vWrapper.style.display = 'flex';
                                     if (wildNotice) wildNotice.style.display = 'none';
-                                    if (facilitiesSection) facilitiesSection.style.display = 'block';
+                                    
+                                    const showFacilities = (catName === 'Camping' || catName === 'Parking');
+                                    if (facilitiesSection) {
+                                        facilitiesSection.style.display = showFacilities ? 'block' : 'none';
+                                        if (showFacilities) renderFacilityPicker('modalFacilityPicker');
+                                    }
                                 }
                             }
 
@@ -2506,34 +2553,77 @@
                                         const eWildNotice = document.getElementById('editWildCampNotice');
                                         if (eWildNotice) eWildNotice.style.display = 'none';
                                         const editFacilities = document.getElementById('editFacilitiesContainer');
-                                        if (editFacilities) editFacilities.style.display = 'block';
+                                        
+                                        const showFacilities = (catName === 'Camping' || catName === 'Parking');
+                                        if (editFacilities) {
+                                            editFacilities.style.display = showFacilities ? 'block' : 'none';
+                                        }
+
+                                        // Filter facilities to only allow those matching new category
+                                        const validIds = new Set(FACILITIES.filter(f => f.category === catName).map(f => f.id));
+                                        item.facilities = (item.facilities || []).filter(fid => validIds.has(fid));
+
+                                        if (catName === 'Parking') {
+                                            item.visited = false;
+                                            item.visitedDate = null;
+                                            item.bucketList = false;
+                                        }
 
                                         item.color = t.color; 
                                         saveData(); 
                                         saveToCloud(item.path ? 'walks' : 'pins', item);
                                         refreshMapItems(); 
                                         renderTypeLabel(item);
+                                        if (showFacilities && editFacilities && editFacilities.style.display === 'block') {
+                                            renderFacilityPicker('editFacilityPicker', item.facilities || [], true);
+                                        }
                                     }
                                 }
                             }
                         }; el.appendChild(btn);
                         
                         if(t.color === selectedColor) {
+                            const catName = getCategoryByColor(t.color);
                             if (id === 'modalTypePicker') {
                                 const campsiteFields = document.getElementById('campsiteFields');
                                 if (campsiteFields) {
                                     campsiteFields.style.display = (t.name === 'Campsites' || t.name === 'Nearly Wild Camping') ? 'flex' : 'none';
                                 }
                                 const pubToggle = document.getElementById('publicToggle');
-                                const pWrapper = document.getElementById('createPublicToggleWrapper');
+                                const vWrapper = document.getElementById('createVisibilityWrapper');
                                 const wildNotice = document.getElementById('wildCampNotice');
+                                const facilitiesSection = document.getElementById('modalFacilitiesSection');
+                                const logStatusWrapper = document.getElementById('modalLogStatusSection');
+                                
+                                if (logStatusWrapper) {
+                                    logStatusWrapper.style.display = (catName === 'Parking') ? 'none' : 'flex';
+                                }
+
                                 if (t.name === 'Wild Camping') {
                                     if (pubToggle) pubToggle.checked = false;
-                                    if (pWrapper) pWrapper.style.display = 'none';
+                                    const vSelect = document.getElementById('visibilitySelect');
+                                    if (vSelect) {
+                                        const optPublic = vSelect.querySelector('option[value="public"]');
+                                        if (optPublic) optPublic.style.display = 'none';
+                                        if (vSelect.value === 'public') vSelect.value = 'private';
+                                    }
+                                    if (vWrapper) vWrapper.style.display = 'flex';
                                     if (wildNotice) wildNotice.style.display = 'block';
+                                    if (facilitiesSection) facilitiesSection.style.display = 'none';
                                 } else {
-                                    if (pWrapper) pWrapper.style.display = 'flex';
+                                    const vSelect = document.getElementById('visibilitySelect');
+                                    if (vSelect) {
+                                        const optPublic = vSelect.querySelector('option[value="public"]');
+                                        if (optPublic) optPublic.style.display = 'block';
+                                    }
+                                    if (vWrapper) vWrapper.style.display = 'flex';
                                     if (wildNotice) wildNotice.style.display = 'none';
+                                    
+                                    const showFacilities = (catName === 'Camping' || catName === 'Parking');
+                                    if (facilitiesSection) {
+                                        facilitiesSection.style.display = showFacilities ? 'block' : 'none';
+                                        if (showFacilities) renderFacilityPicker('modalFacilityPicker');
+                                    }
                                 }
                             }
                             if (id === 'detailTypePicker') {
@@ -2544,13 +2634,35 @@
                                 const pubToggle = document.getElementById('editPublicToggle');
                                 const pWrapper = document.getElementById('editPrivacyToggleWrapper');
                                 const eWildNotice = document.getElementById('editWildCampNotice');
+                                const editFacilities = document.getElementById('editFacilitiesContainer');
                                 if (t.name === 'Wild Camping') {
                                     if (pubToggle) pubToggle.checked = false;
-                                    if (pWrapper) pWrapper.style.display = 'none';
+                                    const vSelect = document.getElementById('editVisibilitySelect');
+                                    if (vSelect) {
+                                        const optPublic = vSelect.querySelector('option[value="public"]');
+                                        if (optPublic) optPublic.style.display = 'none';
+                                        if (vSelect.value === 'public') vSelect.value = 'private';
+                                    }
+                                    if (pWrapper) pWrapper.style.display = 'flex';
                                     if (eWildNotice) eWildNotice.style.display = 'block';
+                                    if (editFacilities) editFacilities.style.display = 'none';
                                 } else {
+                                    const vSelect = document.getElementById('editVisibilitySelect');
+                                    if (vSelect) {
+                                        const optPublic = vSelect.querySelector('option[value="public"]');
+                                        if (optPublic) optPublic.style.display = 'block';
+                                    }
                                     if (pWrapper) pWrapper.style.display = 'flex';
                                     if (eWildNotice) eWildNotice.style.display = 'none';
+                                    
+                                    const showFacilities = (catName === 'Camping' || catName === 'Parking');
+                                    if (editFacilities) {
+                                        editFacilities.style.display = showFacilities ? 'block' : 'none';
+                                    }
+                                    if (showFacilities && editFacilities && editFacilities.style.display === 'block') {
+                                        const item = storage.pins.find(p=>p.id===activeSelectionId) || storage.walks.find(w=>w.id===activeSelectionId);
+                                        renderFacilityPicker('editFacilityPicker', item ? (item.facilities || []) : [], true);
+                                    }
                                 }
                             }
                         }
@@ -2713,7 +2825,7 @@
         const campsiteModeBtn = document.getElementById('campsiteModeBtn');
         if (campsiteModeBtn) campsiteModeBtn.onclick = () => { window.currentPinCategory = 'Camping'; selectedColor = '#14b8a6'; setupTypePickers(); setMode('pin', 'campsiteModeBtn'); };
         const parkingModeBtn = document.getElementById('parkingModeBtn');
-        if (parkingModeBtn) parkingModeBtn.onclick = () => { window.currentPinCategory = 'Parking'; selectedColor = '#f59e0b'; setupTypePickers(); setMode('pin', 'parkingModeBtn'); };
+        if (parkingModeBtn) parkingModeBtn.onclick = () => { window.currentPinCategory = 'Parking'; selectedColor = '#1e3a8a'; setupTypePickers(); setMode('pin', 'parkingModeBtn'); };
         if (walkModeBtn) walkModeBtn.onclick = () => { 
             const activityMode = document.querySelector('#addModeSelector .mode-btn.active').dataset.mode;
             selectedColor = ACTIVITY_COLORS[activityMode];
@@ -2971,8 +3083,11 @@
                 ...storage.walks.map(w => ({...w, type:'WALK', lat:w.path[0][0], lng:w.path[0][1]}))
             ];
             
-            // Explore Tab: Only show Public items
-            all = all.filter(i => i.isPublic === true);
+            // Explore Tab: Show public items ONLY (private and friends pins and activities can only be seen on the you tab)
+            all = all.filter(i => {
+                const vis = i.visibility || (i.isPublic ? 'public' : 'private');
+                return vis === 'public';
+            });
             
             if (activeFilters.logStatus !== 'all' && currentUser) {
                 if (activeFilters.logStatus === 'none') {
@@ -3175,7 +3290,9 @@
             const container = document.getElementById(containerId);
             if(!container) return;
             container.innerHTML = '';
+            const activeCat = getCategoryName(selectedColor);
             FACILITIES.forEach(f => {
+                if (f.category !== activeCat) return;
                 const btn = document.createElement('div');
                 btn.className = 'facility-btn';
                 btn.dataset.id = f.id;
@@ -3257,9 +3374,11 @@
             const visibility = document.getElementById('visibilitySelect').value;
             const isPublic = (visibility === 'public');
             
-            const logStatus = document.getElementById('logStatusSelect').value;
-            const isVisited = (logStatus === 'visited');
-            const isBucket = (logStatus === 'bucket');
+            const catName = getCategoryName(selectedColor);
+            const isParking = (catName === 'Parking');
+            const logStatus = isParking ? 'none' : document.getElementById('logStatusSelect').value;
+            const isVisited = !isParking && (logStatus === 'visited');
+            const isBucket = !isParking && (logStatus === 'bucket');
             
             const price = document.getElementById('campsitePrice') ? parseFloat(document.getElementById('campsitePrice').value) : null;
             const campsiteNotOnPitchupEl = document.getElementById('campsiteNotOnPitchup');
@@ -3407,10 +3526,14 @@
 
             let bottomInfo = '';
             if (isWalk && item.dist) bottomInfo = `<span>${formatDist(item.dist)}</span>`;
+            const isCampsiteColor = isSameColor(item.color, '#14b8a6') || isSameColor(item.color, '#22c55e');
+            if (isCampsiteColor && item.price) {
+                bottomInfo = `<span>From £${item.price}</span>`;
+            }
             if (distText) bottomInfo += `<span style="${bottomInfo ? 'margin-left:auto;' : ''}">${distText}</span>`;
 
             let infoBar = '';
-            if (bottomInfo) infoBar = `<div style="padding: 10px 12px; background: var(--card); font-size: 11px; font-weight: 700; color: var(--text); display: flex; justify-content: ${isWalk ? 'space-between' : 'flex-end'}; border-top: 1px solid var(--border);">${bottomInfo}</div>`;
+            if (bottomInfo) infoBar = `<div style="padding: 10px 12px; background: var(--card); font-size: 11px; font-weight: 700; color: var(--text); display: flex; justify-content: ${(isWalk || (isCampsiteColor && item.price)) ? 'space-between' : 'flex-end'}; border-top: 1px solid var(--border);">${bottomInfo}</div>`;
 
             return `<div style="position: relative; height: 140px; background: #ddd; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img src="${thumb}" style="width: 100%; height: 100%; object-fit: cover; display: block;"><div style="position: absolute; top: 10px; left: 10px; background: ${typeColor}; padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 900; color: white; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); letter-spacing: 0.5px; text-transform: uppercase;"><span>${typeIcon} ${typeText}</span></div>${ratingHtml}<div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%); padding: 40px 12px 10px 12px; display: flex; flex-direction: column; justify-content: flex-end;"><div style="color: white; font-weight: 900; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name || 'Untitled'}</div></div></div>${infoBar}`;
         }
@@ -3425,6 +3548,10 @@
                 if (cat.types.some(t => isSameColor(t.color, color))) return cat.name;
             }
             return 'Places';
+        }
+
+        function getCategoryByColor(color) {
+            return getCategoryName(color);
         }
 
         function flyToPin(lat, lng, zoom = 18) {
@@ -3454,7 +3581,7 @@
             let iAnchor = [20, 40];
             
             if (catName === 'Parking') {
-                html = `<div class="special-pin" style="width: 20px; height: 20px; background: #2563eb; border-radius: 4px; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">P</div>`;
+                html = `<div class="special-pin" style="width: 20px; height: 20px; background: ${p.color || '#2563eb'}; border-radius: 4px; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">P</div>`;
                 iSize = [24, 24];
                 iAnchor = [12, 12];
             } else if (catName === 'Camping') {
@@ -3677,11 +3804,18 @@
             
             // Only allow edit/delete if owner
             const isOwner = currentUser && item.userId === currentUser.uid;
-            document.getElementById('floatEditBtn').style.display = 'none';
+            
+            const catName = isWalk ? 'Walks' : getCategoryByColor(item.color);
+            const isWildCamping = !isWalk && isSameColor(item.color, '#065f46');
+            const hideCreatorProfile = (catName === 'Parking' || (catName === 'Camping' && !isWildCamping));
+            
+            const floatEdit = document.getElementById('floatEditBtn');
+            floatEdit.innerHTML = 'Edit';
+            floatEdit.classList.remove('is-editing');
+            floatEdit.style.display = 'none'; // Always hide floating edit button
             
             if(isWalk) { document.querySelectorAll('#editModeSelector .mode-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.mode === (item.activity || 'walk')); }); }
             if(document.body.classList.contains('mobile-mode')) snapTo('half');
-            const floatEdit = document.getElementById('floatEditBtn'); floatEdit.innerHTML = '🖋️'; floatEdit.classList.remove('is-editing');
             document.getElementById('floatDeleteBtn').style.display = 'none'; 
 
 
@@ -3800,23 +3934,24 @@
             const dateStr = formatDate(item.id);
             
             const renderCreator = (name, color, avatar) => {
-                return `<div style="display:flex; align-items:center; gap:10px; padding:5px 0;"><div class="comment-avatar" style="width:32px; height:32px; font-size:14px; background:${color}">${avatar}</div><div style="display:flex; flex-direction:column; justify-content:center;"><span style="font-weight:700; font-size:13px;">${name}</span><span style="font-size:11px; opacity:0.6;">Uploaded on ${dateStr}</span></div></div>`;
+                return `<div style="display:flex; align-items:center; gap:12px; padding:0;"><div class="comment-avatar" style="width:38px; height:38px; font-size:16px; background:${color}">${avatar}</div><div style="display:flex; flex-direction:column; justify-content:center;"><span style="font-weight:700; font-size:14px;">${name}</span><span style="font-size:11px; opacity:0.6;">Uploaded on ${dateStr}</span></div></div>`;
             };
 
             const updateCreatorHtml = (leftHtml) => {
                 const isOwner = currentUser && item.userId === currentUser.uid;
                 let editBtnHtml = '';
                 if (isOwner) {
-                    const btnIcon = isEditing ? '✅' : '🖋️';
                     const btnTitle = isEditing ? 'Save' : 'Edit';
                     const btnBg = isEditing ? 'var(--accent)' : 'rgba(0,0,0,0.10)';
                     const btnColor = isEditing ? 'white' : 'var(--text)';
-                    editBtnHtml = `<button class="btn" id="bigEditBtn" onclick="toggleEditingLogic()" style="margin:0; padding:0; width:32px; height:32px; min-width:32px; border-radius:8px; background:${btnBg}; color:${btnColor}; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; transition:background 0.2s; flex-shrink:0;" title="${btnTitle}">${btnIcon}</button>`;
+                    const btnWidth = hideCreatorProfile ? 'width: 100%;' : 'width: auto; min-width: 50px; padding: 0 12px;';
+                    editBtnHtml = `<button class="btn" id="bigEditBtn" onclick="toggleEditingLogic()" style="margin:0; height:34px; border-radius:8px; background:${btnBg}; color:${btnColor}; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; font-weight:bold; transition:background 0.2s; flex-shrink:0; ${btnWidth}" title="${btnTitle}">${btnTitle}</button>`;
                 }
-                creatorDiv.innerHTML = leftHtml + editBtnHtml;
+                creatorDiv.innerHTML = (hideCreatorProfile ? '' : leftHtml) + editBtnHtml;
             };
 
-            updateCreatorHtml(renderCreator(creatorName, creatorColor, creatorAvatar));
+            const initialCreatorHtml = hideCreatorProfile ? '<div></div>' : renderCreator(creatorName, creatorColor, creatorAvatar);
+            updateCreatorHtml(initialCreatorHtml);
 
             if(item.userId && (item.userId !== currentUser?.uid)) {
                 const reqId = item.id;
@@ -3824,7 +3959,8 @@
                     if(activeSelectionId !== reqId) return;
                     if(doc.exists) { 
                         const d = doc.data(); 
-                        updateCreatorHtml(renderCreator(d.displayName || 'Unknown', d.color || creatorColor, d.avatarText || creatorAvatar)); 
+                        const asyncCreatorHtml = hideCreatorProfile ? '<div></div>' : renderCreator(d.displayName || 'Unknown', d.color || creatorColor, d.avatarText || creatorAvatar);
+                        updateCreatorHtml(asyncCreatorHtml); 
                     }
                 }).catch(()=>{});
             }
@@ -3832,7 +3968,15 @@
             renderTypeLabel(item);
             updateVisitedButton(item);
 
-            const isWildCamping = (item.color === '#065f46');
+            const viewWildNotice = document.getElementById('viewWildCampNotice');
+            if (viewWildNotice) {
+                viewWildNotice.style.display = isWildCamping ? 'block' : 'none';
+            }
+            const showCreatorDiv = !hideCreatorProfile || (hideCreatorProfile && isOwner);
+            if (creatorDiv) {
+                creatorDiv.style.display = showCreatorDiv ? 'flex' : 'none';
+            }
+
             renderFacilitiesTags(item.facilities);
             const facilitiesDiv = document.getElementById('detFacilities');
             if (facilitiesDiv) {
@@ -3854,16 +3998,16 @@
                     const priceStr = item.price ? `From £${item.price}` : '';
                     if (bookingUrl) {
                         if (notOnPitchup) {
-                            html += `<a href="${bookingUrl}" target="_blank" class="btn" style="flex:1; margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; height:${priceStr ? '54px' : '44px'}; border-radius:12px; background:var(--primary); color:white; text-decoration:none; padding:0 16px;">
+                            html += `<a href="${bookingUrl}" target="_blank" class="btn btn-booking" style="flex:1; margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; height:${priceStr ? '54px' : '44px'}; border-radius:12px; text-decoration:none; padding:0 16px;">
                                 <span style="font-weight:800; font-size:13px;">🔗 Book now online</span>
                                 ${priceStr ? `<span style="font-size:11px; opacity:0.85; font-weight:600;">${priceStr}</span>` : ''}
                             </a>`;
                         } else {
-                            html += `<a href="${bookingUrl}" target="_blank" class="btn" style="flex:1; margin:0; display:flex; flex-direction:row; align-items:stretch; height:${priceStr ? '64px' : '52px'}; border-radius:12px; background:#00a651; color:white; text-decoration:none; overflow:hidden; padding:0;">
+                            html += `<a href="${bookingUrl}" target="_blank" class="btn btn-booking" style="flex:1; margin:0; display:flex; flex-direction:row; align-items:stretch; height:${priceStr ? '64px' : '52px'}; border-radius:12px; text-decoration:none; overflow:hidden; padding:0;">
                                 <div style="display:flex; align-items:center; justify-content:center; padding:0 14px; flex-shrink:0; height:100%;">
-                                    <img src="https://www.pitchup.com/_nuxt/pitchup-logo-v2.49Qhm04M.png" onerror="this.style.display='none'" style="height:36px; width:auto; filter:brightness(0) invert(1); display:block;">
+                                    <img src="https://www.pitchup.com/_nuxt/pitchup-logo-v2.49Qhm04M.png" onerror="this.style.display='none'" style="height:36px; width:auto; filter:var(--logo-filter); display:block;">
                                 </div>
-                                <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:0 12px; border-left:1px solid rgba(255,255,255,0.2);">
+                                <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:0 12px; border-left:1px solid var(--border);">
                                     <span style="font-weight:800; font-size:13px; white-space:nowrap;">Book now on Pitchup</span>
                                     ${priceStr ? `<span style="font-size:11px; opacity:0.9; font-weight:600;">Starting from: £${item.price}</span>` : ''}
                                 </div>
@@ -4401,18 +4545,21 @@
                 return;
             }
 
+            const isWildCamping = !item.path && isSameColor(item.color, '#065f46');
+
             isEditing = !isEditing; 
             const editBtn = document.getElementById('floatEditBtn'); 
             if (editBtn) {
-                editBtn.innerHTML = isEditing ? '✅' : '🖋️'; 
+                editBtn.innerHTML = isEditing ? 'Save' : 'Edit'; 
                 editBtn.classList.toggle('is-editing', isEditing);
             }
             
             const bigBtn = document.getElementById('bigEditBtn');
             const bigDelBtn = document.getElementById('bigDeleteBtn');
             if(bigBtn) {
-                bigBtn.innerHTML = isEditing ? '✅ Save' : '🖋️ Edit';
-                bigBtn.style.background = isEditing ? 'var(--accent)' : 'var(--primary)';
+                bigBtn.innerHTML = isEditing ? 'Save' : 'Edit';
+                bigBtn.style.background = isEditing ? 'var(--accent)' : 'rgba(0,0,0,0.15)';
+                bigBtn.style.color = isEditing ? 'white' : 'var(--text)';
             }
             
             if(bigDelBtn) {
@@ -4460,7 +4607,16 @@
                 const isWild = (item.color === '#065f46');
                 if (isWild) {
                     item.facilities = [];
-                    item.visibility = 'private';
+                    const visSelect = document.getElementById('editVisibilitySelect');
+                    if (visSelect) {
+                        if (visSelect.value === 'public') {
+                            item.visibility = 'private';
+                        } else {
+                            item.visibility = visSelect.value;
+                        }
+                    } else {
+                        item.visibility = item.visibility || 'private';
+                    }
                     item.isPublic = false;
                 } else {
                     item.facilities = getSelectedFacilities('editFacilityPicker');
@@ -4493,16 +4649,16 @@
                         const priceStr = item.price ? `From £${item.price}` : '';
                         if (bookingUrl) {
                             if (notOnPitchup) {
-                                html += `<a href="${bookingUrl}" target="_blank" class="btn" style="flex:1; margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; height:${priceStr ? '54px' : '44px'}; border-radius:12px; background:var(--primary); color:white; text-decoration:none; padding:0 16px;">
+                                html += `<a href="${bookingUrl}" target="_blank" class="btn btn-booking" style="flex:1; margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; height:${priceStr ? '54px' : '44px'}; border-radius:12px; text-decoration:none; padding:0 16px;">
                                     <span style="font-weight:800; font-size:13px;">🔗 Book Online</span>
                                     ${priceStr ? `<span style="font-size:11px; opacity:0.85; font-weight:600;">${priceStr}</span>` : ''}
                                 </a>`;
                             } else {
-                                html += `<a href="${bookingUrl}" target="_blank" class="btn" style="flex:1; margin:0; display:flex; flex-direction:row; align-items:stretch; height:${priceStr ? '64px' : '52px'}; border-radius:12px; background:#00a651; color:white; text-decoration:none; overflow:hidden; padding:0;">
+                                html += `<a href="${bookingUrl}" target="_blank" class="btn btn-booking" style="flex:1; margin:0; display:flex; flex-direction:row; align-items:stretch; height:${priceStr ? '64px' : '52px'}; border-radius:12px; text-decoration:none; overflow:hidden; padding:0;">
                                     <div style="display:flex; align-items:center; justify-content:center; padding:0 14px; flex-shrink:0; height:100%;">
-                                        <img src="https://www.pitchup.com/_nuxt/pitchup-logo-v2.49Qhm04M.png" onerror="this.style.display='none'" style="height:36px; width:auto; filter:brightness(0) invert(1); display:block;">
+                                        <img src="https://www.pitchup.com/_nuxt/pitchup-logo-v2.49Qhm04M.png" onerror="this.style.display='none'" style="height:36px; width:auto; filter:var(--logo-filter); display:block;">
                                     </div>
-                                    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:0 12px; border-left:1px solid rgba(255,255,255,0.2);">
+                                    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:0 12px; border-left:1px solid var(--border);">
                                         <span style="font-weight:800; font-size:13px; white-space:nowrap;">Book on Pitchup</span>
                                         ${priceStr ? `<span style="font-size:11px; opacity:0.9; font-weight:600;">Starting from: £${item.price}</span>` : ''}
                                     </div>
@@ -4528,6 +4684,46 @@
                      showMoreBtn.onclick = () => { const isTrunc = viewText.classList.toggle('desc-truncated'); showMoreBtn.innerText = isTrunc ? 'Show More' : 'Show Less'; };
                 }
 
+                const catName = item.path ? 'Walks' : getCategoryByColor(item.color);
+                const hideCreatorProfile = (catName === 'Parking' || (catName === 'Camping' && !isWildCamping));
+
+                const creatorDiv = document.getElementById('detCreator');
+                const isOwner = currentUser && item.userId === currentUser.uid;
+                const showCreatorDiv = !hideCreatorProfile || (hideCreatorProfile && isOwner);
+                if (creatorDiv) {
+                    creatorDiv.style.display = showCreatorDiv ? 'flex' : 'none';
+                    if (showCreatorDiv) {
+                        let leftHtml = '';
+                        if (!hideCreatorProfile) {
+                            let creatorName = item.creatorName || 'Unknown';
+                            let creatorColor = 'linear-gradient(135deg, #64748b, #94a3b8)';
+                            let creatorAvatar = '👤';
+                            if (currentUser && item.userId === currentUser.uid) {
+                                creatorName = currentUser.displayName;
+                                creatorColor = currentUser.color || creatorColor;
+                                creatorAvatar = currentUser.avatarText || creatorAvatar;
+                            }
+                            const dateStr = formatDate(item.id);
+                            leftHtml = `<div style="display:flex; align-items:center; gap:12px; padding:0;"><div class="comment-avatar" style="width:38px; height:38px; font-size:16px; background:${creatorColor}">${creatorAvatar}</div><div style="display:flex; flex-direction:column; justify-content:center;"><span style="font-weight:700; font-size:14px;">${creatorName}</span><span style="font-size:11px; opacity:0.6;">Uploaded on ${dateStr}</span></div></div>`;
+                        }
+                        
+                        let editBtnHtml = '';
+                        if (isOwner) {
+                            const btnWidth = hideCreatorProfile ? 'width: 100%;' : 'width: auto; min-width: 50px; padding: 0 12px;';
+                            editBtnHtml = `<button class="btn" id="bigEditBtn" onclick="toggleEditingLogic()" style="margin:0; height:34px; border-radius:8px; background:rgba(0,0,0,0.10); color:var(--text); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; font-weight:bold; transition:background 0.2s; flex-shrink:0; ${btnWidth}" title="Edit">Edit</button>`;
+                        }
+                        creatorDiv.innerHTML = leftHtml + editBtnHtml;
+                    }
+                }
+                const floatEdit = document.getElementById('floatEditBtn');
+                if (floatEdit) {
+                    floatEdit.style.display = 'none';
+                }
+                const viewWildNotice = document.getElementById('viewWildCampNotice');
+                if (viewWildNotice) {
+                    viewWildNotice.style.display = isWildCamping ? 'block' : 'none';
+                }
+
                 saveData();
                 saveToCloud(item.path ? 'walks' : 'pins', item);
                 updateHighlights();
@@ -4537,7 +4733,6 @@
                  document.getElementById('detCampsiteInfo').style.display = 'none';
             }
 
-            const isWildCamping = (item.color === '#065f46');
             document.getElementById('detFacilities').style.display = (isEditing || isWildCamping || (!item.facilities || item.facilities.length === 0)) ? 'none' : 'flex';
             document.getElementById('editFacilitiesContainer').style.display = (isEditing && !isWildCamping) ? 'block' : 'none';
             if(isEditing && !isWildCamping) renderFacilityPicker('editFacilityPicker', item.facilities || [], true);
@@ -4611,7 +4806,7 @@
             // Sync bigEditBtn style after toggleEditingLogic call
             const bigEditBtn = document.getElementById('bigEditBtn');
             if (bigEditBtn) {
-                bigEditBtn.innerHTML = isEditing ? '✅' : '🖋️';
+                bigEditBtn.innerHTML = isEditing ? 'Save' : 'Edit';
                 bigEditBtn.title = isEditing ? 'Save' : 'Edit';
                 bigEditBtn.style.background = isEditing ? 'var(--accent)' : 'rgba(0,0,0,0.10)';
                 bigEditBtn.style.color = isEditing ? 'white' : 'var(--text)';
@@ -6321,7 +6516,7 @@
                     let html = '';
                     
                     if (catName === 'Parking') {
-                        html = `<div class="special-pin" style="width: 20px; height: 20px; background: #2563eb; border-radius: 4px; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">P</div>`;
+                        html = `<div class="special-pin" style="width: 20px; height: 20px; background: ${p.color || '#2563eb'}; border-radius: 4px; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">P</div>`;
                     } else if (catName === 'Camping') {
                         html = `<div class="special-pin" style="width: 22px; height: 22px; background: ${p.color || '#22c55e'}; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"><img src="Images/Tent.png" style="width: 14px; height: 14px; object-fit: contain; pointer-events: none;"></div>`;
                     } else {
