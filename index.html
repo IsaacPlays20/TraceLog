@@ -214,23 +214,87 @@
             transform: rotate(-45deg); border: 2px solid white;
             box-shadow: 0 0 0 1px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.3); z-index: 500;
         }
+
+        /* Timeline Styles */
+        .timeline { position: relative; max-width: 800px; margin: 0 auto; }
+        .timeline::after {
+            content: ''; position: absolute; width: 4px; background: var(--border);
+            top: 0; bottom: 0; left: 50%; margin-left: -2px; border-radius: 2px;
+        }
+        
+        .timeline-item { padding: 10px 40px; position: relative; width: 50%; box-sizing: border-box; }
+        .timeline-item.left { left: 0; text-align: right; }
+        .timeline-item.right { left: 50%; }
+        
+        .timeline-item::after {
+            content: ''; position: absolute; width: 20px; height: 20px;
+            right: -14px; background-color: var(--bg); border: 4px solid var(--primary);
+            top: 15px; border-radius: 50%; z-index: 1; transition: var(--transition);
+        }
+        .timeline-item.right::after { left: -14px; }
+        
+        .timeline-item.current::after { border-color: var(--accent); box-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
+        .timeline-item.future::after { border-color: #f59e0b; border-style: dashed; }
+        
+        .timeline-content {
+            padding: 25px; background: var(--card); border: 1px solid var(--border);
+            border-radius: 16px; position: relative; transition: var(--transition);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: left;
+        }
+        .timeline-content:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        .timeline-content h3 { margin-top: 0; font-size: 1.4rem; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+        .timeline-item.current .timeline-content h3 { color: var(--accent); }
+        .timeline-item.future .timeline-content h3 { color: #f59e0b; }
+        
+        .timeline-content p { margin: 0; opacity: 0.8; font-size: 1rem; line-height: 1.6; }
+        
+        @media (max-width: 768px) {
+            .timeline::after { left: 31px; }
+            .timeline-item { width: 100%; padding-left: 70px; padding-right: 0; }
+            .timeline-item.left { text-align: left; }
+            .timeline-item.right { left: 0; }
+            .timeline-item.left::after, .timeline-item.right::after { left: 17px; right: auto; }
+        }
+
+        .social-icon-link {
+            opacity: 0.8;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .social-icon-link:hover {
+            opacity: 1;
+            transform: scale(1.15);
+        }
     </style>
 </head>
 <body>
 
     <nav>
         <div class="logo">
-            <a href="index.html" style="display: flex; align-items: center;"><img src="Images/Tracelog.png" alt="Logo" onerror="this.style.display='none'"></a>
+            <a href="#" style="display: flex; align-items: center;"><img src="Images/Tracelog.png" alt="Logo" onerror="this.style.display='none'"></a>
         </div>
         <div class="nav-links">
-            <a href="index.html" class="active">Home</a>
-            <a href="About.html">About</a>
-            <a href="Features.html">Features</a>
-            <a href="Timeline.html">Timeline</a>
+            <a href="#" class="active">Home</a>
+            <a href="#about">About</a>
+            <a href="#features">Features</a>
+            <a href="#timeline">Timeline</a>
             <a href="Privacy.html">Privacy</a>
             <a href="Contact.html">Contact</a>
         </div>
-        <a href="all.html" class="btn">Log In</a>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="all.html" class="btn">Log In</a>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <a href="https://github.com/IsaacPlays20/TraceLog" target="_blank" class="social-icon-link" title="GitHub">
+                    <img src="https://img.icons8.com/ios-glyphs/30/FFFFFF/github.png" alt="GitHub" style="width: 24px; height: 24px;">
+                </a>
+                <a href="https://www.instagram.com/trace_log_/" target="_blank" class="social-icon-link" title="Instagram">
+                    <img src="https://img.icons8.com/ios-glyphs/30/FFFFFF/instagram-new.png" alt="Instagram" style="width: 24px; height: 24px;">
+                </a>
+            </div>
+        </div>
     </nav>
 
     <div class="hero">
@@ -239,9 +303,104 @@
         <p class="subtitle">The ultimate tool for explorers to log their activities, drop pins, and share and discover new experiences.</p>
         <div class="hero-btns">
             <a href="all.html" class="btn">Log In</a>
-            <a href="About.html" class="btn btn-outline">Learn More</a>
+            <a href="#about" class="btn btn-outline">Learn More</a>
         </div>
     </div>
+
+    <section id="about" style="scroll-margin-top: 70px; padding: 100px 40px 60px 40px; border-bottom: 1px solid var(--border);">
+        <div style="text-align: center; margin-bottom: 50px;">
+            <h2 style="font-size: 2.5rem; font-weight: 900; margin-top: 0; margin-bottom: 20px;">About TraceLog</h2>
+            <p class="subtitle" style="margin: 0 auto; max-width: 600px;">Our mission is to help you map your world.</p>
+        </div>
+        <div class="text-block" style="max-width: 800px; margin: 0 auto;">
+            <p style="font-size: 1.15rem; line-height: 1.8; text-align: center; margin: 0;">TraceLog is a website for logging, sharing, and discovering your interesting natural places and activities. Log pins, hikes, and other activities. Discover, review, and create a collection of visited hidden gems.</p>
+        </div>
+    </section>
+
+    <section id="features" style="scroll-margin-top: 70px; padding: 80px 40px; border-bottom: 1px solid var(--border);">
+        <div style="text-align: center; margin-bottom: 60px;">
+            <h2 style="font-size: 2.5rem; font-weight: 900; margin-top: 0; margin-bottom: 20px;">Powerful Features</h2>
+            <p class="subtitle" style="margin: 0 auto; max-width: 600px;">Everything you need to log, share, and discover the outdoors in a single application.</p>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <span class="icon">🌍</span>
+                <h3>Discover</h3>
+                <p>Find on our map or search and filter to find where your next adventure could take you.</p>
+            </div>
+            <div class="card">
+                <span class="icon">📍</span>
+                <h3>Drop Pins</h3>
+                <p>Mark locations with specific categories like Nature, History, or Landmarks. Add photos and notes to remember the details.</p>
+            </div>
+            <div class="card">
+                <span class="icon">🏃</span>
+                <h3>Track Activities</h3>
+                <p>Record your walks, hikes, runs, and cycle routes. View elevation profiles and distance statistics in real-time.</p>
+            </div>
+            <div class="card">
+                <span class="icon">🗺️</span>
+                <h3>Plot your Activities</h3>
+                <p>Plot your own routes using the activity trace tool to plan out your next adventure.</p>
+            </div>
+            <div class="card">
+                <span class="icon">☁️</span>
+                <h3>Cloud Sync</h3>
+                <p>Your data is securely stored in the cloud. Access your logbook from any device, anywhere in the world.</p>
+            </div>
+            <div class="card">
+                <span class="icon">🗒️</span>
+                <h3>My Log</h3>
+                <p>Save all your visited locations in your own logbook to remember.</p>
+            </div>
+            <div class="card">
+                <span class="icon">✈️</span>
+                <h3>Flyover</h3>
+                <p>Watch your activity from overhead as you follow where your next adventure will take you.</p>
+            </div>
+            <div class="card">
+                <span class="icon">⭐</span>
+                <h3>Rate and Review</h3>
+                <p>Comment and rate pins and activities to share your experience and find other highly rated locations and activities.</p>
+            </div>
+            <div class="card">
+                <span class="icon">📥</span>
+                <h3>GPX Import & Export</h3>
+                <p>Easily import routes from GPX files to load existing paths, or export your saved activities to share with other devices or software.</p>
+            </div>
+            <div class="card">
+                <span class="icon">📷</span>
+                <h3>Multiple Photo Uploads</h3>
+                <p>Drag-and-drop or select up to 10 photos at once. Photos are uploaded securely using built-in ImgBB hosting integration.</p>
+            </div>
+            <div class="card">
+                <span class="icon">🏕️</span>
+                <h3>Campsite Booking & Pricing</h3>
+                <p>Register campsites with starting price rates and direct links to Pitchup or alternative booking portals.</p>
+            </div>
+            <div class="card">
+                <span class="icon">🔒</span>
+                <h3>Visibility & Privacy</h3>
+                <p>Control exactly who sees your entries. Choose between Private, Friends with Link, or Public visibility settings.</p>
+            </div>
+            <div class="card">
+                <span class="icon">📈</span>
+                <h3>Real-Time Elevation Profiles</h3>
+                <p>Analyze height changes, elevation gains, and terrains with dynamic interactive elevation charts for routes.</p>
+            </div>
+            <div class="card">
+                <span class="icon">🪣</span>
+                <h3>Bucket List Tracking</h3>
+                <p>Mark outstanding outdoor locations or routes on your bucket list to plan and prioritize your upcoming excursions.</p>
+            </div>
+            <div class="card">
+                <span class="icon">⏰</span>
+                <h3>Updates</h3>
+                <p>And more features coming very soon.</p>
+            </div>
+        </div>
+    </section>
 
     <section id="top-rated">
         <div class="top-rated-header">
@@ -250,17 +409,53 @@
                 <button class="seg-btn active" onclick="filterCarousel('all')" id="btn-all">All</button>
                 <button class="seg-btn" onclick="filterCarousel('pins')" id="btn-pins">Pins</button>
                 <button class="seg-btn" onclick="filterCarousel('walks')" id="btn-walks">Activities</button>
+                <button class="seg-btn" onclick="filterCarousel('campsites')" id="btn-campsites">Campsites</button>
+                <button class="seg-btn" onclick="filterCarousel('parking')" id="btn-parking">Parking</button>
             </div>
         </div>
         <p style="text-align: center; opacity: 0.7; margin-top: -20px; margin-bottom: 20px; padding: 0 20px;" id="top-status">Loading amazing places near you...</p>
         <div class="carousel-container" id="top-carousel"></div>
     </section>
 
-    <section style="padding: 80px 40px; text-align: center;">
-        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 60px 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto;">
-            <h2 style="margin-top: 0; margin-bottom: 20px; font-size: 2.5rem; font-weight: 900;">Project Timeline</h2>
-            <p class="subtitle" style="margin: 0 auto 30px auto; line-height: 1.8;">Currently the coverd area focuses on the Peak District National Park where ther are many hidden pins and activities to explore however, to see where we expand next, thake a look at the timeline.</p>
-            <a href="Timeline.html" class="btn" style="padding: 15px 30px; font-size: 1.1rem; display: inline-block;">View Our Timeline</a>
+    <section id="timeline" style="scroll-margin-top: 70px; padding: 80px 40px; border-bottom: 1px solid var(--border);">
+        <h2 style="font-size: 2.5rem; font-weight: 900; text-align: center; margin-top: 0; margin-bottom: 20px;">Project Timeline</h2>
+        <p class="subtitle" style="margin: 0 auto 50px auto; max-width: 600px; text-align: center;">Currently the covered area focuses on the Peak District National Park. See our progress history and what's planned next on our roadmap.</p>
+        
+        <div class="timeline">
+            <div class="timeline-item left">
+                <div class="timeline-content">
+                    <h3>V1.0 - Release</h3>
+                    <p>This version introduced the ability to drop interactive pins, write notes, and start building a personal logbook of visited locations.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item right">
+                <div class="timeline-content">
+                    <h3>V2.0 - Personalization</h3>
+                    <p>Introduction of activity tracing for walking, hiking, running, and cycling. Account and comments launched as well as My Log to track your own journeys.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item left current">
+                <div class="timeline-content">
+                    <h3>V3.0 - General Improvements & Launch Website</h3>
+                    <p>Added rich location data, detailed facility tags, an improved mobile experience, and robust cloud syncing tailored for local adventurers.</p>
+                </div>
+            </div>
+
+            <div class="timeline-item right future">
+                <div class="timeline-content">
+                    <h3>General Improvements & Growing Userbase</h3>
+                    <p>Aim to grow our users to create more content to discover and add more features to help you discover new locations easier.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item left future">
+                <div class="timeline-content">
+                    <h3>Future - Expanding to the World</h3>
+                    <p>Taking TraceLog global. Our next major leap involves expanding our curated discoveries, introducing advanced routing features, integrating more social/community review aspects, and bringing the full TraceLog experience to explorers worldwide.</p>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -272,15 +467,22 @@
         </div>
 
         <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px;">
-            <img src="Images/Tracelog.png" alt="TraceLog Logo" style="height: 50px; opacity: 0.9; margin-bottom: 10px;">
+            <img src="Images/Tracelog.png" alt="TraceLog Logo" style="height: 50px; opacity: 0.9; margin-bottom: 10px;" onerror="this.style.display='none'">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 400px;">
-                <a href="About.html" class="btn btn-outline" style="padding: 12px; font-size: 1rem; border-radius: 12px; text-align: center; display: block;">About Us</a>
-                <a href="Features.html" class="btn btn-outline" style="padding: 12px; font-size: 1rem; border-radius: 12px; text-align: center; display: block;">Features</a>
-                <a href="Timeline.html" class="btn btn-outline" style="padding: 12px; font-size: 1rem; border-radius: 12px; text-align: center; display: block;">Timeline</a>
+                <a href="#about" class="btn btn-outline" style="padding: 12px; font-size: 1rem; border-radius: 12px; text-align: center; display: block;">About Us</a>
+                <a href="#features" class="btn btn-outline" style="padding: 12px; font-size: 1rem; border-radius: 12px; text-align: center; display: block;">Features</a>
+                <a href="#timeline" class="btn btn-outline" style="padding: 12px; font-size: 1rem; border-radius: 12px; text-align: center; display: block;">Timeline</a>
                 <a href="Privacy.html" class="btn btn-outline" style="padding: 12px; font-size: 1rem; border-radius: 12px; text-align: center; display: block;">Privacy Policy</a>
                 <a href="Contact.html" class="btn btn-outline" style="padding: 12px; font-size: 1rem; border-radius: 12px; text-align: center; display: block;">Contact</a>
             </div>
-            <div style="opacity: 0.5; font-size: 0.85rem; margin-top: 10px;"><a href="https://github.com/IsaacPlays20/TraceLog" target="_blank" style="text-decoration: underline;">https://github.com/IsaacPlays20/TraceLog</a></div>
+            <div style="display: flex; gap: 20px; align-items: center; justify-content: center; margin-top: 15px;">
+                <a href="https://github.com/IsaacPlays20/TraceLog" target="_blank" class="social-icon-link" title="GitHub">
+                    <img src="https://img.icons8.com/ios-glyphs/30/FFFFFF/github.png" alt="GitHub" style="width: 24px; height: 24px;">
+                </a>
+                <a href="https://www.instagram.com/trace_log_/" target="_blank" class="social-icon-link" title="Instagram">
+                    <img src="https://img.icons8.com/ios-glyphs/30/FFFFFF/instagram-new.png" alt="Instagram" style="width: 24px; height: 24px;">
+                </a>
+            </div>
         </div>
     </section>
 
@@ -302,16 +504,41 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        const PIN_TYPES = [
-            { name: 'Nature', color: '#10b981', icon: '🌿' },
-            { name: 'History', color: '#ef4444', icon: '🏛️' },
-            { name: 'Culture', color: '#d97706', icon: '🎨' },
-            { name: 'Mountain', color: '#8b5cf6', icon: '⛰️' },
-            { name: 'Water', color: '#3b82f6', icon: '💧' },
-            { name: 'Rock Formation', color: '#eab308', icon: '🪨' },
-            { name: 'Landmark', color: '#ec4899', icon: '🗿' },
-            { name: 'Waterfall', color: '#06b6d4', icon: '🌊' }
+        const PIN_CATEGORIES = [
+            {
+                name: 'Places',
+                icon: '📍',
+                types: [
+                    { name: 'Nature', color: '#10b981', icon: '🌿' },
+                    { name: 'History', color: '#ef4444', icon: '🏛️' },
+                    { name: 'Culture', color: '#d97706', icon: '🎨' },
+                    { name: 'Mountain', color: '#8b5cf6', icon: '⛰️' },
+                    { name: 'Water', color: '#3b82f6', icon: '💧' },
+                    { name: 'Rock Formation', color: '#eab308', icon: '🪨' },
+                    { name: 'Landmark', color: '#ec4899', icon: '🗿' },
+                    { name: 'Waterfall', color: '#06b6d4', icon: '🌊' }
+                ]
+            },
+            {
+                name: 'Camping',
+                icon: '⛺',
+                types: [
+                    { name: 'Nearly Wild Camping', color: '#22c55e', icon: '🏕️' },
+                    { name: 'Campsites', color: '#14b8a6', icon: '⛺' }
+                ]
+            },
+            {
+                name: 'Parking',
+                icon: '🅿️',
+                types: [
+                    { name: 'Paid Parking', color: '#f59e0b', icon: '🪙' },
+                    { name: 'Free Parking', color: '#84cc16', icon: '🆓' },
+                    { name: 'Roadside Parking', color: '#64748b', icon: '🛣️' }
+                ]
+            }
         ];
+
+        const PIN_TYPES = PIN_CATEGORIES.reduce((acc, cat) => acc.concat(cat.types), []);
 
         const ACTIVITY_COLORS = {
             walk: '#10b981', 
@@ -402,6 +629,20 @@
 
         let heroMap, mapFeatureGroup;
 
+        function getCategoryIcon(color) {
+            for (let cat of PIN_CATEGORIES) {
+                if (cat.types.some(t => t.color === color)) return cat.icon;
+            }
+            return '📍';
+        }
+
+        function getCategoryName(color) {
+            for (let cat of PIN_CATEGORIES) {
+                if (cat.types.some(t => t.color === color)) return cat.name;
+            }
+            return 'Places';
+        }
+
         function initHeroMap() {
             heroMap = L.map('hero-map', {
                 zoomControl: false, attributionControl: false, dragging: false,
@@ -416,7 +657,24 @@
             if (!mapFeatureGroup) return;
             items.forEach(item => {
                 if (item.type === 'PIN' && item.lat && item.lng) {
-                    const pinIcon = L.divIcon({ className: 'custom-pin-marker', html: `<div class="pin-wrapper"><div class="pin-shape" style="background:${item.color || '#2563eb'}"></div></div>`, iconSize: [30, 30], iconAnchor: [15, 30] }); 
+                    const catName = getCategoryName(item.color);
+                    let html = '';
+                    let iSize = [30, 30];
+                    let iAnchor = [15, 30];
+                    
+                    if (catName === 'Parking') {
+                        html = `<div style="width: 22px; height: 22px; background: #2563eb; border-radius: 4px; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">P</div>`;
+                        iSize = [26, 26];
+                        iAnchor = [13, 13];
+                    } else if (catName === 'Camping') {
+                        html = `<div style="width: 22px; height: 22px; background: ${item.color || '#22c55e'}; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"><img src="Images/Tent.png" style="width: 14px; height: 14px; object-fit: contain; pointer-events: none;"></div>`;
+                        iSize = [26, 26];
+                        iAnchor = [13, 13];
+                    } else {
+                        const catIcon = getCategoryIcon(item.color);
+                        html = `<div class="pin-wrapper"><div class="pin-shape" style="background:${item.color || '#2563eb'}; display:flex; justify-content:center; align-items:center;"><span style="transform: rotate(45deg) translate(-1px, 1px); font-size:9px; line-height:1; pointer-events:none;">${catIcon}</span></div></div>`;
+                    }
+                    const pinIcon = L.divIcon({ className: 'custom-pin-marker', html: html, iconSize: iSize, iconAnchor: iAnchor }); 
                     L.marker([item.lat, item.lng], {icon: pinIcon}).addTo(mapFeatureGroup);
                 } else if (item.type === 'WALK' && item.path) {
                     const path = item.path.map(p => [typeof p === 'object' && !Array.isArray(p) ? p.lat : p[0], typeof p === 'object' && !Array.isArray(p) ? p.lng : p[1]]);
@@ -435,8 +693,10 @@
             document.getElementById('btn-' + type).classList.add('active');
             
             let filtered = allItems;
-            if (type === 'pins') filtered = allItems.filter(i => i.type === 'PIN');
+            if (type === 'pins') filtered = allItems.filter(i => i.type === 'PIN' && getCategoryName(i.color) !== 'Camping' && getCategoryName(i.color) !== 'Parking');
             if (type === 'walks') filtered = allItems.filter(i => i.type === 'WALK');
+            if (type === 'campsites') filtered = allItems.filter(i => i.type === 'PIN' && getCategoryName(i.color) === 'Camping');
+            if (type === 'parking') filtered = allItems.filter(i => i.type === 'PIN' && getCategoryName(i.color) === 'Parking');
             
             renderCarousel(filtered, userHasLoc, 'top-carousel', 'top-status');
         }
@@ -458,7 +718,7 @@
             status.style.display = 'none';
             container.innerHTML = '';
             
-            const topItems = items.slice(0, 7); // Show slightly fewer results
+            const topItems = items.slice(0, 20); // Show up to 20 items for more variation
 
             const createNode = (i) => {
                 let labelText = '', labelColor = i.color || '#2563eb', iconChar = '📍';
@@ -474,7 +734,7 @@
 
                 const thumbHtml = (i.type === 'WALK' && i.path) ? getRouteThumbnail(i.path, i.color || '#2563eb', 300, 180) : `<img class="highlight-thumb" src="${(i.photos && i.photos.length > 0) ? i.photos[0] : (i.photo || 'https://placehold.co/300x180?text=No+Photo')}">`;
                 const dStr = (hasLocation && i.d !== undefined && i.d !== Infinity && i.d < 10000) ? `<span style="font-weight:600; opacity:0.7;">${i.d.toFixed(1)} km away</span>` : '';
-                const ratingHtml = `<span style="display:inline-block; background:rgba(251, 191, 36, 0.15); color:#fbbf24; font-weight:800; padding:2px 6px; border-radius:4px; font-size:10px;">★ ${Number(i.rating || 0).toFixed(1)}</span>`;
+                const ratingHtml = (i.comments && i.comments.length > 0 && i.rating) ? `<span style="display:inline-block; background:rgba(251, 191, 36, 0.15); color:#fbbf24; font-weight:800; padding:2px 6px; border-radius:4px; font-size:10px;">★ ${Number(i.rating).toFixed(1)}</span>` : '';
                 
                 const div = document.createElement('div');
                 div.className = 'carousel-item';
@@ -628,7 +888,9 @@
                         i.d = (hasLoc && i.lat && i.lng) ? getDistanceFromLatLonInKm(uLat, uLng, i.lat, i.lng) : Infinity;
                         const ratingScore = (Number(i.rating) || 0) * 20;
                         const distPenalty = (i.d !== Infinity) ? Math.min(i.d, 100) : 100;
-                        i.score = ratingScore - distPenalty;
+                        // Add a small random variation to score (+/- 5 points) so order varies dynamically on reloads
+                        const randomVariation = (Math.random() - 0.5) * 10;
+                        i.score = ratingScore - distPenalty + randomVariation;
                     });
                     return items.sort((a,b) => b.score - a.score);
                 };

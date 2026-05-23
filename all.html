@@ -643,6 +643,9 @@
                 </div>
                 <p id="authMessage" style="color:var(--danger); text-align:center; font-size:12px; margin:0;"></p>
             </div>
+            <a href="index.html" class="btn" style="position: absolute; bottom: 20px; left: 20px; width: auto; z-index: 10001; text-transform: uppercase;">
+                ← Back to landing page
+            </a>
         </div>
 
         <div id="dn-overlay" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); display: none; align-items: center; justify-content: center; z-index: 10001; backdrop-filter: blur(5px);">
@@ -959,6 +962,7 @@
                                     <option value="imperial">Imperial (mi, ft)</option>
                                 </select>
                             </div>
+
                             <div class="settings-row-refined" style="flex-direction:column; align-items:flex-start; gap:10px;">
                                 <span class="settings-label">Default Speeds (<span id="speedUnitLabel">km/h</span>)</span>
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; width:100%;">
@@ -1165,10 +1169,28 @@
 
     <div id="upload-popup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:11000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
         <div class="modal" style="width:300px; align-items:center; padding:20px;">
-            <h3 style="margin-top:0;">Add Photo URL</h3>
-            <input type="text" id="imgUrlInput" class="modal-input" placeholder="Paste image link here..." style="margin-bottom:10px; padding:8px;">
+            <h3 style="margin-top:0; margin-bottom:12px;">Add Photo</h3>
+            <div class="segmented-control" style="width: 100%; margin-bottom: 12px; box-sizing: border-box;">
+                <button class="seg-btn active" id="uploadTabFileBtn" onclick="switchUploadTab('file')">Upload</button>
+                <button class="seg-btn" id="uploadTabUrlBtn" onclick="switchUploadTab('url')">URL</button>
+            </div>
+            <div id="fileUploadContainer" style="display:flex; flex-direction:column; align-items:center; width:100%; margin-bottom:10px; box-sizing:border-box;">
+                <label id="dropzoneLabel" for="imageFileInput" style="width:100%; border:2px dashed var(--border); border-radius:12px; padding:15px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; box-sizing:border-box; transition:var(--transition); background:rgba(0,0,0,0.08);"
+                       ondragenter="handleDrag(event, true)"
+                       ondragover="handleDrag(event, true)"
+                       ondragleave="handleDrag(event, false)"
+                       ondrop="handleDrop(event)">
+                    <span style="font-size:1.8rem; margin-bottom:4px;">📁</span>
+                    <span id="fileInputLabel" style="font-size:11px; font-weight:600; text-align:center;">Click or drag image here</span>
+                    <span style="font-size:9px; opacity:0.6; margin-top:2px;">PNG, JPG, GIF up to 32MB</span>
+                    <span style="font-size:8px; color:var(--danger); font-weight:700; margin-top:6px; opacity:0.8; text-transform:uppercase; letter-spacing:0.5px; text-align:center;">⚠️ Warning: Uploaded images are public</span>
+                </label>
+                <input type="file" id="imageFileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)" multiple>
+            </div>
+            <input type="text" id="imgUrlInput" class="modal-input" placeholder="Paste image link here..." style="display:none; margin-bottom:10px; padding:8px;">
             <div id="uploadPreviewContainer" style="width:100%; height:200px; background:#333; margin-bottom:15px; display:flex; align-items:center; justify-content:center; border-radius:8px; overflow:hidden;">
                 <img id="uploadPreview" style="max-width:100%; max-height:100%; object-fit:contain;">
+                <div id="uploadMultiPreviewGrid" style="display:none; width:100%; height:100%; flex-wrap:wrap; gap:8px; padding:10px; overflow-y:auto; align-items:flex-start; justify-content:center; box-sizing:border-box;"></div>
             </div>
             <div id="uploadProgressContainer" style="width:100%; height:6px; background:#eee; border-radius:3px; margin-bottom:10px; display:none; overflow:hidden;">
                 <div id="uploadProgressBar" style="width:0%; height:100%; background:var(--primary); transition:width 0.2s;"></div>
@@ -1176,7 +1198,7 @@
             <p id="uploadStatus" style="font-size:12px; opacity:0.7; margin-bottom:15px; text-align:center;">Previewing image...</p>
             <div style="display:flex; gap:10px; width:100%;">
                 <button class="btn" onclick="cancelUpload()" style="flex:1; background:rgba(0,0,0,0.15); border:none; color:var(--text);">Cancel</button>
-                <button class="btn btn-save-action" id="btnConfirmUpload" onclick="performUrlAdd()" style="flex:1;">Add Image</button>
+                <button class="btn btn-save-action" id="btnConfirmUpload" onclick="handlePhotoSubmit()" style="flex:1;">Add Image</button>
             </div>
         </div>
     </div>
@@ -2399,7 +2421,10 @@
                 <button class="btn" id="markVisitedBtn" style="flex:1; min-width:0; min-height:38px; height:auto; font-size:12px; font-weight:700; border:1px solid var(--border); border-radius:10px; margin:0; padding:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.2; display:flex; align-items:center; justify-content:center; text-align:center;">🏷️ Add Label</button>
             `;
             typeLabelDiv.innerHTML = `
-                <button class="btn" id="detShareLabelBtn" style="flex:1; min-width:0; min-height:38px; height:auto; font-size:12px; background:rgba(0,0,0,0.12); border:none; color:var(--text); display:flex; align-items:center; justify-content:center; gap:6px; font-weight:700; border-radius:10px; margin:0; padding:5px; white-space:nowrap; line-height:1.2; text-align:center;" title="Share Link">🔗 Share</button>
+                <button class="btn" id="detShareLabelBtn" style="flex:1; min-width:0; min-height:38px; height:auto; font-size:12px; background:rgba(0,0,0,0.12); border:none; color:var(--text); display:flex; align-items:center; justify-content:center; gap:6px; font-weight:700; border-radius:10px; margin:0; padding:5px; white-space:nowrap; line-height:1.2; text-align:center;" title="Share Link">
+                    <img src="https://img.icons8.com/ios11/512/FFFFFF/share--v2.png" style="width:16px; height:16px; flex-shrink:0;" alt="Share">
+                    Share
+                </button>
                 ${ownerHtml}
                 ${visitedBtnHtml}
                 <a href="${navUrl}" target="_blank" style="flex:1; min-width:0; text-decoration:none; display:flex;">
@@ -2413,14 +2438,30 @@
             const shareLabelBtn = document.getElementById('detShareLabelBtn');
             if (shareLabelBtn) {
                 const _isWalk = !!(item.path);
-                shareLabelBtn.onclick = () => {
+                shareLabelBtn.onclick = async () => {
                     const paramName = _isWalk ? 'walk' : 'pin';
                     const shareUrl = `${window.location.origin}${window.location.pathname}?${paramName}=${item.id}`;
-                    navigator.clipboard.writeText(shareUrl).then(() => {
-                        alert("Share link copied to clipboard!");
-                    }).catch(err => {
-                        alert("Could not copy link automatically. Here is the URL:\n" + shareUrl);
-                    });
+                    
+                    if (navigator.share) {
+                        try {
+                            await navigator.share({
+                                title: item.name || 'TraceLog Discovery',
+                                text: item.desc || 'Check out this awesome place on TraceLog!',
+                                url: shareUrl
+                            });
+                        } catch (err) {
+                            if (err.name !== 'AbortError') {
+                                console.error('Share failed:', err);
+                            }
+                        }
+                    } else {
+                        // Fallback: Copy to clipboard
+                        navigator.clipboard.writeText(shareUrl).then(() => {
+                            alert("Share link copied to clipboard!");
+                        }).catch(clipboardErr => {
+                            alert("Could not copy link automatically. Here is the URL:\n" + shareUrl);
+                        });
+                    }
                 };
             }
                 
@@ -3171,7 +3212,7 @@
                 }
 
                 let ratingHtml = '';
-                if (i.rating > 0) {
+                if (i.comments && i.comments.length > 0 && i.rating > 0) {
                     ratingHtml = `<span style="display:inline-block; background:rgba(15, 23, 42, 0.85); color:#fbbf24; font-weight:800; padding:2px 6px; border-radius:4px; font-size:10px; border: 1px solid rgba(255,255,255,0.1);">★ ${i.rating.toFixed(1)}</span>`;
                 }
                 
@@ -3520,7 +3561,7 @@
             const thumb = (item.photos && item.photos.length > 0) ? item.photos[0] : (item.photo || 'https://placehold.co/300x200?text=No+Photo');
             
             let ratingHtml = '';
-            if (item.rating > 0) {
+            if (item.comments && item.comments.length > 0 && item.rating > 0) {
                 ratingHtml = `<div style="position: absolute; top: 10px; right: 10px; background: rgba(15, 23, 42, 0.85); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; color: #fbbf24; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px);">★ ${item.rating.toFixed(1)}</div>`;
             }
 
@@ -4455,7 +4496,7 @@
             }
 
             let hours = Math.floor(totalMins / 60), mins = totalMins % 60;            
-            document.getElementById('detStats').innerHTML = `<div class="stats-grid"><div class="stat-card"><span class="stat-label">Length</span><span class="stat-value">${formatDist(item.dist)}</span></div><div class="stat-card"><span class="stat-label">${timeLabel}</span><span class="stat-value">${hours > 0 ? hours + 'h ' : ''}${mins}m</span></div><div class="stat-card-dual"><div class="dual-row"><span class="stat-sub-label">Total Climb</span><span class="stat-sub-value">${formatElev(ascent)}</span></div><div class="dual-divider"></div><div class="dual-row"><span class="stat-sub-label">Total Descent</span><span class="stat-sub-value">${formatElev(descent)}</span></div></div><div class="stat-card-dual"><div class="dual-row"><span class="stat-sub-label">Min Height</span><span class="stat-sub-value">${formatElev(minE)}</span></div><div class="dual-divider"></div><div class="dual-row"><span class="stat-sub-label">Max Height</span><span class="stat-sub-value">${formatElev(maxE)}</span></div></div><button class="elev-toggle-btn" onclick="startNavigation()" style="margin-bottom:5px;">🧭 Begin Route</button><div style="grid-column: span 2; display:flex; gap:8px; width:100%; margin-top:5px;"><button class="elev-toggle-btn" onclick="startFlyover()" style="grid-column:auto; width:100%; margin:0; flex:1;">✈️ Flyover</button><button id="toggleGraphBtn" class="elev-toggle-btn" onclick="toggleGraph()" style="grid-column:auto; width:100%; margin:0; flex:1;"><span>${graphOpen ? '📉' : '📈'}</span> ${graphOpen ? 'Hide Graph' : 'Show Graph'}</button></div></div>`;
+            document.getElementById('detStats').innerHTML = `<div class="stats-grid"><div class="stat-card"><span class="stat-label">Length</span><span class="stat-value">${formatDist(item.dist)}</span></div><div class="stat-card"><span class="stat-label">${timeLabel}</span><span class="stat-value">${hours > 0 ? hours + 'h ' : ''}${mins}m</span></div><div class="stat-card-dual"><div class="dual-row"><span class="stat-sub-label">Total Climb</span><span class="stat-sub-value">${formatElev(ascent)}</span></div><div class="dual-divider"></div><div class="dual-row"><span class="stat-sub-label">Total Descent</span><span class="stat-sub-value">${formatElev(descent)}</span></div></div><div class="stat-card-dual"><div class="dual-row"><span class="stat-sub-label">Min Height</span><span class="stat-sub-value">${formatElev(minE)}</span></div><div class="dual-divider"></div><div class="dual-row"><span class="stat-sub-label">Max Height</span><span class="stat-sub-value">${formatElev(maxE)}</span></div></div><button class="elev-toggle-btn" onclick="startNavigation()" style="margin-bottom:5px;">Start Route</button><div style="grid-column: span 2; display:flex; gap:8px; width:100%; margin-top:5px;"><button class="elev-toggle-btn" onclick="startFlyover()" style="grid-column:auto; width:100%; margin:0; flex:1;">✈️ Flyover</button><button id="toggleGraphBtn" class="elev-toggle-btn" onclick="toggleGraph()" style="grid-column:auto; width:100%; margin:0; flex:1;"><span>${graphOpen ? '📉' : '📈'}</span> ${graphOpen ? 'Hide Graph' : 'Show Graph'}</button></div></div>`;
             updateWalkWaypoints(); saveData();
             saveToCloud('walks', item);
             updateMyLogList();
@@ -4813,25 +4854,368 @@
             }
         }
 
+        let activeUploadTab = 'file';
+        const IMGBB_API_KEY = 'a9db7146d5eae68670f686291df63786';
+
+        let selectedUploadFiles = [];
+
+        function handleDrag(e, isOver) {
+            e.preventDefault();
+            e.stopPropagation();
+            const label = document.getElementById('dropzoneLabel');
+            if (label) {
+                if (isOver) {
+                    label.style.borderColor = 'var(--primary)';
+                    label.style.background = 'rgba(37, 99, 235, 0.08)';
+                } else {
+                    label.style.borderColor = 'var(--border)';
+                    label.style.background = 'rgba(0, 0, 0, 0.08)';
+                }
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const label = document.getElementById('dropzoneLabel');
+            if (label) {
+                label.style.borderColor = 'var(--border)';
+                label.style.background = 'rgba(0, 0, 0, 0.08)';
+            }
+
+            const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')).slice(0, 10);
+            if (files.length > 0) {
+                const fileInput = document.getElementById('imageFileInput');
+                if (fileInput) {
+                    const dataTransfer = new DataTransfer();
+                    files.forEach(file => dataTransfer.items.add(file));
+                    fileInput.files = dataTransfer.files;
+                }
+                
+                handleFileSelect({ target: { files: files } });
+            } else {
+                const statusText = document.getElementById('uploadStatus');
+                if (statusText) {
+                    statusText.innerText = "Please drop valid image files";
+                    statusText.style.color = "var(--danger)";
+                }
+            }
+        }
+
         function openUrlUploadPopup(context) {
             uploadContext = context;
             document.getElementById('upload-popup').style.display = 'flex';
             document.getElementById('imgUrlInput').value = '';
-            document.getElementById('uploadPreview').src = '';
-            document.getElementById('uploadPreview').style.display = 'none';
-            document.getElementById('uploadPreviewContainer').style.display = 'none';
-            document.getElementById('uploadStatus').innerText = 'Enter a URL to preview';
-            document.getElementById('uploadStatus').style.color = 'var(--text)';
-            document.getElementById('uploadProgressContainer').style.display = 'none';
+            
+            const fileInput = document.getElementById('imageFileInput');
+            if (fileInput) fileInput.value = '';
+            const fileLabel = document.getElementById('fileInputLabel');
+            if (fileLabel) fileLabel.innerText = "Click or drag image here";
+
+            selectedUploadFiles = [];
+            
+            const progressContainer = document.getElementById('uploadProgressContainer');
+            if (progressContainer) progressContainer.style.display = 'none';
+            const progressBar = document.getElementById('uploadProgressBar');
+            if (progressBar) progressBar.style.width = '0%';
+
+            switchUploadTab('file');
+            
             document.getElementById('btnConfirmUpload').style.display = 'block';
-            document.getElementById('btnConfirmUpload').disabled = true;
-            document.getElementById('btnConfirmUpload').style.opacity = '0.5';
+        }
+
+        function switchUploadTab(tab) {
+            activeUploadTab = tab;
+            const urlBtn = document.getElementById('uploadTabUrlBtn');
+            const fileBtn = document.getElementById('uploadTabFileBtn');
+            const urlInput = document.getElementById('imgUrlInput');
+            const fileContainer = document.getElementById('fileUploadContainer');
+            const previewContainer = document.getElementById('uploadPreviewContainer');
+            const previewImg = document.getElementById('uploadPreview');
+            const multiGrid = document.getElementById('uploadMultiPreviewGrid');
+            const confirmBtn = document.getElementById('btnConfirmUpload');
+            const statusText = document.getElementById('uploadStatus');
+
+            if (tab === 'url') {
+                if (urlBtn) urlBtn.classList.add('active');
+                if (fileBtn) fileBtn.classList.remove('active');
+                if (urlInput) urlInput.style.display = 'block';
+                if (fileContainer) fileContainer.style.display = 'none';
+                if (multiGrid) multiGrid.style.display = 'none';
+                
+                const url = urlInput ? urlInput.value.trim() : '';
+                if (url) {
+                    if (previewContainer) previewContainer.style.display = 'flex';
+                    if (previewImg) {
+                        previewImg.src = url;
+                        previewImg.style.display = 'block';
+                    }
+                    if (statusText) {
+                        statusText.innerText = 'Image loaded';
+                        statusText.style.color = 'var(--accent)';
+                    }
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                        confirmBtn.style.opacity = '1';
+                    }
+                } else {
+                    if (previewContainer) previewContainer.style.display = 'none';
+                    if (previewImg) {
+                        previewImg.src = '';
+                        previewImg.style.display = 'none';
+                    }
+                    if (statusText) {
+                        statusText.innerText = 'Enter a URL to preview';
+                        statusText.style.color = 'var(--text)';
+                    }
+                    if (confirmBtn) {
+                        confirmBtn.disabled = true;
+                        confirmBtn.style.opacity = '0.5';
+                    }
+                }
+            } else {
+                if (urlBtn) urlBtn.classList.remove('active');
+                if (fileBtn) fileBtn.classList.add('active');
+                if (urlInput) urlInput.style.display = 'none';
+                if (fileContainer) fileContainer.style.display = 'flex';
+                if (previewImg) previewImg.style.display = 'none';
+                
+                const fileInput = document.getElementById('imageFileInput');
+                if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    handleFileSelect({ target: { files: fileInput.files } });
+                } else {
+                    if (previewContainer) previewContainer.style.display = 'none';
+                    if (multiGrid) multiGrid.style.display = 'none';
+                    if (statusText) {
+                        statusText.innerText = 'Select image files to upload';
+                        statusText.style.color = 'var(--text)';
+                    }
+                    if (confirmBtn) {
+                        confirmBtn.disabled = true;
+                        confirmBtn.style.opacity = '0.5';
+                    }
+                }
+            }
+        }
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files).slice(0, 10);
+            selectedUploadFiles = files;
+            
+            const previewContainer = document.getElementById('uploadPreviewContainer');
+            const multiGrid = document.getElementById('uploadMultiPreviewGrid');
+            const previewImg = document.getElementById('uploadPreview');
+            const statusText = document.getElementById('uploadStatus');
+            const confirmBtn = document.getElementById('btnConfirmUpload');
+            const fileLabel = document.getElementById('fileInputLabel');
+
+            if (previewImg) previewImg.style.display = 'none';
+
+            if (files.length > 0) {
+                if (fileLabel) fileLabel.innerText = `${files.length} file(s) selected`;
+                if (statusText) {
+                    statusText.innerText = "Reading files...";
+                    statusText.style.color = "var(--text)";
+                }
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.style.opacity = '0.5';
+                }
+                
+                if (multiGrid) {
+                    multiGrid.innerHTML = '';
+                    multiGrid.style.display = 'flex';
+                }
+                if (previewContainer) previewContainer.style.display = 'flex';
+                
+                let loadedCount = 0;
+                let hasError = false;
+                
+                files.forEach((file) => {
+                    const reader = new FileReader();
+                    
+                    const thumb = document.createElement('div');
+                    thumb.style.width = '50px';
+                    thumb.style.height = '50px';
+                    thumb.style.borderRadius = '6px';
+                    thumb.style.border = '1px solid var(--border)';
+                    thumb.style.overflow = 'hidden';
+                    thumb.style.display = 'flex';
+                    thumb.style.alignItems = 'center';
+                    thumb.style.justifyContent = 'center';
+                    thumb.style.background = '#444';
+                    thumb.style.position = 'relative';
+                    
+                    const loadingIndicator = document.createElement('span');
+                    loadingIndicator.innerText = '⌛';
+                    loadingIndicator.style.fontSize = '12px';
+                    thumb.appendChild(loadingIndicator);
+                    if (multiGrid) multiGrid.appendChild(thumb);
+                    
+                    reader.onload = (event) => {
+                        if (hasError) return;
+                        thumb.innerHTML = '';
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.objectFit = 'cover';
+                        thumb.appendChild(img);
+                        
+                        loadedCount++;
+                        if (loadedCount === files.length) {
+                            if (statusText) {
+                                statusText.innerText = `Ready to upload ${files.length} image(s)`;
+                                statusText.style.color = "var(--accent)";
+                            }
+                            if (confirmBtn) {
+                                confirmBtn.disabled = false;
+                                confirmBtn.style.opacity = '1';
+                            }
+                        }
+                    };
+                    
+                    reader.onerror = () => {
+                        hasError = true;
+                        if (statusText) {
+                            statusText.innerText = `Error reading file: ${file.name}`;
+                            statusText.style.color = "var(--danger)";
+                        }
+                        if (confirmBtn) {
+                            confirmBtn.disabled = true;
+                            confirmBtn.style.opacity = '0.5';
+                        }
+                    };
+                    
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                if (fileLabel) fileLabel.innerText = "Click or drag image here";
+                if (multiGrid) {
+                    multiGrid.innerHTML = '';
+                    multiGrid.style.display = 'none';
+                }
+                if (previewContainer) previewContainer.style.display = 'none';
+                if (statusText) {
+                    statusText.innerText = "Select image files to upload";
+                    statusText.style.color = "var(--text)";
+                }
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.style.opacity = '0.5';
+                }
+            }
+        }
+
+        async function handlePhotoSubmit() {
+            if (activeUploadTab === 'url') {
+                performUrlAdd();
+            } else {
+                await performImgbbUpload();
+            }
+        }
+
+        async function performImgbbUpload() {
+            if (!selectedUploadFiles || selectedUploadFiles.length === 0) return;
+
+            const confirmBtn = document.getElementById('btnConfirmUpload');
+            const cancelBtn = document.querySelector('#upload-popup button[onclick="cancelUpload()"]');
+            const progressBar = document.getElementById('uploadProgressBar');
+            const progressContainer = document.getElementById('uploadProgressContainer');
+            const statusText = document.getElementById('uploadStatus');
+
+            if (confirmBtn) confirmBtn.disabled = true;
+            if (cancelBtn) cancelBtn.disabled = true;
+
+            if (progressContainer) {
+                progressContainer.style.display = 'block';
+                if (progressBar) progressBar.style.width = '0%';
+            }
+
+            const uploadedUrls = [];
+            const totalFiles = selectedUploadFiles.length;
+
+            for (let i = 0; i < totalFiles; i++) {
+                const file = selectedUploadFiles[i];
+                if (statusText) {
+                    statusText.innerText = `Uploading image ${i + 1} of ${totalFiles}...`;
+                    statusText.style.color = "var(--primary)";
+                }
+
+                const formData = new FormData();
+                formData.append('image', file);
+
+                let currentFileProgress = 10;
+                const updateProgress = () => {
+                    const overallBase = (i / totalFiles) * 100;
+                    const fileContribution = (currentFileProgress / 100) * (100 / totalFiles);
+                    if (progressBar) progressBar.style.width = `${overallBase + fileContribution}%`;
+                };
+                
+                updateProgress();
+
+                const progressInterval = setInterval(() => {
+                    if (currentFileProgress < 85) {
+                        currentFileProgress += Math.floor(Math.random() * 10) + 2;
+                        updateProgress();
+                    }
+                }, 300);
+
+                try {
+                    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    clearInterval(progressInterval);
+
+                    const data = await response.json();
+                    if (data.success && data.data && data.data.url) {
+                        uploadedUrls.push(data.data.url);
+                        currentFileProgress = 100;
+                        updateProgress();
+                    } else {
+                        const errMsg = (data.error && data.error.message) ? data.error.message : "Upload failed";
+                        throw new Error(errMsg);
+                    }
+                } catch (error) {
+                    clearInterval(progressInterval);
+                    console.error(`ImgBB upload error on file ${i + 1}:`, error);
+                    if (statusText) {
+                        statusText.innerText = `Error on image ${i + 1}: ${error.message || "Upload failed"}`;
+                        statusText.style.color = "var(--danger)";
+                    }
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                        confirmBtn.style.opacity = '1';
+                    }
+                    if (cancelBtn) cancelBtn.disabled = false;
+                    return; // Abort further uploads
+                }
+            }
+
+            if (progressBar) progressBar.style.width = '100%';
+            if (statusText) {
+                statusText.innerText = `Successfully uploaded ${totalFiles} image(s)!`;
+                statusText.style.color = "var(--accent)";
+            }
+
+            setTimeout(async () => {
+                if (progressContainer) progressContainer.style.display = 'none';
+                if (progressBar) progressBar.style.width = '0%';
+                if (confirmBtn) confirmBtn.disabled = false;
+                if (cancelBtn) cancelBtn.disabled = false;
+                
+                await addMultipleUrls(uploadedUrls);
+            }, 800);
         }
 
         const imgUrlInput = document.getElementById('imgUrlInput');
         const previewImg = document.getElementById('uploadPreview');
         if(imgUrlInput && previewImg) {
             imgUrlInput.oninput = (e) => {
+                if (activeUploadTab !== 'url') return;
                 const url = e.target.value.trim();
                 if(url) {
                     document.getElementById('uploadPreviewContainer').style.display = 'flex';
@@ -4844,48 +5228,86 @@
                 }
             };
             
-            previewImg.onload = () => { previewImg.style.display = 'block'; document.getElementById('btnConfirmUpload').disabled = false; document.getElementById('btnConfirmUpload').style.opacity = '1'; document.getElementById('uploadStatus').innerText = 'Image loaded'; document.getElementById('uploadStatus').style.color = 'var(--accent)'; };
-            previewImg.onerror = () => { previewImg.style.display = 'none'; document.getElementById('btnConfirmUpload').disabled = true; document.getElementById('btnConfirmUpload').style.opacity = '0.5'; document.getElementById('uploadStatus').innerText = 'Invalid Image URL'; document.getElementById('uploadStatus').style.color = 'var(--danger)'; };
+            previewImg.onload = () => { 
+                if (activeUploadTab === 'url') {
+                    previewImg.style.display = 'block'; 
+                    document.getElementById('btnConfirmUpload').disabled = false; 
+                    document.getElementById('btnConfirmUpload').style.opacity = '1'; 
+                    document.getElementById('uploadStatus').innerText = 'Image loaded'; 
+                    document.getElementById('uploadStatus').style.color = 'var(--accent)'; 
+                }
+            };
+            previewImg.onerror = () => { 
+                if (activeUploadTab === 'url') {
+                    previewImg.style.display = 'none'; 
+                    document.getElementById('btnConfirmUpload').disabled = true; 
+                    document.getElementById('btnConfirmUpload').style.opacity = '0.5'; 
+                    if (imgUrlInput.value.trim() === '') {
+                        document.getElementById('uploadStatus').innerText = 'Enter a URL to preview';
+                        document.getElementById('uploadStatus').style.color = 'var(--text)';
+                    } else {
+                        document.getElementById('uploadStatus').innerText = 'Invalid Image URL'; 
+                        document.getElementById('uploadStatus').style.color = 'var(--danger)'; 
+                    }
+                }
+            };
         }
 
         function cancelUpload() {
             document.getElementById('upload-popup').style.display = 'none';
             document.getElementById('imgUrlInput').value = '';
+            const fileInput = document.getElementById('imageFileInput');
+            if (fileInput) fileInput.value = '';
+            const fileLabel = document.getElementById('fileInputLabel');
+            if (fileLabel) fileLabel.innerText = "Click or drag image here";
+            selectedUploadFiles = [];
         }
 
-        async function performUrlAdd() {
-            const url = document.getElementById('imgUrlInput').value.trim();
-            if (!url) return;
+        async function addMultipleUrls(urls) {
+            if (!urls || urls.length === 0) return;
 
             if (uploadContext === 'create') {
-                tempCreationPhotos.push(url);
-                document.getElementById('modalPhotoList').innerHTML += `<img src="${url}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid var(--border);">`;
+                urls.forEach(url => {
+                    tempCreationPhotos.push(url);
+                    document.getElementById('modalPhotoList').innerHTML += `<img src="${url}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid var(--border);">`;
+                });
                 cancelUpload();
                 return;
             }
 
             if (uploadContext === 'review') {
-                tempReviewPhotos.push(url);
+                urls.forEach(url => {
+                    tempReviewPhotos.push(url);
+                });
                 renderReviewThumbnails();
                 cancelUpload();
                 return;
             }
-            
-            if (!activeSelectionId) return;
-            
-            const item = storage.pins.find(p=>p.id===activeSelectionId) || storage.walks.find(w=>w.id===activeSelectionId);
-            if(!item) return;
 
-            if(!item.photos) item.photos = [];
-            if(item.photo) { item.photos.push(item.photo); delete item.photo; }
-            item.photos.push(url);
-            
-            saveData(); 
+            if (!activeSelectionId) return;
+
+            const item = storage.pins.find(p => p.id === activeSelectionId) || storage.walks.find(w => w.id === activeSelectionId);
+            if (!item) return;
+
+            if (!item.photos) item.photos = [];
+            if (item.photo) { item.photos.push(item.photo); delete item.photo; }
+
+            urls.forEach(url => {
+                item.photos.push(url);
+            });
+
+            saveData();
             await saveToCloud(item.path ? 'walks' : 'pins', item);
             refreshSlideshow(item);
             if (isEditing) renderEditPhotos(item);
             updateMyLogList();
             cancelUpload();
+        }
+
+        async function performUrlAdd() {
+            const url = document.getElementById('imgUrlInput').value.trim();
+            if (!url) return;
+            await addMultipleUrls([url]);
         }
 
         function getHighResUrl(url) {
@@ -6210,7 +6632,7 @@
                 const visitedDateStr = i.visitedDate ? formatDate(i.visitedDate) : '';
 
                 let ratingHtml = '';
-                if (i.rating > 0) {
+                if (i.comments && i.comments.length > 0 && i.rating > 0) {
                     ratingHtml = `<span style="display:inline-block; background:rgba(15, 23, 42, 0.85); color:#fbbf24; font-weight:800; padding:2px 6px; border-radius:4px; font-size:10px; border: 1px solid rgba(255,255,255,0.1);">★ ${i.rating.toFixed(1)}</span>`;
                 }
 
