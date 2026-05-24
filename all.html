@@ -31,6 +31,9 @@
             0% { background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
             100% { background: #b91c1c; box-shadow: 0 0 20px rgba(185, 28, 28, 0.8); }
         }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
 
         .dark-theme { 
             --bg: #0f172a; 
@@ -112,6 +115,19 @@
         }
 
         .icon-btn, .zoom-btn { width: 34px; height: 34px; padding: 0; font-size: 18px; border-radius: 10px; }
+        .zoom-btn {
+            background: var(--card) !important;
+            border: 1px solid var(--border) !important;
+            color: var(--text) !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+        }
+        .zoom-btn:hover {
+            background: var(--primary) !important;
+            color: white !important;
+            border-color: var(--primary) !important;
+            transform: scale(1.05);
+        }
         #backBtn { display: none; font-size: 20px; }
 
         #expandBtn {
@@ -189,6 +205,7 @@
             cursor: pointer; display: flex; align-items: center; justify-content: space-between; 
             padding: 0 5px; transition: 0.2s; text-transform: uppercase;
             border-bottom: 1px solid var(--border); margin-bottom: 10px; margin-top: 5px;
+            text-align: left;
         }
         .settings-header:hover { opacity: 0.7; }
         .settings-content { display: flex; flex-direction: column; gap: 8px; margin-bottom: 5px; }
@@ -820,35 +837,57 @@
 
                 <div id="add-panel" style="display:none;">
                     <div id="walk-options" style="display:none; margin: 0 0 10px 0; padding: 12px; background: rgba(0,0,0,0.15); border-radius: 12px; border: none;">
+                        <div id="liveStatsContainer" style="display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                            <span id="liveDist" style="margin:0; font-weight:800; font-size: 1.25rem; color: var(--primary);">0.00 km</span>
+                            <span id="liveTime" style="margin:0; font-weight:600; font-size: 0.95rem; opacity:0.8; color: var(--text);">00m</span>
+                        </div>
                         <div class="mode-selector" id="addModeSelector">
                             <button class="mode-btn active" data-mode="walk"><span>🚶</span><b>Walk</b></button>
                             <button class="mode-btn" data-mode="hike"><span>🥾</span><b>Hike</b></button>
                             <button class="mode-btn" data-mode="run"><span>⚡</span><b>Run</b></button>
                             <button class="mode-btn" data-mode="cycle"><span>🚲</span><b>Cycle</b></button>
                         </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
                             <span class="settings-label" style="text-transform:none; font-size:12px;">Snap to Footpaths/Roads</span>
                             <label class="switch"><input type="checkbox" id="snapToggle"><span class="slider"></span></label>
                         </div>
-                        <div style="display:flex; gap:8px; margin-top:10px;">
-                            <button class="btn" id="undoAddBtn" style="flex:1; height:32px; background:rgba(0,0,0,0.15); color:var(--text); font-size:11px; margin:0; border: none;">↩ Undo</button>
-                            <button class="btn" id="cancelAddBtn" style="flex:1; height:32px; background:var(--danger); color:white; font-size:11px; margin:0;">✖ Cancel Plot</button>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                            <span class="settings-label" style="text-transform:none; font-size:12px;">Trace Mode</span>
+                            <div class="segmented-control" id="plotEditToggle" style="margin:0; width: 120px;">
+                                <button class="seg-btn active" id="btnTracePlot" onclick="setPlotEditMode('plot')">Plot</button>
+                                <button class="seg-btn" id="btnTraceEdit" onclick="setPlotEditMode('edit')">Edit</button>
+                            </div>
                         </div>
-                    </div>
-
-                    <div id="route-stats" style="display:none; background:rgba(0,0,0,0.15); padding:15px; border-radius:12px; margin-bottom: 15px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <p id="liveDist" style="margin:0; font-weight:800; font-size: 1.2rem; color: var(--primary);">0.00 km</p>
-                            <p id="liveTime" style="margin:0; font-weight:600; font-size: 0.9rem; opacity:0.7;">00m</p>
+                        <div style="display:flex; flex-direction:column; gap:4px; margin-bottom: 8px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span class="settings-label" style="text-transform:none; font-size:12px;">Line Thickness</span>
+                                <span id="valThickness" style="font-size:12px; font-weight:bold; color:var(--primary);">6px</span>
+                            </div>
+                            <input type="range" id="thicknessSlider" min="1" max="15" value="6" style="width:100%;">
                         </div>
-                        <button class="btn" id="drawGraphBtn" onclick="toggleGraph()" style="margin-top:8px; background:rgba(0,0,0,0.15); border:none; font-size:11px;">📈 Show Height Graph</button>
-                        <button class="btn btn-save-action" id="finishWalkBtn" style="margin-top:8px; width: 100%;">💾 Save Activity</button>
+                        <div style="display:flex; flex-direction:column; gap:4px; margin-bottom: 10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span class="settings-label" style="text-transform:none; font-size:12px;">Line Transparency</span>
+                                <span id="valTransparency" style="font-size:12px; font-weight:bold; color:var(--primary);">20%</span>
+                            </div>
+                            <input type="range" id="transparencySlider" min="0" max="90" value="20" style="width:100%;">
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
+                            <button class="btn" id="undoAddBtn" style="height:32px; background:rgba(0,0,0,0.15); color:var(--text); font-size:11px; margin:0; border: none; display:flex; align-items:center; justify-content:center; gap:4px;">↩ Undo</button>
+                            <button class="btn" id="redoAddBtn" style="height:32px; background:rgba(0,0,0,0.15); color:var(--text); font-size:11px; margin:0; border: none; display:flex; align-items:center; justify-content:center; gap:4px;">↪ Redo</button>
+                            <button class="btn" id="reverseAddBtn" style="height:32px; background:rgba(0,0,0,0.15); color:var(--text); font-size:11px; margin:0; border: none; display:flex; align-items:center; justify-content:center; gap:4px;">⇄ Reverse</button>
+                            <button class="btn" id="cancelAddBtn" style="height:32px; background:var(--danger); color:white; font-size:11px; margin:0; display:flex; align-items:center; justify-content:center; gap:4px;">✖ Cancel Plot</button>
+                        </div>
+                        <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:10px;">
+                            <button class="btn" id="drawGraphBtn" onclick="toggleGraph()" style="margin:0; height:32px; background:rgba(0,0,0,0.15); border:none; font-size:11px; display:flex; align-items:center; justify-content:center; gap:4px;">📈 Show Height Graph</button>
+                            <button class="btn btn-save-action" id="finishWalkBtn" style="margin:0; height:36px; width: 100%; display:flex; align-items:center; justify-content:center; gap:6px;">💾 Save Activity</button>
+                        </div>
                     </div>
 
                     <button class="settings-header" onclick="toggleSettingsSection('addSectionContent', this)" style="margin-top:0;">
                         <span>NEW UPLOAD</span> <span class="chevron">▼</span>
                     </button>
-                    <div id="addSectionContent" class="settings-content" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                    <div id="addSectionContent" class="settings-content" data-display="grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
                         <button id="pinModeBtn" class="btn btn-main" style="height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">📍</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Pin</span></button>
                         <button id="campsiteModeBtn" class="btn btn-main" style="height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">⛺</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Campsite</span></button>
                         <button id="parkingModeBtn" class="btn btn-main" style="height:80px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px; margin:0; padding:5px;"><span style="font-size:24px; line-height:1;">🅿️</span><span style="font-size:10px; font-weight:800; text-align:center; line-height:1.1;">Parking</span></button>
@@ -1078,6 +1117,10 @@
 
                         <!-- Route Options Card (Only shown for Walks) -->
                         <div id="editWalkOptions" style="display:none; margin:0; padding:12px; background: rgba(37, 99, 235, 0.1); border-radius:12px; border:none; display:flex; flex-direction:column; gap:10px;">
+                            <div id="editLiveStatsContainer" style="display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 10px; margin-bottom: 2px; border: 1px solid rgba(255,255,255,0.05);">
+                                <span id="editLiveDist" style="margin:0; font-weight:800; font-size: 1.25rem; color: var(--primary);">0.00 km</span>
+                                <span id="editLiveTime" style="margin:0; font-weight:600; font-size: 0.95rem; opacity:0.8; color: var(--text);">00m</span>
+                            </div>
                             <span class="settings-label" style="font-size:11px; opacity:0.7;">Activity Type</span>
                             <div class="mode-selector" id="editModeSelector" style="margin:0;">
                                 <button class="mode-btn" data-mode="walk"><span>🚶</span><b>Walk</b></button>
@@ -1085,11 +1128,36 @@
                                 <button class="mode-btn" data-mode="run"><span>⚡</span><b>Run</b></button>
                                 <button class="mode-btn" data-mode="cycle"><span>🚲</span><b>Cycle</b></button>
                             </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; margin-top:5px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; margin-top:5px; margin-bottom: 8px;">
                                 <span class="settings-label" style="text-transform:none; font-size:12px; color: var(--primary);">Snap to paths</span>
                                 <label class="switch"><input type="checkbox" id="editSnapToggle"><span class="slider"></span></label>
                             </div>
-                            <button class="btn" id="undoEditBtn" style="margin:0; height:32px; background:rgba(0,0,0,0.15); border:none; font-size:11px; border-radius:8px;">↩ Undo Last Point</button>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                                <span class="settings-label" style="text-transform:none; font-size:12px; color: var(--primary);">Mode</span>
+                                <div class="segmented-control" id="editPlotEditToggle" style="margin:0; width: 120px;">
+                                    <button class="seg-btn active" id="btnEditPlot" onclick="setPlotEditMode('plot')">Plot</button>
+                                    <button class="seg-btn" id="btnEditEdit" onclick="setPlotEditMode('edit')">Edit</button>
+                                </div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:4px; margin-bottom: 8px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span class="settings-label" style="text-transform:none; font-size:12px; color: var(--primary);">Line Thickness</span>
+                                    <span id="editValThickness" style="font-size:12px; font-weight:bold; color:var(--primary);">6px</span>
+                                </div>
+                                <input type="range" id="editThicknessSlider" min="1" max="15" value="6" style="width:100%;">
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:4px; margin-bottom: 10px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span class="settings-label" style="text-transform:none; font-size:12px; color: var(--primary);">Line Transparency</span>
+                                    <span id="editValTransparency" style="font-size:12px; font-weight:bold; color:var(--primary);">20%</span>
+                                </div>
+                                <input type="range" id="editTransparencySlider" min="0" max="90" value="20" style="width:100%;">
+                            </div>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                                <button class="btn" id="undoEditBtn" style="margin:0; height:32px; background:rgba(0,0,0,0.15); border:none; font-size:11px; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:4px;">↩ Undo</button>
+                                <button class="btn" id="redoEditBtn" style="margin:0; height:32px; background:rgba(0,0,0,0.15); border:none; font-size:11px; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:4px;">↪ Redo</button>
+                                <button class="btn" id="reverseEditBtn" style="margin:0; height:32px; background:rgba(0,0,0,0.15); border:none; font-size:11px; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:4px; grid-column: span 2;">⇄ Reverse Route</button>
+                            </div>
                         </div>
 
                         <!-- Category Card (Only shown for Pins) -->
@@ -1160,7 +1228,13 @@
                     <strong style="font-weight: 800; font-size: 13px;">Elevation Profile</strong>
                     <button id="closeElevBtn" class="icon-btn" style="width:30px; height:30px; background:none;">✕</button>
                 </div>
-                <div id="elevContainer"><canvas id="elevChart"></canvas></div>
+                <div id="elevContainer" style="position:relative; flex:1; min-height:0; width:100%;">
+                    <canvas id="elevChart"></canvas>
+                    <div id="elevLoading" style="display:none; position:absolute; inset:0; background:var(--card); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; z-index:100; border-radius:8px; backdrop-filter:blur(5px);">
+                        <div style="width:24px; height:24px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite;"></div>
+                        <span style="font-size:11px; font-weight:800; text-transform:uppercase; opacity:0.8; color:var(--text);">Loading Elevation...</span>
+                    </div>
+                </div>
             </div>
 
         <div id="map3d"></div>
@@ -1173,6 +1247,7 @@
             <div class="segmented-control" style="width: 100%; margin-bottom: 12px; box-sizing: border-box;">
                 <button class="seg-btn active" id="uploadTabFileBtn" onclick="switchUploadTab('file')">Upload</button>
                 <button class="seg-btn" id="uploadTabUrlBtn" onclick="switchUploadTab('url')">URL</button>
+                <button class="seg-btn" id="uploadTabAutoBtn" onclick="switchUploadTab('auto')">Auto</button>
             </div>
             <div id="fileUploadContainer" style="display:flex; flex-direction:column; align-items:center; width:100%; margin-bottom:10px; box-sizing:border-box;">
                 <label id="dropzoneLabel" for="imageFileInput" style="width:100%; border:2px dashed var(--border); border-radius:12px; padding:15px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; box-sizing:border-box; transition:var(--transition); background:rgba(0,0,0,0.08);"
@@ -1188,6 +1263,11 @@
                 <input type="file" id="imageFileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)" multiple>
             </div>
             <input type="text" id="imgUrlInput" class="modal-input" placeholder="Paste image link here..." style="display:none; margin-bottom:10px; padding:8px;">
+            <div id="autoUploadContainer" style="display:none; flex-direction:column; align-items:center; width:100%; margin-bottom:10px; box-sizing:border-box;">
+                <button class="btn" onclick="loadAutomaticPhotos()" style="width:100%; margin-bottom:10px; background:rgba(0,0,0,0.15); border:none; color:var(--text);">Find Automatic Photos</button>
+                <div id="autoPhotosLoading" style="display:none; font-size:12px; opacity:0.7; margin-bottom:10px; text-align:center;">Searching nearby locations...</div>
+                <div id="autoPhotosGrid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; width:100%;"></div>
+            </div>
             <div id="uploadPreviewContainer" style="width:100%; height:200px; background:#333; margin-bottom:15px; display:flex; align-items:center; justify-content:center; border-radius:8px; overflow:hidden;">
                 <img id="uploadPreview" style="max-width:100%; max-height:100%; object-fit:contain;">
                 <div id="uploadMultiPreviewGrid" style="display:none; width:100%; height:100%; flex-wrap:wrap; gap:8px; padding:10px; overflow-y:auto; align-items:flex-start; justify-content:center; box-sizing:border-box;"></div>
@@ -1499,6 +1579,9 @@
         let miniMap = null, miniMapLayer = null, miniMapPoly = null;
         let isFirstLocationLoad = true; 
         let walkHistory = [];
+        let walkRedoStack = [];
+        let editWalkRedoStack = [];
+        let currentPlotEditMode = 'plot';
         
         // 3D Map State
         let is3DMode = false;
@@ -1577,6 +1660,53 @@
 
         let baseLayer = L.tileLayer(mapStyles[storage.mapStyle] || mapStyles.voyager).addTo(map);
         let tempPoly = L.polyline([], {color: '#2563eb', weight: 6, opacity: 0.8, className: 'temp-poly'}).addTo(map);
+        tempPoly.on('click', (e) => {
+            handlePolylineClick(e, tempPoly);
+        });
+
+        // Initialize Plot Sliders
+        document.getElementById('thicknessSlider').oninput = function() {
+            const val = this.value;
+            document.getElementById('valThickness').innerText = val + 'px';
+            tempPoly.setStyle({ weight: parseInt(val) });
+        };
+
+        document.getElementById('transparencySlider').oninput = function() {
+            const val = this.value;
+            document.getElementById('valTransparency').innerText = val + '%';
+            const op = 1 - val / 100;
+            tempPoly.setStyle({ opacity: op });
+            syncNodesOpacity(op);
+        };
+
+        // Initialize Edit Sliders
+        document.getElementById('editThicknessSlider').oninput = function() {
+            const val = this.value;
+            document.getElementById('editValThickness').innerText = val + 'px';
+            if (window.currentActiveLayer) {
+                window.currentActiveLayer.setStyle({ weight: parseInt(val) });
+            }
+            const walk = storage.walks.find(w => w.id === activeSelectionId);
+            if (walk) {
+                walk.weight = parseInt(val);
+                saveData();
+            }
+        };
+
+        document.getElementById('editTransparencySlider').oninput = function() {
+            const val = this.value;
+            document.getElementById('editValTransparency').innerText = val + '%';
+            const op = 1 - val / 100;
+            if (window.currentActiveLayer) {
+                window.currentActiveLayer.setStyle({ opacity: op });
+            }
+            syncNodesOpacity(op);
+            const walk = storage.walks.find(w => w.id === activeSelectionId);
+            if (walk) {
+                walk.opacity = op;
+                saveData();
+            }
+        };
 
         // --- DATABASE SYNC FUNCTIONS ---
         async function loadPermanentData() {
@@ -2103,7 +2233,8 @@
         function toggleSettingsSection(id, btn) {
             const el = document.getElementById(id);
             const isHidden = el.style.display === 'none';
-            el.style.display = isHidden ? 'flex' : 'none';
+            const displayType = el.getAttribute('data-display') || 'flex';
+            el.style.display = isHidden ? displayType : 'none';
             const chevron = btn.querySelector('.chevron');
             if(chevron) chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
         }
@@ -2829,8 +2960,13 @@
             const targetBtn = document.getElementById(targetBtnId);
             if (targetBtn) targetBtn.classList.add('active-mode');
             
-            document.getElementById('route-stats').style.display = (mode === 'walk' ? 'block' : 'none');
-            document.getElementById('walk-options').style.display = (mode === 'walk' ? 'block' : 'none');
+            const isWalkMode = (mode === 'walk');
+            document.getElementById('walk-options').style.display = isWalkMode ? 'block' : 'none';
+            document.querySelectorAll('#add-panel > .settings-header, #add-panel > .list-divider').forEach(el => {
+                el.style.display = isWalkMode ? 'none' : 'block';
+            });
+            document.getElementById('addSectionContent').style.display = isWalkMode ? 'none' : 'grid';
+            document.getElementById('myTraceLogContent').style.display = 'none';
             document.getElementById('recordModeBtn').style.display = (mode === 'record' || isRecording ? 'none' : 'flex');
             
             const popout = document.getElementById('recording-popout');
@@ -2850,15 +2986,56 @@
             if(mode !== 'walk' && mode !== 'pin' && mode !== 'record') { 
                 tempPath = []; 
                 walkHistory = []; 
+                walkRedoStack = [];
+                editWalkRedoStack = []; 
                 nodeHandles.forEach(h => map.removeLayer(h)); nodeHandles = [];
                 tempPoly.setLatLngs([]); 
+                liveElevData = [];
+                const distEl = document.getElementById('liveDist');
+                if (distEl) distEl.innerText = '0.00 km';
+                const timeEl = document.getElementById('liveTime');
+                if (timeEl) timeEl.innerText = '00m';
                 closeElevation();
             }
 
             if (mode === 'walk' || mode === 'record') {
                 document.body.classList.add('mode-walk');
+                if (mode === 'walk') {
+                    setPlotEditMode('plot');
+                }
             } else {
                 document.body.classList.remove('mode-walk');
+            }
+        }
+
+        function setPlotEditMode(mode) {
+            currentPlotEditMode = mode;
+            
+            // Update Trace UI
+            document.querySelectorAll('#plotEditToggle .seg-btn').forEach(btn => btn.classList.remove('active'));
+            const btnTracePlot = document.getElementById('btnTracePlot');
+            const btnTraceEdit = document.getElementById('btnTraceEdit');
+            if (mode === 'plot') {
+                if (btnTracePlot) btnTracePlot.classList.add('active');
+            } else {
+                if (btnTraceEdit) btnTraceEdit.classList.add('active');
+            }
+            
+            // Update Edit UI
+            document.querySelectorAll('#editPlotEditToggle .seg-btn').forEach(btn => btn.classList.remove('active'));
+            const btnEditPlot = document.getElementById('btnEditPlot');
+            const btnEditEdit = document.getElementById('btnEditEdit');
+            if (mode === 'plot') {
+                if (btnEditPlot) btnEditPlot.classList.add('active');
+            } else {
+                if (btnEditEdit) btnEditEdit.classList.add('active');
+            }
+            
+            // Re-render nodes
+            if (currentMode === 'walk') {
+                createNodes(tempPoly);
+            } else if (isEditing && window.currentActiveLayer instanceof L.Polyline) {
+                createNodes(window.currentActiveLayer);
             }
         }
 
@@ -2871,7 +3048,26 @@
             const activityMode = document.querySelector('#addModeSelector .mode-btn.active').dataset.mode;
             selectedColor = ACTIVITY_COLORS[activityMode];
             window.currentPinCategory = 'all';
-            tempPoly.setStyle({color: selectedColor});
+            
+            // Reset plot sliders to default
+            const thicknessSlider = document.getElementById('thicknessSlider');
+            const transparencySlider = document.getElementById('transparencySlider');
+            if (thicknessSlider) {
+                thicknessSlider.value = 6;
+                document.getElementById('valThickness').innerText = '6px';
+            }
+            if (transparencySlider) {
+                transparencySlider.value = 20;
+                document.getElementById('valTransparency').innerText = '20%';
+            }
+            tempPoly.setStyle({color: selectedColor, weight: 6, opacity: 0.8});
+            
+            liveElevData = [];
+            const distEl = document.getElementById('liveDist');
+            if (distEl) distEl.innerText = '0.00 km';
+            const timeEl = document.getElementById('liveTime');
+            if (timeEl) timeEl.innerText = '00m';
+            
             setupTypePickers(); 
             setMode('walk'); 
         };
@@ -3022,9 +3218,14 @@
             if(confirm("Discard current plot?")) {
                 tempPath = [];
                 walkHistory = [];
+                walkRedoStack = [];
+                editWalkRedoStack = [];
                 tempPoly.setLatLngs([]);
                 nodeHandles.forEach(h => map.removeLayer(h)); nodeHandles = [];
+                liveElevData = [];
                 document.getElementById('liveDist').innerText = '0.00 km';
+                const timeEl = document.getElementById('liveTime');
+                if (timeEl) timeEl.innerText = '00m';
                 closeElevation();
                 setMode('ready');
             }
@@ -3258,7 +3459,7 @@
         }
 
         async function getSnappedPath(startLatLng, endLatLng) {
-            const url = `https://router.project-osrm.org/route/v1/foot/${startLatLng.lng},${startLatLng.lat};${endLatLng.lng},${endLatLng.lat}?overview=full&geometries=geojson`;
+            const url = `https://routing.openstreetmap.de/routed-foot/route/v1/driving/${startLatLng.lng},${startLatLng.lat};${endLatLng.lng},${endLatLng.lat}?overview=full&geometries=geojson`;
             try {
                 const response = await fetch(url);
                 const data = await response.json();
@@ -3297,6 +3498,7 @@
                 const lls = window.currentActiveLayer.getLatLngs(); 
                 const snapEnabled = document.getElementById('editSnapToggle').checked;
                 walkHistory.push(lls.map(l => L.latLng(l.lat, l.lng)));
+                editWalkRedoStack = [];
                 if (snapEnabled && lls.length > 0) {
                     const roadNodes = await getSnappedPath(lls[lls.length - 1], e.latlng);
                     roadNodes.forEach(node => lls.push(L.latLng(node[0], node[1])));
@@ -3315,6 +3517,7 @@
             if (currentMode === 'walk') {
                 const snapEnabled = document.getElementById('snapToggle').checked;
                 walkHistory.push(JSON.parse(JSON.stringify(tempPath)));
+                walkRedoStack = [];
                 if (snapEnabled && tempPath.length > 0) {
                     const lastPt = L.latLng(tempPath[tempPath.length - 1][0], tempPath[tempPath.length - 1][1]);
                     const roadNodes = await getSnappedPath(lastPt, e.latlng);
@@ -3369,6 +3572,7 @@
 
         document.getElementById('undoAddBtn').onclick = () => {
             if (walkHistory.length > 0) {
+                walkRedoStack.push(JSON.parse(JSON.stringify(tempPath)));
                 tempPath = walkHistory.pop();
                 tempPoly.setLatLngs(tempPath);
                 createNodes(tempPoly);
@@ -3376,6 +3580,83 @@
                 fetchElevation(tempPath, false);
             }
         };
+
+        const redoAddBtn = document.getElementById('redoAddBtn');
+        if (redoAddBtn) {
+            redoAddBtn.onclick = () => {
+                if (walkRedoStack.length > 0) {
+                    walkHistory.push(JSON.parse(JSON.stringify(tempPath)));
+                    tempPath = walkRedoStack.pop();
+                    tempPoly.setLatLngs(tempPath);
+                    createNodes(tempPoly);
+                    updateWalkStats();
+                    fetchElevation(tempPath, false);
+                }
+            };
+        }
+
+        const reverseAddBtn = document.getElementById('reverseAddBtn');
+        if (reverseAddBtn) {
+            reverseAddBtn.onclick = () => {
+                if (tempPath.length > 0) {
+                    walkHistory.push(JSON.parse(JSON.stringify(tempPath)));
+                    walkRedoStack = [];
+                    tempPath.reverse();
+                    tempPoly.setLatLngs(tempPath);
+                    createNodes(tempPoly);
+                    updateWalkStats();
+                    fetchElevation(tempPath, false);
+                }
+            };
+        }
+
+        const undoEditBtn = document.getElementById('undoEditBtn');
+        if (undoEditBtn) {
+            undoEditBtn.onclick = () => {
+                if (isEditing && window.currentActiveLayer instanceof L.Polyline && walkHistory.length > 0) {
+                    const currentLls = window.currentActiveLayer.getLatLngs().map(l => L.latLng(l.lat, l.lng));
+                    editWalkRedoStack.push(currentLls);
+                    const prevLls = walkHistory.pop();
+                    window.currentActiveLayer.setLatLngs(prevLls);
+                    createNodes(window.currentActiveLayer);
+                    updateWalkStats();
+                    fetchElevation(prevLls.map(l => [l.lat, l.lng]), false);
+                }
+            };
+        }
+
+        const redoEditBtn = document.getElementById('redoEditBtn');
+        if (redoEditBtn) {
+            redoEditBtn.onclick = () => {
+                if (isEditing && window.currentActiveLayer instanceof L.Polyline && editWalkRedoStack.length > 0) {
+                    const currentLls = window.currentActiveLayer.getLatLngs().map(l => L.latLng(l.lat, l.lng));
+                    walkHistory.push(currentLls);
+                    const nextLls = editWalkRedoStack.pop();
+                    window.currentActiveLayer.setLatLngs(nextLls);
+                    createNodes(window.currentActiveLayer);
+                    updateWalkStats();
+                    fetchElevation(nextLls.map(l => [l.lat, l.lng]), false);
+                }
+            };
+        }
+
+        const reverseEditBtn = document.getElementById('reverseEditBtn');
+        if (reverseEditBtn) {
+            reverseEditBtn.onclick = () => {
+                if (isEditing && window.currentActiveLayer instanceof L.Polyline) {
+                    const lls = window.currentActiveLayer.getLatLngs().map(l => L.latLng(l.lat, l.lng));
+                    if (lls.length > 0) {
+                        walkHistory.push(lls.map(l => L.latLng(l.lat, l.lng)));
+                        editWalkRedoStack = [];
+                        lls.reverse();
+                        window.currentActiveLayer.setLatLngs(lls);
+                        createNodes(window.currentActiveLayer);
+                        updateWalkStats();
+                        fetchElevation(lls.map(l => [l.lat, l.lng]), false);
+                    }
+                }
+            };
+        }
 
         function resetModal() { 
             document.getElementById('itemName').value = ''; 
@@ -3493,7 +3774,9 @@
                     facilities: facilities,
                     visited: isVisited,
                     visitedDate: visitedDate,
-                    bucketList: isBucket
+                    bucketList: isBucket,
+                    weight: parseInt(document.getElementById('thicknessSlider').value) || 6,
+                    opacity: 1 - (parseInt(document.getElementById('transparencySlider').value) || 20) / 100
                 }; 
                 storage.walks.push(entry); 
                 addWalk(entry); 
@@ -3503,7 +3786,7 @@
             saveData(); 
             document.getElementById('modal-overlay').style.display = 'none'; 
             goBack(); 
-            fetchPhoto(flat, flon, id);
+            fetchAutomaticPhotosForId(id, 3);
             tempCreationPhotos = [];
             
             tempPath = [];
@@ -3512,24 +3795,49 @@
             finalRecordedTime = 0;
         };
 
-        async function fetchPhoto(lat, lon, id) {
+        async function fetchWikipediaPhotos(lat, lon, limit = 3) {
             try {
-                const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=500&gscoord=${lat}|${lon}&format=json&origin=*`).then(r=>r.json());
+                const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gscoord=${lat}|${lon}&gslimit=${limit}&format=json&origin=*`).then(r=>r.json());
                 if(res.query?.geosearch?.length) {
-                    const title = res.query.geosearch[0].title;
-                    const imgRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&titles=${encodeURIComponent(title)}&pithumbsize=500&origin=*`).then(r=>r.json());
-                    const pg = Object.values(imgRes.query.pages)[0];
-                    if(pg.original) { 
-                        let entry = storage.pins.find(x=>x.id===id) || storage.walks.find(x=>x.id===id); 
-                        if(entry && !entry.photo) { 
-                            entry.photo = pg.original.source; 
-                            saveData(); 
-                            saveToCloud(entry.path ? 'walks' : 'pins', entry);
-                            updateHighlights(); 
-                        } 
+                    const photos = [];
+                    for (const item of res.query.geosearch) {
+                        const imgRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&titles=${encodeURIComponent(item.title)}&pithumbsize=500&origin=*`).then(r=>r.json());
+                        const pg = Object.values(imgRes.query.pages)[0];
+                        if(pg.original) photos.push(pg.original.source);
+                        if (photos.length >= limit) break;
                     }
+                    return photos;
                 }
             } catch(e){}
+            return [];
+        }
+
+        async function fetchAutomaticPhotosForId(id, limit = 3) {
+            const item = storage.pins.find(p=>p.id===id) || storage.walks.find(w=>w.id===id);
+            if (!item) return;
+            if ((item.photos && item.photos.length > 0) || item.photo) return; // Already has photos
+
+            let lat, lng;
+            if (item.path && item.path.length > 0) {
+                lat = item.path[Math.floor(item.path.length / 2)][0];
+                lng = item.path[Math.floor(item.path.length / 2)][1];
+            } else {
+                lat = item.lat; lng = item.lng;
+            }
+
+            const photos = await fetchWikipediaPhotos(lat, lng, limit);
+            if (photos.length > 0) {
+                if (!item.photos) item.photos = [];
+                item.photos.push(...photos);
+                saveData();
+                saveToCloud(item.path ? 'walks' : 'pins', item);
+                updateHighlights();
+                updateMyLogList();
+                if (activeSelectionId === id) {
+                    refreshSlideshow(item);
+                    if (isEditing) renderEditPhotos(item);
+                }
+            }
         }
 
         function generateTooltipHTML(item) {
@@ -3650,16 +3958,28 @@
             const polyClassName = isActive ? 'walk-poly active-walk' : 'walk-poly';
             const poly = L.polyline(w.path, {color: w.color || '#2563eb', weight:5, zIndex: 500, className: polyClassName}).addTo(mapItems); 
             poly.walkId = w.id;
-            poly.on('mouseover', () => poly.setStyle({weight: 8}));
-            poly.on('mouseout', () => poly.setStyle({weight: 5}));
+            poly.on('mouseover', () => {
+                if (poly.walkId !== activeSelectionId) {
+                    poly.setStyle({weight: 8});
+                }
+            });
+            poly.on('mouseout', () => {
+                if (poly.walkId !== activeSelectionId) {
+                    poly.setStyle({weight: 5});
+                }
+            });
             poly.on('click', (e) => { 
                 L.DomEvent.stopPropagation(e); 
-                const isMobile = document.body.classList.contains('mobile-mode');
-                const sidebarW = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar')) || 400;
-                const leftPad = isMobile ? 20 : (sidebarW + 30);
-                const bottomPad = isMobile ? (window.innerHeight / 2) : 40;
-                map.flyToBounds(e.target.getBounds(), { paddingTopLeft: [leftPad, 20], paddingBottomRight: [20, bottomPad], duration: 0.8 });
-                showDetails(w, true, e.target); 
+                if (isEditing && activeSelectionId === w.id) {
+                    handlePolylineClick(e, poly);
+                } else {
+                    const isMobile = document.body.classList.contains('mobile-mode');
+                    const sidebarW = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar')) || 400;
+                    const leftPad = isMobile ? 20 : (sidebarW + 30);
+                    const bottomPad = isMobile ? (window.innerHeight / 2) : 40;
+                    map.flyToBounds(e.target.getBounds(), { paddingTopLeft: [leftPad, 20], paddingBottomRight: [20, bottomPad], duration: 0.8 });
+                    showDetails(w, true, e.target); 
+                }
             });
             
             if (!document.body.classList.contains('mobile-mode')) {
@@ -3685,7 +4005,10 @@
                 } else if (layer instanceof L.Polyline && layer.walkId) {
                     if (hasSelection) {
                         if (layer.walkId === activeSelectionId) {
-                            layer.setStyle({ opacity: 1.0, weight: 6 });
+                            const w = storage.walks.find(x => x.id === layer.walkId);
+                            const op = (w && w.opacity !== undefined) ? w.opacity : 0.8;
+                            const wt = (w && w.weight !== undefined) ? w.weight : 6;
+                            layer.setStyle({ opacity: op, weight: wt });
                         } else {
                             layer.setStyle({ opacity: 0.15, weight: 2 });
                         }
@@ -3855,7 +4178,21 @@
             floatEdit.classList.remove('is-editing');
             floatEdit.style.display = 'none'; // Always hide floating edit button
             
-            if(isWalk) { document.querySelectorAll('#editModeSelector .mode-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.mode === (item.activity || 'walk')); }); }
+            if(isWalk) {
+                document.querySelectorAll('#editModeSelector .mode-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.mode === (item.activity || 'walk')); });
+                const wt = item.weight !== undefined ? item.weight : 6;
+                const op = item.opacity !== undefined ? item.opacity : 0.8;
+                const editThicknessSlider = document.getElementById('editThicknessSlider');
+                const editTransparencySlider = document.getElementById('editTransparencySlider');
+                if (editThicknessSlider) {
+                    editThicknessSlider.value = wt;
+                    document.getElementById('editValThickness').innerText = wt + 'px';
+                }
+                if (editTransparencySlider) {
+                    editTransparencySlider.value = Math.round((1 - op) * 100);
+                    document.getElementById('editValTransparency').innerText = Math.round((1 - op) * 100) + '%';
+                }
+            }
             if(document.body.classList.contains('mobile-mode')) snapTo('half');
             document.getElementById('floatDeleteBtn').style.display = 'none'; 
 
@@ -4496,6 +4833,10 @@
             }
 
             let hours = Math.floor(totalMins / 60), mins = totalMins % 60;            
+            const editDistEl = document.getElementById('editLiveDist');
+            const editTimeEl = document.getElementById('editLiveTime');
+            if (editDistEl) editDistEl.innerText = formatDist(item.dist);
+            if (editTimeEl) editTimeEl.innerText = (hours > 0 ? hours + 'h ' : '') + mins + 'm';
             document.getElementById('detStats').innerHTML = `<div class="stats-grid"><div class="stat-card"><span class="stat-label">Length</span><span class="stat-value">${formatDist(item.dist)}</span></div><div class="stat-card"><span class="stat-label">${timeLabel}</span><span class="stat-value">${hours > 0 ? hours + 'h ' : ''}${mins}m</span></div><div class="stat-card-dual"><div class="dual-row"><span class="stat-sub-label">Total Climb</span><span class="stat-sub-value">${formatElev(ascent)}</span></div><div class="dual-divider"></div><div class="dual-row"><span class="stat-sub-label">Total Descent</span><span class="stat-sub-value">${formatElev(descent)}</span></div></div><div class="stat-card-dual"><div class="dual-row"><span class="stat-sub-label">Min Height</span><span class="stat-sub-value">${formatElev(minE)}</span></div><div class="dual-divider"></div><div class="dual-row"><span class="stat-sub-label">Max Height</span><span class="stat-sub-value">${formatElev(maxE)}</span></div></div><button class="elev-toggle-btn" onclick="startNavigation()" style="margin-bottom:5px;">Start Route</button><div style="grid-column: span 2; display:flex; gap:8px; width:100%; margin-top:5px;"><button class="elev-toggle-btn" onclick="startFlyover()" style="grid-column:auto; width:100%; margin:0; flex:1;">✈️ Flyover</button><button id="toggleGraphBtn" class="elev-toggle-btn" onclick="toggleGraph()" style="grid-column:auto; width:100%; margin:0; flex:1;"><span>${graphOpen ? '📉' : '📈'}</span> ${graphOpen ? 'Hide Graph' : 'Show Graph'}</button></div></div>`;
             updateWalkWaypoints(); saveData();
             saveToCloud('walks', item);
@@ -4783,6 +5124,8 @@
                 window.currentPinCategory = cat ? cat.name : 'all';
                 setupTypePickers(); 
                 walkHistory = []; 
+                walkRedoStack = [];
+                editWalkRedoStack = [];
             }
             
             if(isEditing && window.currentActiveLayer instanceof L.Polyline) { createNodes(window.currentActiveLayer); } 
@@ -4929,21 +5272,41 @@
             activeUploadTab = tab;
             const urlBtn = document.getElementById('uploadTabUrlBtn');
             const fileBtn = document.getElementById('uploadTabFileBtn');
+            const autoBtn = document.getElementById('uploadTabAutoBtn');
             const urlInput = document.getElementById('imgUrlInput');
             const fileContainer = document.getElementById('fileUploadContainer');
+            const autoContainer = document.getElementById('autoUploadContainer');
             const previewContainer = document.getElementById('uploadPreviewContainer');
             const previewImg = document.getElementById('uploadPreview');
             const multiGrid = document.getElementById('uploadMultiPreviewGrid');
             const confirmBtn = document.getElementById('btnConfirmUpload');
             const statusText = document.getElementById('uploadStatus');
 
-            if (tab === 'url') {
-                if (urlBtn) urlBtn.classList.add('active');
-                if (fileBtn) fileBtn.classList.remove('active');
-                if (urlInput) urlInput.style.display = 'block';
-                if (fileContainer) fileContainer.style.display = 'none';
+            if (urlBtn) urlBtn.classList.toggle('active', tab === 'url');
+            if (fileBtn) fileBtn.classList.toggle('active', tab === 'file');
+            if (autoBtn) autoBtn.classList.toggle('active', tab === 'auto');
+
+            if (urlInput) urlInput.style.display = tab === 'url' ? 'block' : 'none';
+            if (fileContainer) fileContainer.style.display = tab === 'file' ? 'flex' : 'none';
+            if (autoContainer) autoContainer.style.display = tab === 'auto' ? 'flex' : 'none';
+
+            if (tab === 'auto') {
+                if (previewContainer) previewContainer.style.display = 'none';
                 if (multiGrid) multiGrid.style.display = 'none';
+                if (statusText) {
+                    statusText.innerText = 'Find automatic photos from Wikipedia';
+                    statusText.style.color = 'var(--text)';
+                }
+                const autoGrid = document.getElementById('autoPhotosGrid');
+                if (confirmBtn) {
+                    confirmBtn.disabled = !autoGrid || autoGrid.children.length === 0;
+                    confirmBtn.style.opacity = confirmBtn.disabled ? '0.5' : '1';
+                }
+                return;
+            }
                 
+            if (tab === 'url') {
+                if (multiGrid) multiGrid.style.display = 'none';
                 const url = urlInput ? urlInput.value.trim() : '';
                 if (url) {
                     if (previewContainer) previewContainer.style.display = 'flex';
@@ -4974,11 +5337,7 @@
                         confirmBtn.style.opacity = '0.5';
                     }
                 }
-            } else {
-                if (urlBtn) urlBtn.classList.remove('active');
-                if (fileBtn) fileBtn.classList.add('active');
-                if (urlInput) urlInput.style.display = 'none';
-                if (fileContainer) fileContainer.style.display = 'flex';
+            } else if (tab === 'file') {
                 if (previewImg) previewImg.style.display = 'none';
                 
                 const fileInput = document.getElementById('imageFileInput');
@@ -4997,6 +5356,73 @@
                     }
                 }
             }
+        }
+
+        async function loadAutomaticPhotos() {
+            document.getElementById('autoPhotosLoading').style.display = 'block';
+            document.getElementById('autoPhotosGrid').innerHTML = '';
+            document.getElementById('autoPhotosLoading').innerText = "Searching nearby locations...";
+            document.getElementById('btnConfirmUpload').disabled = true;
+            document.getElementById('btnConfirmUpload').style.opacity = '0.5';
+            
+            let lat, lng;
+            if (activeSelectionId && uploadContext === 'edit') {
+                const item = storage.pins.find(p=>p.id===activeSelectionId) || storage.walks.find(w=>w.id===activeSelectionId);
+                if (item.path && item.path.length > 0) {
+                    lat = item.path[Math.floor(item.path.length / 2)][0];
+                    lng = item.path[Math.floor(item.path.length / 2)][1];
+                } else {
+                    lat = item.lat; lng = item.lng;
+                }
+            } else {
+                if (currentMode === 'walk' && tempPath.length > 0) {
+                    lat = tempPath[Math.floor(tempPath.length / 2)][0];
+                    lng = tempPath[Math.floor(tempPath.length / 2)][1];
+                } else if (pendingCoords) {
+                    lat = pendingCoords.lat;
+                    lng = pendingCoords.lng;
+                } else if (userPos) {
+                    lat = userPos.lat;
+                    lng = userPos.lng;
+                }
+            }
+
+            if (!lat || !lng) {
+                document.getElementById('autoPhotosLoading').innerText = "Location not found.";
+                return;
+            }
+
+            const photos = await fetchWikipediaPhotos(lat, lng, 3);
+            
+            if (photos.length === 0) {
+                document.getElementById('autoPhotosLoading').innerText = "No automatic photos found nearby.";
+                return;
+            }
+
+            document.getElementById('autoPhotosLoading').style.display = 'none';
+            const grid = document.getElementById('autoPhotosGrid');
+            photos.forEach(url => {
+                const div = document.createElement('div');
+                div.style.position = 'relative';
+                div.style.width = '100%';
+                div.style.aspectRatio = '1';
+                div.innerHTML = `<img src="${url}" style="width:100%; height:100%; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
+                                 <button class="icon-btn" style="position:absolute; top:-5px; right:-5px; width:20px; height:20px; font-size:10px; background:var(--danger); color:white; border-radius:50%; min-width:20px; padding:0;" title="Remove Photo">✕</button>`;
+                div.querySelector('button').onclick = () => {
+                    div.remove();
+                    if (grid.children.length === 0) {
+                        document.getElementById('btnConfirmUpload').disabled = true;
+                        document.getElementById('btnConfirmUpload').style.opacity = '0.5';
+                        document.getElementById('autoPhotosLoading').style.display = 'block';
+                        document.getElementById('autoPhotosLoading').innerText = "No photos selected.";
+                    }
+                };
+                grid.appendChild(div);
+            });
+            
+            document.getElementById('btnConfirmUpload').disabled = false;
+            document.getElementById('btnConfirmUpload').style.opacity = '1';
+            document.getElementById('uploadStatus').innerText = "Automatic photos loaded";
         }
 
         function handleFileSelect(e) {
@@ -5111,6 +5537,11 @@
         async function handlePhotoSubmit() {
             if (activeUploadTab === 'url') {
                 performUrlAdd();
+            } else if (activeUploadTab === 'auto') {
+                const grid = document.getElementById('autoPhotosGrid');
+                const imgs = grid.querySelectorAll('img');
+                const urls = Array.from(imgs).map(img => img.src);
+                await addMultipleUrls(urls);
             } else {
                 await performImgbbUpload();
             }
@@ -5261,6 +5692,10 @@
             const fileLabel = document.getElementById('fileInputLabel');
             if (fileLabel) fileLabel.innerText = "Click or drag image here";
             selectedUploadFiles = [];
+            const autoGrid = document.getElementById('autoPhotosGrid');
+            if(autoGrid) autoGrid.innerHTML = '';
+            const autoLoad = document.getElementById('autoPhotosLoading');
+            if(autoLoad) autoLoad.style.display = 'none';
         }
 
         async function addMultipleUrls(urls) {
@@ -5816,37 +6251,203 @@
 
         function createNodes(layer) {
             nodeHandles.forEach(h => map.removeLayer(h)); nodeHandles = []; const latlngs = layer.getLatLngs();
+            const lineColor = layer.options.color || '#2563eb';
+            const layerOpacity = (layer.options && layer.options.opacity !== undefined) ? layer.options.opacity : 0.8;
+            
             latlngs.forEach((ll, i) => {
                 let moved = false; const isStartOrEnd = (i === 0 || i === latlngs.length - 1);
-                const handleClass = isStartOrEnd ? 'node-handle node-handle-hidden' : 'node-handle node-handle-visible';
-                const m = L.marker(ll, { draggable: true, icon: L.divIcon({ className: handleClass, iconSize:[isStartOrEnd?30:16, isStartOrEnd?30:16], iconAnchor:[isStartOrEnd?15:8, isStartOrEnd?15:8] }), zIndexOffset: 10000 }).addTo(map);
-                m.on('drag', (e) => { moved = true; const currentLls = layer.getLatLngs(); currentLls[i] = e.target.getLatLng(); layer.setLatLngs(currentLls); updateWalkStats(); });
-                m.on('dragend', () => { createNodes(layer); fetchElevation(layer.getLatLngs().map(l => [l.lat, l.lng]), false); });
-                m.on('click', (e) => { L.DomEvent.stopPropagation(e); if (!moved && layer.getLatLngs().length > 2) { const currentLls = layer.getLatLngs(); currentLls.splice(i, 1); layer.setLatLngs(currentLls); updateWalkStats(); createNodes(layer); fetchElevation(currentLls.map(l => [l.lat, l.lng]), false); } });
+                
+                // If in plot mode, we only show start and end icons
+                if (currentPlotEditMode === 'plot' && !isStartOrEnd) {
+                    return;
+                }
+                
+                let iconHtml = '';
+                let iSize = [16, 16];
+                let iAnchor = [8, 8];
+                let zOffset = 10000;
+
+                if (isStartOrEnd) {
+                    const isStart = (i === 0);
+                    const iconClass = isStart ? 'walk-marker-icon start-icon' : 'walk-marker-icon end-icon';
+                    const iconChar = isStart ? '▶' : '🏁';
+                    const iconBg = isStart ? '#10b981' : '#ef4444';
+                    iconHtml = `<div class="${iconClass}" style="width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:50%; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3); font-weight:bold; font-size:11px; color:white; background:${iconBg};"><div class="rotate-wrapper">${iconChar}</div></div>`;
+                    iSize = [24, 24];
+                    iAnchor = [12, 12];
+                    zOffset = 20000;
+                } else {
+                    iconHtml = `<div style="background: white !important; border: 3px solid ${lineColor} !important; border-radius: 50%; width: 10px; height: 10px; box-shadow: 0 0 8px rgba(0,0,0,0.4);"></div>`;
+                }
+
+                const m = L.marker(ll, { draggable: true, icon: L.divIcon({ className: '', html: iconHtml, iconSize: iSize, iconAnchor: iAnchor }), zIndexOffset: zOffset, opacity: layerOpacity }).addTo(map);
+                
+                m.on('dragstart', () => {
+                    const llsClone = layer.getLatLngs().map(l => L.latLng(l.lat, l.lng));
+                    if (layer === tempPoly) {
+                        walkHistory.push(JSON.parse(JSON.stringify(tempPath)));
+                        walkRedoStack = [];
+                    } else {
+                        walkHistory.push(llsClone);
+                        editWalkRedoStack = [];
+                    }
+                });
+
+                m.on('drag', (e) => { 
+                    moved = true; 
+                    const currentLls = layer.getLatLngs(); 
+                    currentLls[i] = e.target.getLatLng(); 
+                    layer.setLatLngs(currentLls); 
+                    if (layer === tempPoly) {
+                        tempPath = currentLls.map(l => [l.lat, l.lng]);
+                    }
+                    updateWalkStats(); 
+                });
+
+                m.on('dragend', () => { 
+                    createNodes(layer); 
+                    fetchElevation(layer.getLatLngs().map(l => [l.lat, l.lng]), false); 
+                });
+
+                m.on('click', (e) => { 
+                    L.DomEvent.stopPropagation(e); 
+                    if (!moved && layer.getLatLngs().length > 2) {
+                        const currentLls = layer.getLatLngs();
+                        const llsClone = currentLls.map(l => L.latLng(l.lat, l.lng));
+                        if (layer === tempPoly) {
+                            walkHistory.push(JSON.parse(JSON.stringify(tempPath)));
+                            walkRedoStack = [];
+                        } else {
+                            walkHistory.push(llsClone);
+                            editWalkRedoStack = [];
+                        }
+                        currentLls.splice(i, 1); 
+                        layer.setLatLngs(currentLls); 
+                        if (layer === tempPoly) {
+                            tempPath = currentLls.map(l => [l.lat, l.lng]);
+                        }
+                        updateWalkStats(); 
+                        createNodes(layer); 
+                        fetchElevation(currentLls.map(l => [l.lat, l.lng]), false); 
+                    } 
+                });
+
                 nodeHandles.push(m);
-                if (i < latlngs.length - 1) {
-                    const midH = L.marker(L.latLng((ll.lat + latlngs[i+1].lat) / 2, (ll.lng + latlngs[i+1].lng) / 2), { draggable: true, icon: L.divIcon({ className:'mid-handle mid-handle-visible', iconSize:[12,12], iconAnchor:[6,6] }), zIndexOffset: 9000 }).addTo(map);
-                    midH.on('dragstart', (e) => { const currentLls = layer.getLatLngs(); currentLls.splice(i + 1, 0, e.target.getLatLng()); layer.setLatLngs(currentLls); });
-                    midH.on('drag', (e) => { const currentLls = layer.getLatLngs(); currentLls[i + 1] = e.target.getLatLng(); layer.setLatLngs(currentLls); updateWalkStats(); });
-                    midH.on('dragend', () => { createNodes(layer); fetchElevation(layer.getLatLngs().map(l => [l.lat, l.lng]), false); });
-                    nodeHandles.push(midH);
+            });
+        }
+
+        function syncNodesOpacity(opacity) {
+            nodeHandles.forEach(h => {
+                if (h.setOpacity) {
+                    h.setOpacity(opacity);
                 }
             });
         }
 
+        function distToSegment(p, v, w) {
+            const l2 = dist2(v, w);
+            if (l2 === 0) return dist2(p, v);
+            let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            return Math.sqrt(dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) }));
+        }
+
+        function dist2(v, w) {
+            return (v.x - w.x) * (v.x - w.x) + (v.y - w.y) * (v.y - w.y);
+        }
+
+        function handlePolylineClick(e, poly) {
+            L.DomEvent.stopPropagation(e);
+            
+            // Only allow adding a node in edit mode or when plotting
+            if (poly === tempPoly) {
+                if (currentMode !== 'walk') return;
+            } else {
+                if (!isEditing || activeSelectionId !== poly.walkId) return;
+            }
+
+            const latlngs = poly.getLatLngs();
+            if (latlngs.length < 2) return;
+
+            const clickPoint = map.latLngToContainerPoint(e.latlng);
+            let minDistance = Infinity;
+            let closestIndex = -1;
+
+            for (let i = 0; i < latlngs.length - 1; i++) {
+                const p1 = map.latLngToContainerPoint(latlngs[i]);
+                const p2 = map.latLngToContainerPoint(latlngs[i+1]);
+                const dist = distToSegment(clickPoint, p1, p2);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestIndex = i;
+                }
+            }
+
+            if (closestIndex !== -1) {
+                // Record history for undo/redo
+                if (poly === tempPoly) {
+                    walkHistory.push(JSON.parse(JSON.stringify(tempPath)));
+                    walkRedoStack = [];
+                    
+                    tempPath.splice(closestIndex + 1, 0, [e.latlng.lat, e.latlng.lng]);
+                    poly.setLatLngs(tempPath);
+                    createNodes(poly);
+                    updateWalkStats();
+                    fetchElevation(tempPath, false);
+                } else {
+                    const llsClone = latlngs.map(l => L.latLng(l.lat, l.lng));
+                    walkHistory.push(llsClone);
+                    editWalkRedoStack = [];
+
+                    latlngs.splice(closestIndex + 1, 0, e.latlng);
+                    poly.setLatLngs(latlngs);
+                    
+                    // Update storage
+                    const walk = storage.walks.find(w => w.id === activeSelectionId);
+                    if (walk) {
+                        walk.path = latlngs.map(l => [l.lat, l.lng]);
+                        saveData();
+                    }
+                    createNodes(poly);
+                    updateWalkStats();
+                    fetchElevation(latlngs.map(l => [l.lat, l.lng]), false);
+                }
+            }
+        }
+
         async function fetchElevation(path, forceOpen) {
             if (elevationAbortController) elevationAbortController.abort(); elevationAbortController = new AbortController(); const signal = elevationAbortController.signal;
+            const loadingEl = document.getElementById('elevLoading');
+            if (loadingEl) loadingEl.style.display = 'flex';
             try {
+                let totalDist = 0;
+                for (let i = 0; i < path.length - 1; i++) {
+                    totalDist += L.latLng(path[i][0], path[i][1]).distanceTo(L.latLng(path[i+1][0], path[i+1][1]));
+                }
+                const maxPoints = 80;
+                const stepDist = Math.max(100, totalDist / maxPoints);
+
                 let sampledPoints = [];
                 for (let i = 0; i < path.length - 1; i++) {
                     const start = L.latLng(path[i][0], path[i][1]), end = L.latLng(path[i+1][0], path[i+1][1]), dist = start.distanceTo(end); sampledPoints.push(start);
-                    const numSteps = Math.floor(dist / 100); for (let j = 1; j <= numSteps; j++) { const ratio = (j * 100) / dist; sampledPoints.push(L.latLng(start.lat + (end.lat - start.lat) * ratio, start.lng + (end.lng - start.lng) * ratio)); }
+                    const numSteps = Math.floor(dist / stepDist); 
+                    for (let j = 1; j <= numSteps; j++) { 
+                        const ratio = (j * stepDist) / dist; 
+                        sampledPoints.push(L.latLng(start.lat + (end.lat - start.lat) * ratio, start.lng + (end.lng - start.lng) * ratio)); 
+                    }
                 }
                 sampledPoints.push(L.latLng(path[path.length - 1][0], path[path.length - 1][1]));
-                const res = await fetch('https://api.open-elevation.com/api/v1/lookup', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ locations: sampledPoints.map(p => ({ latitude: p.lat, longitude: p.lng })) }), signal: signal }).then(r=>r.json());
-                const elevs = res.results.map(r => r.elevation); 
+
+                const res = await fetch('https://api.open-elevation.com/api/v1/lookup', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ locations: sampledPoints.map(p => ({ latitude: p.lat, longitude: p.lng })) }), 
+                    signal: signal 
+                }).then(r=>r.json());
+                const elevs = res.results.map(r => r.elevation || 0); 
                 
                 if (!activeSelectionId && currentMode === 'walk') {
+                    liveElevData = elevs;
                     if (graphOpen || forceOpen) {
                         const isImp = storage.units === 'imperial';
                         let currentTotal = 0, distData = [0]; for(let i = 1; i < sampledPoints.length; i++){ currentTotal += sampledPoints[i-1].distanceTo(sampledPoints[i]); distData.push(currentTotal / 1000); }
@@ -5856,6 +6457,7 @@
                         const data = elevs.map(e => isImp ? e * 3.28084 : e);
                         chartInstance = new Chart(ctx, createChartConfig(labels, data, isImp));
                     }
+                    updateWalkStats();
                     return;
                 }
 
@@ -5871,7 +6473,11 @@
                     chartInstance = new Chart(ctx, createChartConfig(labels, data, isImp));
                 }
                 if(item) updateWalkStats(); 
-            } catch(e) { if (e.name !== 'AbortError') console.error(e); }
+            } catch(e) { 
+                if (e.name !== 'AbortError') console.error(e); 
+            } finally {
+                if (loadingEl) loadingEl.style.display = 'none';
+            }
         }
 
         closeElevBtn.onclick = (e) => { L.DomEvent.stopPropagation(e); graphOpen = false; closeElevation(); if(activeSelectionId) updateWalkStats(); };
