@@ -3119,6 +3119,14 @@
         }
 
         function goBack() {
+            if (history.state && history.state.view === 'details') {
+                history.back();
+            } else {
+                goBackUI();
+            }
+        }
+
+        function goBackUI() {
             if (window.isNavigating) {
                 window.isNavigating = false;
                 window.navigatingWalk = null;
@@ -4369,6 +4377,9 @@
 
         function showDetails(item, isWalk, layer) {
             if (!item) return;
+            if (history.state?.view !== 'details') {
+                history.pushState({ view: 'details' }, '');
+            }
             const exportGpxContainer = document.getElementById('exportGpxContainer');
             if (exportGpxContainer) {
                 if (isWalk) {
@@ -7902,6 +7913,15 @@
                 }
             }
         }
+
+        if (history.state?.view === 'details') {
+            history.replaceState(null, '');
+        }
+        window.addEventListener('popstate', (e) => {
+            if (document.getElementById('detail-view').style.display === 'flex') {
+                goBackUI();
+            }
+        });
     </script>
 </body>
 </html>
