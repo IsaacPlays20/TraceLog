@@ -66,7 +66,7 @@
             width: 100vw;
             height: 100vh;
             max-height: calc(100% - 6vh); 
-            top: calc(100vh - 110px); 
+            top: 100vh; 
             left: 0;
             border-right: none;
             border-top: 1px solid var(--border);
@@ -632,6 +632,147 @@
         .map3d-card-tooltip {
             pointer-events: none;
             z-index: 5000;
+        }
+
+        /* MOBILE BOTTOM TAB BAR */
+        #mobile-tab-bar {
+            display: none;
+        }
+
+        body.mobile-mode #mobile-tab-bar {
+            display: flex;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background: var(--card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            justify-content: space-around;
+            align-items: center;
+            z-index: 6000;
+            padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        body.mobile-mode #sidebar {
+            z-index: 5500;
+        }
+
+        body.mobile-mode #mainTabs {
+            display: none !important;
+        }
+
+        body.mobile-mode #explore-panel, 
+        body.mobile-mode #add-panel, 
+        body.mobile-mode #settings-panel, 
+        body.mobile-mode #detail-view {
+            padding-bottom: 90px !important;
+        }
+
+        body.mobile-mode .logo-row img,
+        body.mobile-mode .logo-row h2 {
+            display: none !important;
+        }
+
+        body.mobile-mode .sidebar-header {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+        }
+
+        body.mobile-mode #mainSearch {
+            order: 1 !important;
+            flex: 1 !important;
+            margin-bottom: 0 !important;
+        }
+
+        body.mobile-mode .logo-row {
+            order: 2 !important;
+            margin-bottom: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+
+        .mobile-tab-btn {
+            flex: 1;
+            height: 100%;
+            background: transparent;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            cursor: pointer;
+            gap: 4px;
+            padding: 4px 0;
+        }
+
+        .mobile-tab-btn:hover {
+            background: transparent;
+            transform: none;
+            box-shadow: none;
+            color: var(--text);
+        }
+
+        .mobile-tab-btn.active {
+            opacity: 1;
+        }
+
+        .mobile-tab-btn .pill-container {
+            width: 58px;
+            height: 28px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, transform 0.2s;
+            background-color: transparent;
+        }
+
+        .mobile-tab-btn.active .pill-container {
+            background-color: rgba(37, 99, 235, 0.18);
+        }
+
+        .dark-theme .mobile-tab-btn.active .pill-container {
+            background-color: rgba(37, 99, 235, 0.3);
+        }
+
+        .mobile-tab-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: var(--text);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: stroke 0.2s, transform 0.2s;
+        }
+
+        .mobile-tab-btn.active svg {
+            stroke: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .mobile-tab-btn .tab-text {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1px;
+            transition: color 0.2s, font-weight 0.2s;
+        }
+
+        .mobile-tab-btn.active .tab-text {
+            color: var(--primary);
+            font-weight: 700;
         }
     </style>
 </head>
@@ -1207,6 +1348,37 @@
                 </div>
             </div>
         </aside>
+
+        <!-- Mobile Bottom Tab Bar -->
+        <div id="mobile-tab-bar">
+            <button class="mobile-tab-btn active" id="mobileExploreTab" onclick="switchTab('explore')">
+                <div class="pill-container">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                    </svg>
+                </div>
+                <span class="tab-text">Explore</span>
+            </button>
+            <button class="mobile-tab-btn" id="mobileAddTab" onclick="switchTab('add')">
+                <div class="pill-container">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <span class="tab-text">You</span>
+            </button>
+            <button class="mobile-tab-btn" id="mobileSettingsTab" onclick="switchTab('settings')">
+                <div class="pill-container">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </div>
+                <span class="tab-text">Settings</span>
+            </button>
+        </div>
 
         <div class="zoom-controls" id="zoomCtrl">
                 <button class="zoom-btn" id="toggle3dBtn" onclick="toggle3DMode()" title="Toggle 3D View" style="font-weight:900; font-size:12px;">3D</button>
@@ -2383,7 +2555,7 @@
                 mobileSidebar.style.top = '50vh';
             } else {
                 mobileSidebar.classList.remove('open', 'half');
-                mobileSidebar.style.top = 'calc(100vh - 110px)'; 
+                mobileSidebar.style.top = '100vh'; 
             }
             triggerHaptic();
             resetSidebarScroll();
@@ -2406,7 +2578,7 @@
             let newTop = startTop + deltaY;
             const vh = window.innerHeight;
             if (newTop < vh * 0.06) newTop = vh * 0.06;
-            if (newTop > vh - 110) newTop = vh - 110;
+            if (newTop > vh) newTop = vh;
             mobileSidebar.style.top = newTop + 'px';
         };
 
@@ -2415,9 +2587,35 @@
             if (!isDragging) return;
             const currentTop = mobileSidebar.offsetTop;
             const vh = window.innerHeight;
-            if (currentTop < vh * 0.3) snapTo('open');
-            else if (currentTop < vh * 0.7) snapTo('half');
-            else snapTo('bottom');
+            
+            const duration = Date.now() - startTime;
+            const endY = e.changedTouches[0].clientY;
+            const deltaY = endY - startY;
+            const velocityY = deltaY / (duration || 1); // positive = downwards, negative = upwards
+            
+            if (Math.abs(velocityY) > 0.3) {
+                // Flick gesture detected
+                if (velocityY < 0) {
+                    // Fast flick UP
+                    if (startTop > vh * 0.7) {
+                        snapTo('half');
+                    } else {
+                        snapTo('open');
+                    }
+                } else {
+                    // Fast flick DOWN
+                    if (startTop < vh * 0.3) {
+                        snapTo('half');
+                    } else {
+                        snapTo('bottom');
+                    }
+                }
+            } else {
+                // Standard snap by position threshold
+                if (currentTop < vh * 0.3) snapTo('open');
+                else if (currentTop < vh * 0.7) snapTo('half');
+                else snapTo('bottom');
+            }
         };
 
         [dragHandle, mobileHeader].forEach(el => {
@@ -2857,7 +3055,7 @@
             const sel = document.getElementById('settingsMapSelect');
             if(sel) sel.value = style;
         }
-        function isUIPressed(e) { return e.originalEvent.target.closest('#sidebar') || e.originalEvent.target.closest('#elevation-dock') || e.originalEvent.target.closest('.zoom-controls') || e.originalEvent.target.closest('#layer-popup') || e.originalEvent.target.closest('#expandBtn') || e.originalEvent.target.closest('#recording-popout'); }
+        function isUIPressed(e) { return e.originalEvent.target.closest('#sidebar') || e.originalEvent.target.closest('#elevation-dock') || e.originalEvent.target.closest('.zoom-controls') || e.originalEvent.target.closest('#layer-popup') || e.originalEvent.target.closest('#expandBtn') || e.originalEvent.target.closest('#recording-popout') || e.originalEvent.target.closest('#mobile-tab-bar'); }
 
         const locateBtn = document.getElementById('locateBtn');
         if (locateBtn) locateBtn.onclick = (e) => { 
@@ -2923,10 +3121,18 @@
 
         function switchTab(tab) {
             document.body.classList.remove('viewing-walk');
+            
+            const isMobile = document.body.classList.contains('mobile-mode');
+            const clickedSameTab = (currentTab === tab);
+            
             currentTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.querySelectorAll('.tab-btn, .mobile-tab-btn').forEach(b => b.classList.remove('active'));
             const targetTab = document.getElementById(tab + 'Tab');
             if (targetTab) targetTab.classList.add('active');
+            const targetMobileTab = document.getElementById('mobile' + tab.charAt(0).toUpperCase() + tab.slice(1) + 'Tab');
+            if (targetMobileTab) targetMobileTab.classList.add('active');
+            
             document.getElementById('explore-panel').style.display = (tab === 'explore' ? 'block' : 'none');
             document.getElementById('add-panel').style.display = (tab === 'add' ? 'block' : 'none');
             document.getElementById('settings-panel').style.display = (tab === 'settings' ? 'block' : 'none');
@@ -2936,7 +3142,18 @@
             closeElevation(); setMode(tab === 'explore' ? 'explore' : 'ready');
             refreshMapItems();
             resetSidebarScroll();
-            if(document.body.classList.contains('mobile-mode')) snapTo('half');
+            
+            if (isMobile) {
+                if (clickedSameTab) {
+                    if (mobileSidebar.classList.contains('open') || mobileSidebar.classList.contains('half')) {
+                        snapTo('bottom');
+                    } else {
+                        snapTo('half');
+                    }
+                } else {
+                    snapTo('half');
+                }
+            }
         }
 
         function cancelPinCreation() {
