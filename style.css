@@ -17,6 +17,25 @@
     --border: #334155; 
 }
 
+/* Leaflet popup theme customization */
+.leaflet-popup-content-wrapper {
+    background: var(--card) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25) !important;
+    backdrop-filter: blur(10px);
+}
+
+.leaflet-popup-tip {
+    background: var(--card) !important;
+    border: 1px solid var(--border);
+}
+
+.leaflet-popup-close-button {
+    color: var(--text) !important;
+}
+
 body, html { 
     margin: 0; padding: 0; height: 100%; 
     font-family: 'Inter', sans-serif; overflow: hidden; 
@@ -39,8 +58,8 @@ body, html {
 body.mobile-mode #sidebar {
     width: 100vw;
     height: 100vh;
-    max-height: calc(100% - 6vh); 
-    top: calc(100vh - 110px); /* Move closed position higher (was 85px) */
+    max-height: 100%; 
+    top: 100vh; 
     left: 0;
     border-right: none;
     border-top: 1px solid var(--border);
@@ -50,11 +69,17 @@ body.mobile-mode #sidebar {
     pointer-events: auto !important;
     padding-bottom: env(safe-area-inset-bottom);
     touch-action: pan-y; /* Enable vertical swiping on the whole panel */
+    transition: top var(--transition), border-radius var(--transition);
 }
 
-body.mobile-mode #sidebar.open { top: 6vh; }
-body.mobile-mode #sidebar.half { top: 50vh; }
+body.mobile-mode #sidebar.open { top: 0vh; border-radius: 0; }
+body.mobile-mode #sidebar.half { top: 40vh; }
 body.mobile-mode #sidebar.hidden-sheet { top: 100vh !important; }
+
+body.mobile-mode #minimizeBtn,
+body.mobile-mode #backBtn {
+    display: none !important;
+}
 
 body.mobile-mode #expandBtn { display: none !important; }
 
@@ -301,4 +326,150 @@ body.viewing-walk path.walk-poly:not(.active-walk) { display: none !important; p
 
 #explore-panel, #add-panel, #settings-panel, #detail-view {
     animation: slideUpFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* MOBILE BOTTOM TAB BAR */
+#mobile-tab-bar {
+    display: none;
+}
+
+body.mobile-mode #mobile-tab-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 65px;
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    justify-content: space-around;
+    align-items: center;
+    z-index: 6000;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+
+body.mobile-mode #sidebar {
+    z-index: 5500;
+}
+
+body.mobile-mode #mainTabs {
+    display: none !important;
+}
+
+body.mobile-mode #explore-panel, 
+body.mobile-mode #add-panel, 
+body.mobile-mode #settings-panel, 
+body.mobile-mode #detail-view {
+    padding-bottom: 90px !important;
+}
+
+body.mobile-mode .logo-row img,
+body.mobile-mode .logo-row h2 {
+    display: none !important;
+}
+
+body.mobile-mode .sidebar-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    padding: 10px 20px !important;
+}
+
+body.mobile-mode #mainSearch {
+    order: 1 !important;
+    flex: 1 !important;
+    margin-bottom: 0 !important;
+}
+
+body.mobile-mode .logo-row {
+    order: 2 !important;
+    margin-bottom: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.mobile-tab-btn {
+    flex: 1;
+    height: 100%;
+    background: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    cursor: pointer;
+    gap: 4px;
+    padding: 4px 0;
+}
+
+.mobile-tab-btn:hover {
+    background: transparent;
+    transform: none;
+    box-shadow: none;
+    color: var(--text);
+}
+
+.mobile-tab-btn.active {
+    opacity: 1;
+}
+
+.mobile-tab-btn .pill-container {
+    width: 58px;
+    height: 28px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, transform 0.2s;
+    background-color: transparent;
+}
+
+.mobile-tab-btn.active .pill-container {
+    background-color: rgba(37, 99, 235, 0.18);
+}
+
+.dark-theme .mobile-tab-btn.active .pill-container {
+    background-color: rgba(37, 99, 235, 0.3);
+}
+
+.mobile-tab-btn svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: var(--text);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.2s, transform 0.2s;
+}
+
+.mobile-tab-btn.active svg {
+    stroke: var(--primary);
+    transform: scale(1.05);
+}
+
+.mobile-tab-btn .tab-text {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+    transition: color 0.2s, font-weight 0.2s;
+}
+
+.mobile-tab-btn.active .tab-text {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.mobile-tab-btn .tab-text {
+    font-size: 11px;
+    font-weight: 700;
 }

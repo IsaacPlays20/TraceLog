@@ -42,7 +42,7 @@ function resetSidebarScroll() {
 }
 
 /* HYBRID MOBILE DRAGGING AND CLICKING LOGIC */
-let startY = 0, startTop = 0, startTime = 0, isDragging = false;
+let startY = 0, startTop = 0, startTime = 0, isDragging = false, dragInitiated = false;
 const mobileSidebar = document.getElementById('sidebar');
 const dragHandle = document.getElementById('mobileDragHandle');
 
@@ -57,61 +57,122 @@ function snapTo(state) {
     if (state === 'open') {
         mobileSidebar.classList.remove('half');
         mobileSidebar.classList.add('open');
-        mobileSidebar.style.top = '6vh';
+        mobileSidebar.style.top = '0px';
     } else if (state === 'half') {
         mobileSidebar.classList.remove('open');
         mobileSidebar.classList.add('half');
-        mobileSidebar.style.top = '50vh';
+        mobileSidebar.style.top = '40vh';
     } else {
         mobileSidebar.classList.remove('open', 'half');
-        mobileSidebar.style.top = 'calc(100vh - 85px)';
+        mobileSidebar.style.top = '100vh';
     }
     triggerHaptic();
     resetSidebarScroll();
 }
 
 function cycleMobileSheet() {
+    if (currentTab === 'settings') {
+        if (mobileSidebar.classList.contains('open')) snapTo('bottom');
+        else snapTo('open');
+        return;
+    }
     if (mobileSidebar.classList.contains('open')) snapTo('bottom');
     else if (mobileSidebar.classList.contains('half')) snapTo('open');
     else snapTo('half');
 }
 
-if (dragHandle) {
-    dragHandle.addEventListener('touchstart', (e) => {
-        if (!document.body.classList.contains('mobile-mode')) return;
-        startY = e.touches[0].clientY;
-        startTop = mobileSidebar.offsetTop;
-        startTime = Date.now();
-        isDragging = false;
-        mobileSidebar.style.transition = 'none';
-    }, { passive: true });
+// SWIPE ANYWHERE ON SIDEBAR
+mobileSidebar.addEventListener('touchstart', (e) => {
+    if (!document.body.classList.contains('mobile-mode')) return;
+    // Only allow swiping from the top section
+    if (!e.target.closest('.sidebar-header') && !e.target.closest('#mobileDragHandle')) {
+        dragInitiated = false;
+        return;
+    }
+    
+    dragInitiated = true;
+    startY = e.touches[0].clientY;
+    startTop = mobileSidebar.offsetTop;
+    startTime = Date.now();
+    isDragging = false;
+    mobileSidebar.style.transition = 'none';
+}, { passive: true });
 
-    dragHandle.addEventListener('touchmove', (e) => {
-        if (!document.body.classList.contains('mobile-mode')) return;
-        const touchY = e.touches[0].clientY;
-        const deltaY = touchY - startY;
-        if (Math.abs(deltaY) > 5) isDragging = true;
-        let newTop = startTop + deltaY;
-        const vh = window.innerHeight;
-        if (newTop < vh * 0.06) newTop = vh * 0.06;
-        if (newTop > vh - 85) newTop = vh - 85;
-        mobileSidebar.style.top = newTop + 'px';
-    }, { passive: true });
+mobileSidebar.addEventListener('touchmove', (e) => {
+    if (!document.body.classList.contains('mobile-mode')) return;
+    if (!dragInitiated) return;
+    
+    const touchY = e.touches[0].clientY;
+    const deltaY = touchY - startY;
+    if (Math.abs(deltaY) > 5) isDragging = true;
+    let newTop = startTop + deltaY;
+    const vh = window.innerHeight;
+    if (newTop < 0) newTop = 0;
+    if (newTop > vh) newTop = vh;
+    mobileSidebar.style.top = newTop + 'px';
+}, { passive: true });
 
-    dragHandle.addEventListener('touchend', (e) => {
-        if (!document.body.classList.contains('mobile-mode')) return;
-        const duration = Date.now() - startTime;
-        if (!isDragging && duration < 200) {
-            cycleMobileSheet();
-            return;
+mobileSidebar.addEventListener('touchend', (e) => {
+    if (!document.body.classList.contains('mobile-mode')) return;
+    if (!dragInitiated) return;
+    const duration = Date.now() - startTime;
+    if (!isDragging && duration < 200) {
+        dragInitiated = false;
+        cycleMobileSheet();
+        return;
+    }
+    if (!isDragging) {
+        dragInitiated = false;
+        return;
+    }
+    dragInitiated = false;
+    const currentTop = mobileSidebar.offsetTop;
+    const vh = window.innerHeight;
+    
+    const endY = e.changedTouches[0].clientY;
+    const deltaY = endY - startY;
+    const velocityY = deltaY / (duration || 1); // positive = downwards, negative = upwards
+    
+    if (currentTab === 'settings') {
+        if (Math.abs(velocityY) > 0.3) {
+            if (velocityY < 0) {
+                snapTo('open');
+            } else {
+                snapTo('bottom');
+            }
+        } else {
+            if (currentTop < vh * 0.4) snapTo('open');
+            else snapTo('bottom');
         }
-        const currentTop = mobileSidebar.offsetTop;
-        const vh = window.innerHeight;
-        if (currentTop < vh * 0.3) snapTo('open');
+        return;
+    }
+    
+    if (Math.abs(velocityY) > 0.3) {
+        // Flick gesture detected
+        if (velocityY < 0) {
+            // Fast flick UP
+            if (startTop > vh * 0.6) {
+                snapTo('half');
+            } else {
+                snapTo('open');
+            }
+        } else {
+            // Fast flick DOWN
+            if (startTop < vh * 0.25) {
+                snapTo('half');
+            } else {
+                snapTo('bottom');
+            }
+        }
+    } else {
+        // Standard snap by position threshold
+        if (currentTop < vh * 0.2) snapTo('open');
         else if (currentTop < vh * 0.7) snapTo('half');
         else snapTo('bottom');
-    });
+    }
+});
 
+if (dragHandle) {
     dragHandle.addEventListener('click', (e) => {
         if (document.body.classList.contains('mobile-mode')) {
             cycleMobileSheet();
@@ -151,7 +212,7 @@ function setupColorPickers() {
 
 function toggleLayerMenu() { const menu = document.getElementById('layer-popup'); menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex'; }
 function setMapLayer(style) { storage.mapStyle = style; map.removeLayer(baseLayer); baseLayer = L.tileLayer(mapStyles[style], { maxZoom: 18 }).addTo(map); saveData(); document.getElementById('layer-popup').style.display = 'none'; }
-function isUIPressed(e) { return e.originalEvent.target.closest('#sidebar') || e.originalEvent.target.closest('#elevation-dock') || e.originalEvent.target.closest('.zoom-controls') || e.originalEvent.target.closest('#layer-popup') || e.originalEvent.target.closest('#expandBtn'); }
+function isUIPressed(e) { return e.originalEvent.target.closest('#sidebar') || e.originalEvent.target.closest('#elevation-dock') || e.originalEvent.target.closest('.zoom-controls') || e.originalEvent.target.closest('#layer-popup') || e.originalEvent.target.closest('#expandBtn') || e.originalEvent.target.closest('#mobile-tab-bar'); }
 
 const locateBtn = document.getElementById('locateBtn');
 if (locateBtn) locateBtn.onclick = (e) => { L.DomEvent.stopPropagation(e); if (userPos) map.setView(userPos, 15); };
@@ -160,7 +221,7 @@ function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const expandBtn = document.getElementById('expandBtn');
     const dock = document.getElementById('elevation-dock');
-    if(document.body.classList.contains('mobile-mode')) { sidebar.classList.remove('open', 'half'); return; }
+    if(document.body.classList.contains('mobile-mode')) { snapTo('bottom'); return; }
     const isMinimized = sidebar.classList.toggle('minimized');
     expandBtn.style.display = isMinimized ? 'flex' : 'none';
     if (isMinimized) { dock.style.left = '20px'; } else { dock.style.left = 'calc(var(--sidebar) + 20px)'; }
@@ -168,6 +229,14 @@ function toggleSidebar() {
 }
 
 function goBack() {
+    if (history.state && history.state.view === 'details') {
+        history.back();
+    } else {
+        goBackUI();
+    }
+}
+
+function goBackUI() {
     document.body.classList.remove('viewing-walk');
     document.getElementById('backBtn').style.display = 'none';
     document.getElementById('minimizeBtn').style.display = 'flex';
@@ -176,16 +245,25 @@ function goBack() {
     document.getElementById('mainSearch').style.display = 'block'; 
     closeElevation(); switchTab('explore');
     if(document.body.classList.contains('mobile-mode')) { 
-        snapTo('open');
+        snapTo('half');
     }
     resetSidebarScroll();
 }
 
 function switchTab(tab) {
     document.body.classList.remove('viewing-walk');
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    
+    const isMobile = document.body.classList.contains('mobile-mode');
+    const clickedSameTab = (currentTab === tab);
+    
+    currentTab = tab;
+
+    document.querySelectorAll('.tab-btn, .mobile-tab-btn').forEach(b => b.classList.remove('active'));
     const targetTab = document.getElementById(tab + 'Tab');
     if (targetTab) targetTab.classList.add('active');
+    const targetMobileTab = document.getElementById('mobile' + tab.charAt(0).toUpperCase() + tab.slice(1) + 'Tab');
+    if (targetMobileTab) targetMobileTab.classList.add('active');
+    
     document.getElementById('explore-panel').style.display = (tab === 'explore' ? 'block' : 'none');
     document.getElementById('add-panel').style.display = (tab === 'add' ? 'block' : 'none');
     document.getElementById('settings-panel').style.display = (tab === 'settings' ? 'block' : 'none');
@@ -193,6 +271,26 @@ function switchTab(tab) {
     document.getElementById('mainSearch').style.display = 'block'; 
     closeElevation(); setMode(tab === 'explore' ? 'explore' : 'ready');
     resetSidebarScroll();
+    
+    if (isMobile) {
+        if (tab === 'settings') {
+            if (clickedSameTab && mobileSidebar.classList.contains('open')) {
+                snapTo('bottom');
+            } else {
+                snapTo('open');
+            }
+        } else {
+            if (clickedSameTab) {
+                if (mobileSidebar.classList.contains('open') || mobileSidebar.classList.contains('half')) {
+                    snapTo('bottom');
+                } else {
+                    snapTo('half');
+                }
+            } else {
+                snapTo('half');
+            }
+        }
+    }
 }
 
 function setFilter(category, value, btn) { activeFilters[category] = value; btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); updateHighlights(); }
@@ -257,19 +355,47 @@ if (confirmSaveBtn) confirmSaveBtn.onclick = async () => {
     let flat, flon;
     if (currentMode === 'pin') { flat = pendingCoords.lat; flon = pendingCoords.lng; const p = { id, name, desc, rating: rat, lat: flat, lng: flon, color: selectedColor }; storage.pins.push(p); addPin(p); }
     else { if (tempPath.length < 2) return; let d = 0; for(let i=1; i<tempPath.length; i++) d += L.latLng(tempPath[i-1]).distanceTo(L.latLng(tempPath[i])); flat = tempPath[0][0]; flon = tempPath[0][1]; const w = { id, name, desc, rating: rat, path: [...tempPath], dist: (d/1000).toFixed(2), lat: flat, lng: flon, color: selectedColor }; storage.walks.push(w); addWalk(w); }
-    saveData(); document.getElementById('modal-overlay').style.display = 'none'; goBack(); fetchPhoto(flat, flon, id);
+    saveData(); document.getElementById('modal-overlay').style.display = 'none'; goBack(); fetchAutomaticPhotosForId(id, 3);
 };
 
-async function fetchPhoto(lat, lon, id) {
+async function fetchWikipediaPhotos(lat, lon, limit = 3) {
     try {
-        const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=500&gscoord=${lat}|${lon}&format=json&origin=*`).then(r=>r.json());
+        const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gsradius=10000&gscoord=${lat}|${lon}&gslimit=${limit}&format=json&origin=*`).then(r=>r.json());
         if(res.query?.geosearch?.length) {
-            const title = res.query.geosearch[0].title;
-            const imgRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&titles=${encodeURIComponent(title)}&pithumbsize=500&origin=*`).then(r=>r.json());
-            const pg = Object.values(imgRes.query.pages)[0];
-            if(pg.original) { let entry = storage.pins.find(x=>x.id===id) || storage.walks.find(x=>x.id===id); if(entry && !entry.photo) { entry.photo = pg.original.source; saveData(); updateHighlights(); } }
+            const photos = [];
+            for (const item of res.query.geosearch) {
+                const imgRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&titles=${encodeURIComponent(item.title)}&pithumbsize=500&origin=*`).then(r=>r.json());
+                const pg = Object.values(imgRes.query.pages)[0];
+                if(pg.original) photos.push(pg.original.source);
+                if (photos.length >= limit) break;
+            }
+            return photos;
         }
     } catch(e){}
+    return [];
+}
+
+async function fetchAutomaticPhotosForId(id, limit = 3) {
+    const item = storage.pins.find(p=>p.id===id) || storage.walks.find(w=>w.id===id);
+    if (!item) return;
+    if ((item.photos && item.photos.length > 0) || item.photo) return;
+
+    let lat = item.path && item.path.length > 0 ? item.path[Math.floor(item.path.length / 2)][0] : item.lat;
+    let lng = item.path && item.path.length > 0 ? item.path[Math.floor(item.path.length / 2)][1] : item.lng;
+
+    const photos = await fetchWikipediaPhotos(lat, lng, limit);
+    if (photos.length > 0) {
+        if (!item.photos) item.photos = [];
+        item.photos.push(...photos);
+        saveData();
+        if (typeof saveToCloud === 'function') saveToCloud(item.path ? 'walks' : 'pins', item);
+        if (typeof updateHighlights === 'function') updateHighlights();
+        if (typeof updateMyLogList === 'function') updateMyLogList();
+        if (activeSelectionId === id && typeof refreshSlideshow === 'function') {
+            refreshSlideshow(item);
+            if (isEditing && typeof renderEditPhotos === 'function') renderEditPhotos(item);
+        }
+    }
 }
 
 function addPin(p) { const pinIcon = L.divIcon({ className: 'custom-pin-marker', html: `<div class="pin-wrapper"><div class="pin-shape" style="background:${p.color || '#2563eb'}"></div></div>`, iconSize: [30, 30], iconAnchor: [15, 30] }); L.marker([p.lat, p.lng], {icon: pinIcon, zIndexOffset: 1000}).addTo(mapItems).on('click', (e) => { L.DomEvent.stopPropagation(e); showDetails(p, false, e.target); }); }
@@ -293,6 +419,9 @@ function refreshMapItems() { mapItems.clearLayers(); storage.pins.forEach(addPin
 
 function showDetails(item, isWalk, layer) {
     if (!item) return;
+    if (history.state?.view !== 'details') {
+        history.pushState({ view: 'details' }, '');
+    }
     if (elevationAbortController) { elevationAbortController.abort(); elevationAbortController = null; }
     activeSelectionId = item.id; isEditing = false; graphOpen = false; selectedColor = item.color || COLORS[0];
     
@@ -455,5 +584,14 @@ if (modalStars) modalStars.onclick = (e) => { if(e.target.dataset.value) { curre
 
 const finishWalkBtn = document.getElementById('finishWalkBtn');
 if (finishWalkBtn) finishWalkBtn.onclick = () => { selectedColor = COLORS[0]; setupColorPickers(); resetModal(); document.getElementById('modal-overlay').style.display = 'flex'; };
+
+if (history.state?.view === 'details') {
+    history.replaceState(null, '');
+}
+window.addEventListener('popstate', (e) => {
+    if (document.getElementById('detail-view').style.display === 'flex') {
+        goBackUI();
+    }
+});
 
 refreshMapItems(); updateHighlights(); switchTab('explore');
