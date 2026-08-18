@@ -1254,14 +1254,88 @@
             background: var(--card);
             backdrop-filter: blur(20px);
             border: 1px solid var(--border);
-            padding: 10px;
-            border-radius: 15px;
+            padding: 12px;
+            border-radius: 16px;
             display: none;
-            flex-direction: column;
-            gap: 6px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            width: 250px;
+            box-sizing: border-box;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             z-index: 7000 !important;
             transition: top 0.3s;
+        }
+
+        .layer-card {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1.5;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .layer-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(37, 99, 235, 0.5);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+        }
+
+        .layer-card.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
+        }
+
+        .layer-card.active::after {
+            content: '✓';
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: var(--primary);
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 15;
+        }
+
+        .layer-preview {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.3s ease;
+        }
+
+        .layer-card:hover .layer-preview {
+            transform: scale(1.08);
+        }
+
+        .layer-name {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 700;
+            text-align: center;
+            padding: 5px 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 10;
         }
 
         .node-handle,
@@ -2004,6 +2078,59 @@
             pointer-events: none !important;
         }
 
+        /* Refined glowing activity lines & responsive zoom scaling with additive overlap highlighting */
+        path.walk-poly {
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 4.5px;
+            transition: stroke 0.2s ease, stroke-width 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+            filter: drop-shadow(0 0 6px currentColor) drop-shadow(0 0 12px currentColor);
+            pointer-events: visibleStroke;
+            opacity: 0.9 !important;
+            mix-blend-mode: normal !important;
+        }
+
+        /* Zoomed Out (< 11): 2.5px line, clean colored glow */
+        body.zoom-far path.walk-poly {
+            stroke-width: 2.5px !important;
+            filter: drop-shadow(0 0 4px currentColor) !important;
+            opacity: 0.85 !important;
+            mix-blend-mode: normal !important;
+        }
+
+        /* Mid Zoom (11-13.9): 3.5px line & bold glow */
+        body.zoom-mid path.walk-poly {
+            stroke-width: 3.5px !important;
+            filter: drop-shadow(0 0 5px currentColor) !important;
+            opacity: 0.88 !important;
+            mix-blend-mode: normal !important;
+        }
+
+        /* Close Zoom (>= 14): 4.8px line, bold glow */
+        body.zoom-close path.walk-poly {
+            stroke-width: 4.8px !important;
+            filter: drop-shadow(0 0 7px currentColor) !important;
+            opacity: 0.9 !important;
+            mix-blend-mode: normal !important;
+        }
+
+        /* Hover: expand stroke-width to 14px for easy hit target & highlight glow */
+        path.walk-poly:hover {
+            stroke-width: 14px !important;
+            filter: drop-shadow(0 0 10px currentColor) drop-shadow(0 0 18px currentColor) !important;
+            cursor: pointer;
+            opacity: 1 !important;
+            mix-blend-mode: normal !important;
+        }
+
+        /* Active / Clicked Activity line */
+        path.walk-poly.active-walk {
+            stroke-width: 7px !important;
+            filter: drop-shadow(0 0 8px currentColor) drop-shadow(0 0 16px currentColor) !important;
+            opacity: 1 !important;
+            mix-blend-mode: normal !important;
+        }
+
         body.viewing-walk path.walk-poly:not(.active-walk) {
             display: none !important;
             pointer-events: none !important;
@@ -2218,6 +2345,169 @@
         .exp-inline-results::-webkit-scrollbar-thumb {
             background: var(--border);
             border-radius: 4px;
+        }
+
+        /* Pin overlap clustering badge styling */
+        .pin-cluster-badge {
+            background: transparent;
+            border: none;
+        }
+
+        .cluster-badge-inner {
+            width: 28px;
+            height: 28px;
+            background: rgba(37, 99, 235, 0.92);
+            color: #ffffff;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.8), 0 0 16px rgba(37, 99, 235, 0.5), 0 4px 10px rgba(0, 0, 0, 0.3);
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: badge-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .cluster-badge-inner:hover {
+            transform: scale(1.18);
+            background: rgba(59, 130, 246, 0.98);
+            box-shadow: 0 0 12px rgba(96, 165, 250, 1), 0 0 24px rgba(37, 99, 235, 0.85), 0 6px 14px rgba(0, 0, 0, 0.4);
+            border-color: #ffffff;
+        }
+
+        @keyframes badge-pop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Custom Overlapping Routes & Pins Popup */
+        .leaflet-popup.custom-overlapping-popup .leaflet-popup-content-wrapper {
+            background: var(--card, #1e293b);
+            color: var(--text, #f8fafc);
+            border: 1px solid var(--border, rgba(255, 255, 255, 0.15));
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .leaflet-popup.custom-overlapping-popup .leaflet-popup-content {
+            margin: 10px 12px !important;
+            line-height: 1.4;
+        }
+
+        .leaflet-popup.custom-overlapping-popup .leaflet-popup-tip {
+            background: var(--card, #1e293b);
+        }
+
+        .overlapping-pins-popup {
+            max-height: 260px;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            min-width: 200px;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .overlapping-pins-popup::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        .overlapping-pins-popup h4 {
+            margin: 0 0 8px 0;
+            font-size: 11px;
+            border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+            padding-bottom: 6px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--primary, #3b82f6);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .overlapping-pin-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 8px !important;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .overlapping-pin-item:hover {
+            background-color: rgba(59, 130, 246, 0.18) !important;
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateX(2px);
+        }
+
+        .overlapping-pin-item-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .overlapping-pin-item-color {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .overlapping-pin-item-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text, #f8fafc);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .overlapping-pin-item-dist {
+            font-size: 10px;
+            font-weight: 700;
+            opacity: 0.75;
+            white-space: nowrap;
+            margin-left: 6px;
+            color: var(--text, #94a3b8);
+        }
+
+        font-weight: 700;
+        font-size: 13px;
+        color: var(--text, #0f172a);
+        max-width: 120px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        }
+
+        .overlapping-pin-item-rating {
+            font-size: 11px;
+            color: #fbbf24;
+            font-weight: 700;
         }
     </style>
 </head>
@@ -2845,6 +3135,11 @@
                         </button>
                         <div id="prefSettings" class="settings-content" style="display:none;">
                             <div class="settings-row-refined">
+                                <span class="settings-label">Activity & Pin Colors</span>
+                                <label class="switch"><input type="checkbox" id="useColorsToggle"
+                                        onchange="toggleItemColors(this.checked)"><span class="slider"></span></label>
+                            </div>
+                            <div class="settings-row-refined">
                                 <span class="settings-label">Units</span>
                                 <select id="unitSelect" class="custom-select" onchange="changeUnits(this.value)"
                                     style="max-width: 140px;">
@@ -3282,12 +3577,38 @@
                 style="background:var(--danger); border:none; color:white; border-radius:6px; padding:2px 8px; cursor:pointer; font-size:10px; font-weight:800; margin-left:8px;">CANCEL</button>
         </div>
         <div id="layer-popup">
-            <button class="layer-item-btn" onclick="setMapLayer('voyager')">🏙️ Voyager</button>
-            <button class="layer-item-btn" onclick="setMapLayer('dark')">🌙 Dark Matter</button>
-            <button class="layer-item-btn" onclick="setMapLayer('sat')">🌍 Satellite</button>
-            <button class="layer-item-btn" onclick="setMapLayer('topo')">⛰️ Topography</button>
-            <button class="layer-item-btn" onclick="setMapLayer('transit')">🚌 Transport</button>
-            <button class="layer-item-btn" onclick="setMapLayer('hybrid')">🛰️ Hybrid</button>
+            <div class="layer-card" onclick="setMapLayer('voyager')" data-layer="voyager">
+                <div class="layer-preview"
+                    style="background-image: url('https://basemaps.cartocdn.com/rastertiles/voyager/12/2027/1328.png');">
+                </div>
+                <div class="layer-name">Voyager</div>
+            </div>
+            <div class="layer-card" onclick="setMapLayer('dark')" data-layer="dark">
+                <div class="layer-preview"
+                    style="background-image: url('https://basemaps.cartocdn.com/dark_all/12/2027/1328.png');"></div>
+                <div class="layer-name">Dark Matter</div>
+            </div>
+            <div class="layer-card" onclick="setMapLayer('sat')" data-layer="sat">
+                <div class="layer-preview"
+                    style="background-image: url('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/12/1328/2027');">
+                </div>
+                <div class="layer-name">Satellite</div>
+            </div>
+            <div class="layer-card" onclick="setMapLayer('topo')" data-layer="topo">
+                <div class="layer-preview"
+                    style="background-image: url('https://a.tile.opentopomap.org/12/2027/1328.png');"></div>
+                <div class="layer-name">Topography</div>
+            </div>
+            <div class="layer-card" onclick="setMapLayer('transit')" data-layer="transit">
+                <div class="layer-preview"
+                    style="background-image: url('https://tile.memomaps.de/tilegen/12/2027/1328.png');"></div>
+                <div class="layer-name">Transport</div>
+            </div>
+            <div class="layer-card" onclick="setMapLayer('hybrid')" data-layer="hybrid">
+                <div class="layer-preview"
+                    style="background-image: url('https://mt1.google.com/vt/lyrs=y&x=2027&y=1328&z=12');"></div>
+                <div class="layer-name">Hybrid</div>
+            </div>
         </div>
         <div id="elevation-dock">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
@@ -3676,7 +3997,31 @@
         };
 
         let selectedColor = PIN_TYPES[0].color;
-        let storage = { pins: [], walks: [], expeditions: [], theme: 'dark', mapStyle: 'voyager', isMobile: false, units: 'metric', speeds: { walk: 5, hike: 4, run: 10, cycle: 20 } };
+        let storage = { pins: [], walks: [], expeditions: [], theme: 'dark', mapStyle: 'voyager', isMobile: false, units: 'metric', speeds: { walk: 5, hike: 4, run: 10, cycle: 20 }, useColors: false };
+
+        function getPinColor(p) {
+            if (!p) return '#2563eb';
+            if (!storage.useColors) return '#2563eb';
+            return p.color || '#2563eb';
+        }
+
+        function getWalkColor(w) {
+            if (!w) return '#3b82f6';
+            if (!storage.useColors) return '#3b82f6';
+            if (w.color) return w.color;
+            if (typeof ACTIVITY_COLORS !== 'undefined' && w.activity && ACTIVITY_COLORS[w.activity]) {
+                return ACTIVITY_COLORS[w.activity];
+            }
+            return '#3b82f6';
+        }
+
+        function toggleItemColors(enabled) {
+            storage.useColors = enabled;
+            saveData();
+            refreshMapItems();
+            if (typeof updateHighlights === 'function') updateHighlights();
+            if (typeof updateMyLogList === 'function') updateMyLogList();
+        }
         let currentMode = 'explore', tempPath = [], pendingCoords = null, activeSelectionId = null, isEditing = false, graphOpen = false;
         let editingCommentId = null;
         let currentUser = null;
@@ -3793,6 +4138,24 @@
 
         const map = L.map('map', { zoomControl: false, zoomSnap: 0.1 }).setView([51.505, -0.09], 3);
         mapItems.addTo(map);
+
+        function updateMapZoomClasses() {
+            if (!map) return;
+            const z = map.getZoom();
+            document.body.classList.remove('zoom-far', 'zoom-mid', 'zoom-close');
+            if (z < 11) {
+                document.body.classList.add('zoom-far');
+            } else if (z < 14) {
+                document.body.classList.add('zoom-mid');
+            } else {
+                document.body.classList.add('zoom-close');
+            }
+        }
+        map.on('zoomend zoom moveend', () => {
+            updateMapZoomClasses();
+            if (typeof updatePinClustering === 'function') updatePinClustering();
+        });
+        updateMapZoomClasses();
 
         const mapStyles = {
             voyager: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
@@ -4030,9 +4393,21 @@
         async function saveToCloud(collection, data) {
             try {
                 const cleanData = JSON.parse(JSON.stringify(data));
-                if (cleanData.path && cleanData.path.length > 0 && Array.isArray(cleanData.path[0])) {
-                    cleanData.path = cleanData.path.map(p => ({ lat: p[0], lng: p[1] }));
+                
+                // Strip runtime internal cache properties (e.g. _snappedPath)
+                Object.keys(cleanData).forEach(key => {
+                    if (key.startsWith('_')) delete cleanData[key];
+                });
+
+                // Flatten nested arrays if any exist
+                if (cleanData.path && Array.isArray(cleanData.path)) {
+                    cleanData.path = cleanData.path.map(pt => {
+                        if (Array.isArray(pt)) return { lat: pt[0], lng: pt[1] };
+                        if (pt && typeof pt === 'object') return { lat: pt.lat, lng: pt.lng };
+                        return pt;
+                    });
                 }
+
                 if (!cleanData.userId) cleanData.userId = currentUser.uid;
 
                 // Ensure creatorName is set
@@ -4446,6 +4821,7 @@
             storage.isMobile = localData.isMobile || false;
             storage.units = localData.units || 'metric';
             storage.speeds = localData.speeds || { walk: 5, hike: 4, run: 10, cycle: 20 };
+            storage.useColors = localData.useColors !== undefined ? localData.useColors : false;
 
             // Sync map layer to saved mapStyle on startup
             if (map && baseLayer && mapStyles[storage.mapStyle]) {
@@ -4517,6 +4893,8 @@
         document.body.classList.remove('light-theme', 'dark-theme');
         document.body.classList.add(theme + '-theme');
         document.getElementById('themeToggle').checked = (storage.theme === 'dark');
+        const colorsToggle = document.getElementById('useColorsToggle');
+        if (colorsToggle) colorsToggle.checked = !!storage.useColors;
 
         function toggleDeviceMode() {
             storage.isMobile = !storage.isMobile;
@@ -5102,13 +5480,33 @@
             });
         }
 
-        function toggleLayerMenu() { const menu = document.getElementById('layer-popup'); menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex'; }
+        function toggleLayerMenu() {
+            const menu = document.getElementById('layer-popup');
+            const isVisible = menu.style.display === 'grid';
+            menu.style.display = isVisible ? 'none' : 'grid';
+            if (!isVisible) {
+                document.querySelectorAll('.layer-card').forEach(card => {
+                    if (card.dataset.layer === storage.mapStyle) {
+                        card.classList.add('active');
+                    } else {
+                        card.classList.remove('active');
+                    }
+                });
+            }
+        }
         function setMapLayer(style) {
             storage.mapStyle = style;
             map.removeLayer(baseLayer);
             baseLayer = L.tileLayer(mapStyles[style], { maxZoom: 18 }).addTo(map);
             saveData();
             document.getElementById('layer-popup').style.display = 'none';
+            document.querySelectorAll('.layer-card').forEach(card => {
+                if (card.dataset.layer === style) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
 
             const flySel = document.getElementById('flyMapSelect');
             if (flySel) flySel.value = style;
@@ -5221,6 +5619,9 @@
                     chartInstance.update();
                 }
             }
+            const wasExpedition = activeSelectionId && storage.expeditions && storage.expeditions.some(e => e.id === activeSelectionId);
+            activeSelectionId = null;
+            window.activeExpeditionDayForMapClick = null;
             document.body.classList.remove('viewing-walk');
             document.getElementById('backBtn').style.display = 'none';
             document.getElementById('minimizeBtn').style.display = 'flex';
@@ -5232,7 +5633,11 @@
             closeElevation(); switchTab('explore');
             if (document.body.classList.contains('mobile-mode')) snapTo('half');
             resetSidebarScroll();
-            refreshMapItems(); // restore full map (clears expedition-focused view)
+            if (wasExpedition) {
+                refreshMapItems();
+            } else {
+                updateMapOpacities();
+            }
         }
 
         function switchTab(tab) {
@@ -5241,6 +5646,8 @@
                     return;
                 }
             }
+
+            const wasExpedition = activeSelectionId && storage.expeditions && storage.expeditions.some(e => e.id === activeSelectionId);
             document.body.classList.remove('viewing-walk');
 
             const isMobile = document.body.classList.contains('mobile-mode');
@@ -5261,7 +5668,13 @@
             document.getElementById('editWalkOptions').style.display = 'none';
             document.getElementById('mainSearch').style.display = (tab === 'explore' ? 'block' : 'none');
             closeElevation(); setMode(tab === 'explore' ? 'explore' : 'ready');
-            refreshMapItems();
+            if (wasExpedition) {
+                activeSelectionId = null;
+                refreshMapItems();
+            } else {
+                updateMapOpacities();
+                updateHighlights();
+            }
             resetSidebarScroll();
 
             if (isMobile) {
@@ -6143,7 +6556,7 @@
                         <span style="font-size:9px; opacity:0.55;">${label}</span>
                     </div>`;
                 itemRow.onclick = () => {
-                    selectTimelineItem(item.id, isPin ? 'pin' : 'walk');
+                    selectTimelineItem(item.id, isPin ? 'pin' : 'walk', dayNum);
                 };
                 resultsEl.appendChild(itemRow);
             });
@@ -6224,28 +6637,10 @@
             }
         };
 
-        function selectTimelineItem(itemId, actualType) {
+        function selectTimelineItem(itemId, actualType, targetDayNum) {
+            const dayNum = targetDayNum || currentSelectingDayNum;
             const itemType = actualType || currentSelectingType;
-            if (isEditing) {
-                const day = tempEditTimeline.find(d => d.day === currentSelectingDayNum);
-                if (day) {
-                    day.items.push({
-                        type: itemType,
-                        itemId: itemId
-                    });
-                    renderEditExpeditionTimeline();
-                }
-            } else {
-                const day = expeditionDays.find(d => d.day === currentSelectingDayNum);
-                if (day) {
-                    day.items.push({
-                        type: itemType,
-                        itemId: itemId
-                    });
-                    renderExpeditionTimeline();
-                }
-            }
-            closeExpeditionItemSelector();
+            addTimelineItemDirect(dayNum, itemType, itemId);
         }
 
         window.startNewRouteForExpedition = function (dayNum) {
@@ -6378,6 +6773,7 @@
             const nextDayNum = tempEditTimeline.length + 1;
             tempEditTimeline.push({
                 day: nextDayNum,
+                title: `Day ${nextDayNum}`,
                 items: []
             });
             renderEditExpeditionTimeline();
@@ -6387,6 +6783,9 @@
             tempEditTimeline = tempEditTimeline.filter(d => d.day !== dayNum);
             tempEditTimeline.forEach((d, idx) => {
                 d.day = idx + 1;
+                if (!d.title || d.title.startsWith('Day ')) {
+                    d.title = `Day ${d.day}`;
+                }
             });
             renderEditExpeditionTimeline();
         };
@@ -6537,6 +6936,13 @@
 
         window.saveExpedition = async function () {
             if (!currentUser) return;
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
+            if (expeditionDays.length === 0) {
+                alert("Please add at least one day to your expedition.");
+                return;
+            }
             const name = document.getElementById('expeditionName').value.trim() || "Untitled Expedition";
             const desc = document.getElementById('expeditionDesc').value.trim();
             let visibility = document.getElementById('expeditionVisibility').value;
@@ -6811,16 +7217,22 @@
                 if (timeEl) timeEl.innerText = '00m';
                 closeElevation();
 
-                const wasExpedition = !!window.addCreatedPinToExpeditionDay;
-                const isEditMode = window.addCreatedPinToEditMode;
-                const expId = window.expeditionPreCreationActiveId;
+                const wasExpedition = !!window.addCreatedPinToExpeditionDay || !!window.editingTimelineItemSource;
+                const isEditMode = window.addCreatedPinToEditMode || (window.editingTimelineItemSource === 'edit');
+                const expId = window.expeditionPreCreationActiveId || window.editingTimelineItemExpId;
 
                 if (wasExpedition) {
                     window.addCreatedPinToExpeditionDay = null;
                     window.addCreatedPinToEditMode = null;
                     window.expeditionPreCreationActiveId = null;
+                    window.editingTimelineItemSource = null;
+                    window.editingTimelineItemExpId = null;
 
                     if (isEditMode) {
+                        if (window.tempEditTimelineBackup) {
+                            tempEditTimeline = window.tempEditTimelineBackup;
+                            window.tempEditTimelineBackup = null;
+                        }
                         const exp = storage.expeditions.find(e => e.id === expId);
                         if (exp) {
                             window.preserveTempEditTimeline = true;
@@ -6991,34 +7403,7 @@
 
             // Update Map if on Explore Tab
             if (currentTab === 'explore') {
-                mapItems.clearLayers();
-                if (isViewingExpedition()) {
-                    const activeExp = storage.expeditions.find(e => e.id === activeSelectionId);
-                    if (activeExp && activeExp.timeline) {
-                        activeExp.timeline.forEach(day => {
-                            if (day.items) {
-                                day.items.forEach(dayItem => {
-                                    if (dayItem.type === 'walk') {
-                                        const w = storage.walks.find(wk => wk.id === dayItem.itemId);
-                                        if (w) addWalk(w);
-                                    } else if (dayItem.type === 'pin') {
-                                        const p = storage.pins.find(pn => pn.id === dayItem.itemId);
-                                        if (p) addPin(p);
-                                    }
-                                });
-                            }
-                        });
-                    }
-                } else if (isFlying) {
-                    const activeWalk = storage.walks.find(w => w.id === activeSelectionId);
-                    if (activeWalk) addWalk(activeWalk);
-                } else {
-                    all.forEach(i => {
-                        if (i.type === 'PIN') addPin(i);
-                        else if (i.type === 'WALK') addWalk(i);
-                        else if (i.type === 'EXPEDITION') addExpeditionMarker(i);
-                    });
-                }
+                updateMapOpacities();
             }
 
             if (userPos) all.forEach(i => i.d = L.latLng(i.lat, i.lng).distanceTo(userPos) / 1000);
@@ -7105,6 +7490,7 @@
                 list.appendChild(div);
             });
             updateMapOpacities();
+            if (typeof triggerClustering === 'function') triggerClustering();
         }
 
         async function getSnappedPath(startLatLng, endLatLng) {
@@ -7271,7 +7657,7 @@
                 handleMeasureClick(e);
                 return;
             }
-            if (currentMode === 'expedition' && window.activeExpeditionDayForMapClick) {
+            if (window.activeExpeditionDayForMapClick) {
                 // In 'existing' mode, blank map clicks do nothing — only pin/walk marker clicks work
                 if (window.expeditionMapClickMode === 'existing') return;
 
@@ -7808,58 +8194,459 @@
             }
         }
 
+        let clusterTimeout;
+        function triggerClustering() {
+            clearTimeout(clusterTimeout);
+            clusterTimeout = setTimeout(updatePinClustering, 50);
+        }
+
+        function updatePinClustering() {
+            if (!map) return;
+
+            if (window.clusterMarkersGroup) {
+                window.clusterMarkersGroup.clearLayers();
+            } else {
+                window.clusterMarkersGroup = L.layerGroup().addTo(map);
+            }
+
+            const pinMarkers = [];
+            mapItems.eachLayer(layer => {
+                if (layer instanceof L.Marker && layer.pinId !== undefined) {
+                    pinMarkers.push(layer);
+                }
+            });
+
+            pinMarkers.forEach(marker => {
+                marker.off('click');
+                if (marker.originalClick) {
+                    marker.on('click', marker.originalClick);
+                }
+                if (marker._icon) {
+                    marker._icon.style.display = '';
+                    marker.isClusteredHidden = false;
+                }
+            });
+
+            const overlapThreshold = 35; // pixels
+            const groups = [];
+
+            pinMarkers.forEach(marker => {
+                const pos = map.latLngToContainerPoint(marker.getLatLng());
+                let foundGroup = false;
+                for (let group of groups) {
+                    const repPos = map.latLngToContainerPoint(group[0].getLatLng());
+                    const dist = pos.distanceTo(repPos);
+                    if (dist < overlapThreshold) {
+                        group.push(marker);
+                        foundGroup = true;
+                        break;
+                    }
+                }
+                if (!foundGroup) {
+                    groups.push([marker]);
+                }
+            });
+
+            groups.forEach(group => {
+                if (group.length === 1) return;
+
+                // Hide all pins in this cluster group
+                group.forEach(marker => {
+                    marker.isClusteredHidden = true;
+                    if (marker._icon) {
+                        marker._icon.style.display = 'none';
+                    }
+                });
+
+                // Calculate exact centroid (center lat/lng) of all pins in the cluster
+                let sumX = 0;
+                let sumY = 0;
+                group.forEach(m => {
+                    const pt = map.latLngToContainerPoint(m.getLatLng());
+                    sumX += pt.x;
+                    sumY += pt.y;
+                });
+                const centerPt = L.point(sumX / group.length, sumY / group.length);
+                const centerLatLng = map.containerPointToLatLng(centerPt);
+
+                const clusterCount = group.length;
+                const badgeSize = 28;
+
+                const badgeIcon = L.divIcon({
+                    className: 'pin-cluster-badge',
+                    html: `<div class="cluster-badge-inner">${clusterCount}</div>`,
+                    iconSize: [badgeSize, badgeSize],
+                    iconAnchor: [badgeSize / 2, badgeSize / 2]
+                });
+
+                const badgeMarker = L.marker(centerLatLng, {
+                    icon: badgeIcon,
+                    zIndexOffset: 2000
+                }).addTo(window.clusterMarkersGroup);
+
+                const handleClusterClick = (e) => {
+                    L.DomEvent.stopPropagation(e);
+                    const latlngs = group.map(m => m.getLatLng());
+                    const bounds = L.latLngBounds(latlngs);
+
+                    if (map.getZoom() >= map.getMaxZoom() || bounds.getNorthEast().equals(bounds.getSouthWest())) {
+                        showOverlappingPinsPopup(group, centerLatLng);
+                    } else {
+                        map.fitBounds(bounds, { padding: [50, 50], maxZoom: map.getZoom() + 2 });
+                    }
+                };
+
+                badgeMarker.on('click', handleClusterClick);
+            });
+        }
+
+        function showOverlappingPinsPopup(group, latlng) {
+            let html = `<div class="overlapping-pins-popup">`;
+            html += `<h4>Overlapping Locations</h4>`;
+
+            group.forEach(marker => {
+                const p = marker.pinData;
+                if (!p) return;
+
+                html += `
+                    <div class="overlapping-pin-item" onclick="window.selectClusteredPin(${p.id})">
+                        <div class="overlapping-pin-item-left">
+                            <div class="overlapping-pin-item-color" style="background: ${getPinColor(p)};"></div>
+                            <span class="overlapping-pin-item-name">${p.name}</span>
+                        </div>
+                        <span class="overlapping-pin-item-rating">★${p.rating || 0}</span>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+
+            L.popup({ className: 'custom-overlapping-popup', closeButton: true })
+                .setLatLng(latlng)
+                .setContent(html)
+                .openOn(map);
+        }
+
+        window.selectClusteredPin = (pinId) => {
+            const p = storage.pins.find(pin => pin.id === pinId);
+            if (!p) return;
+
+            map.closePopup();
+
+            const marker = mapItems.getLayers().find(l => l instanceof L.Marker && l.pinId === pinId);
+
+            if (typeof flyToPin === 'function') {
+                flyToPin(p.lat, p.lng, 18);
+            } else {
+                map.flyTo([p.lat, p.lng], 15);
+            }
+            showDetails(p, false, marker);
+        };
+
         function addPin(p) {
             const catName = getCategoryName(p.color);
+            const pinColor = getPinColor(p);
+            const pinGlow = `0 0 8px ${pinColor}, 0 0 16px ${pinColor}, 0 3px 6px rgba(0,0,0,0.4)`;
             let html = '';
             let iSize = [40, 40];
             let iAnchor = [20, 40];
 
             if (catName === 'Parking') {
-                html = `<div class="special-pin" style="width: 20px; height: 20px; background: ${p.color || '#2563eb'}; border-radius: 4px; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">P</div>`;
+                html = `<div class="special-pin" style="width: 20px; height: 20px; background: ${pinColor}; border-radius: 4px; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 12px; box-shadow: ${pinGlow};">P</div>`;
                 iSize = [24, 24];
                 iAnchor = [12, 12];
             } else if (catName === 'Camping') {
-                html = `<div class="special-pin" style="width: 22px; height: 22px; background: ${p.color || '#22c55e'}; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"><img src="Images/Tent.png" style="width: 14px; height: 14px; object-fit: contain; pointer-events: none;"></div>`;
+                html = `<div class="special-pin" style="width: 22px; height: 22px; background: ${pinColor}; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; box-shadow: ${pinGlow};"><img src="Images/Tent.png" style="width: 14px; height: 14px; object-fit: contain; pointer-events: none;"></div>`;
+                iSize = [24, 24];
+                iAnchor = [12, 12];
+            } else if (catName === 'Amenities') {
+                const pinType = PIN_TYPES.find(t => isSameColor(t.color, p.color));
+                const emoji = pinType ? pinType.icon : '🚻';
+                html = `<div class="special-pin" style="width: 22px; height: 22px; background: ${pinColor}; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-size: 13px; box-shadow: ${pinGlow};">${emoji}</div>`;
                 iSize = [24, 24];
                 iAnchor = [12, 12];
             } else {
-                html = `<div class="pin-wrapper"><div class="pin-shape" style="background:${p.color || '#2563eb'}"></div></div>`;
+                html = `<div class="pin-wrapper"><div class="pin-shape" style="background:${pinColor}; box-shadow: ${pinGlow};"></div></div>`;
             }
 
             const pinIcon = L.divIcon({ className: 'custom-pin-marker', html: html, iconSize: iSize, iconAnchor: iAnchor });
             const marker = L.marker([p.lat, p.lng], { icon: pinIcon, zIndexOffset: 1000 }).addTo(mapItems);
             marker.pinId = p.id;
-            marker.on('click', (e) => {
+            marker.pinData = p;
+            marker.originalClick = (e) => {
                 L.DomEvent.stopPropagation(e);
-                if (currentMode === 'expedition' && window.activeExpeditionDayForMapClick) {
+                if (window.activeExpeditionDayForMapClick) {
                     addTimelineItemDirect(window.activeExpeditionDayForMapClick, 'pin', p.id);
                     return;
                 }
                 flyToPin(p.lat, p.lng, 18);
                 showDetails(p, false, marker);
-            });
+            };
+            marker.on('click', marker.originalClick);
             if (!document.body.classList.contains('mobile-mode')) {
                 marker.bindTooltip(() => generateTooltipHTML(p), { direction: 'top', offset: [0, -25], className: 'map-card-tooltip' });
             }
+            triggerClustering();
         }
+        function distanceToSegmentMeters(pt, p1, p2) {
+            const latlng = L.latLng(pt);
+            const l1 = L.latLng(p1);
+            const l2 = L.latLng(p2);
+
+            const x = latlng.lng, y = latlng.lat;
+            const x1 = l1.lng, y1 = l1.lat;
+            const x2 = l2.lng, y2 = l2.lat;
+
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+
+            if (dx === 0 && dy === 0) {
+                return latlng.distanceTo(l1);
+            }
+
+            let t = ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy);
+            t = Math.max(0, Math.min(1, t));
+
+            const proj = L.latLng(y1 + t * dy, x1 + t * dx);
+            return latlng.distanceTo(proj);
+        }
+
+        function projectPointToSegment(pt, p1, p2) {
+            const latlng = L.latLng(pt);
+            const l1 = L.latLng(p1);
+            const l2 = L.latLng(p2);
+
+            const x = latlng.lng, y = latlng.lat;
+            const x1 = l1.lng, y1 = l1.lat;
+            const x2 = l2.lng, y2 = l2.lat;
+
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+
+            if (dx === 0 && dy === 0) {
+                return { proj: [l1.lat, l1.lng], dist: latlng.distanceTo(l1) };
+            }
+
+            let t = ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy);
+            t = Math.max(0, Math.min(1, t));
+
+            const projLat = y1 + t * dy;
+            const projLng = x1 + t * dx;
+            const projLatLng = L.latLng(projLat, projLng);
+
+            return { proj: [projLat, projLng], dist: latlng.distanceTo(projLatLng) };
+        }
+
+        function getSnappedWalkPath(w, thresholdMeters = 35) {
+            if (!w || !w.path || w.path.length === 0) return w ? w.path : [];
+            if (!storage.walks || storage.walks.length <= 1) return w.path;
+            if (w._snappedPath && w._snappedPath.length === w.path.length) return w._snappedPath;
+
+            const thresholdDeg = thresholdMeters / 111000;
+            const bboxMargin = thresholdDeg * 2.5;
+            const segments = [];
+
+            storage.walks.forEach(other => {
+                if (other.id === w.id || !other.path || other.path.length < 2) return;
+                for (let i = 1; i < other.path.length; i++) {
+                    const a = other.path[i - 1];
+                    const b = other.path[i];
+                    const lat1 = Array.isArray(a) ? a[0] : a.lat;
+                    const lng1 = Array.isArray(a) ? a[1] : a.lng;
+                    const lat2 = Array.isArray(b) ? b[0] : b.lat;
+                    const lng2 = Array.isArray(b) ? b[1] : b.lng;
+                    if (lat1 !== undefined && lng1 !== undefined && lat2 !== undefined && lng2 !== undefined) {
+                        const minLat = Math.min(lat1, lat2) - bboxMargin;
+                        const maxLat = Math.max(lat1, lat2) + bboxMargin;
+                        const minLng = Math.min(lng1, lng2) - bboxMargin;
+                        const maxLng = Math.max(lng1, lng2) + bboxMargin;
+                        segments.push({ p1: [lat1, lng1], p2: [lat2, lng2], minLat, maxLat, minLng, maxLng });
+                    }
+                }
+            });
+
+            if (segments.length === 0) {
+                w._snappedPath = w.path;
+                return w.path;
+            }
+
+            const snapped = w.path.map(pt => {
+                const lat = Array.isArray(pt) ? pt[0] : pt.lat;
+                const lng = Array.isArray(pt) ? pt[1] : pt.lng;
+                if (lat === undefined || lng === undefined) return pt;
+
+                let closestProj = null;
+                let minDist = Infinity;
+
+                for (let i = 0; i < segments.length; i++) {
+                    const seg = segments[i];
+                    if (lat < seg.minLat || lat > seg.maxLat || lng < seg.minLng || lng > seg.maxLng) continue;
+                    const res = projectPointToSegment([lat, lng], seg.p1, seg.p2);
+                    if (res.dist < minDist) {
+                        minDist = res.dist;
+                        closestProj = res.proj;
+                    }
+                }
+
+                if (closestProj && minDist <= thresholdMeters) {
+                    return Array.isArray(pt) ? closestProj : { lat: closestProj[0], lng: closestProj[1] };
+                }
+                return pt;
+            });
+
+            try {
+                Object.defineProperty(w, '_snappedPath', {
+                    value: snapped,
+                    writable: true,
+                    configurable: true,
+                    enumerable: false
+                });
+            } catch (e) {
+                w._snappedPath = snapped;
+            }
+            return snapped;
+        }
+
+        function getOverlappingWalksAtLatLng(latlng, maxMeters = 25) {
+            if (!map || !latlng || !storage.walks || storage.walks.length === 0) return [];
+            const clickLatLng = L.latLng(latlng);
+            const matchingWalks = [];
+
+            storage.walks.forEach(w => {
+                if (!w.path || w.path.length < 2) return;
+                for (let i = 1; i < w.path.length; i++) {
+                    const p1 = w.path[i - 1];
+                    const p2 = w.path[i];
+                    const lat1 = Array.isArray(p1) ? p1[0] : p1.lat;
+                    const lng1 = Array.isArray(p1) ? p1[1] : p1.lng;
+                    const lat2 = Array.isArray(p2) ? p2[0] : p2.lat;
+                    const lng2 = Array.isArray(p2) ? p2[1] : p2.lng;
+                    if (lat1 === undefined || lng1 === undefined || lat2 === undefined || lng2 === undefined) continue;
+
+                    try {
+                        const distMeters = distanceToSegmentMeters(clickLatLng, [lat1, lng1], [lat2, lng2]);
+                        if (distMeters <= maxMeters) {
+                            if (!matchingWalks.some(x => x.id === w.id)) {
+                                matchingWalks.push(w);
+                            }
+                            break;
+                        }
+                    } catch (e) { }
+                }
+            });
+
+            return matchingWalks;
+        }
+
+        function generateMultiWalkTooltipHTML(walks) {
+            if (walks.length === 1) return generateTooltipHTML(walks[0]);
+            let html = `<div style="padding:8px 10px; max-height:220px; overflow-y:auto; min-width:180px;">
+                <div style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:var(--primary); margin-bottom:6px;">
+                    🔀 ${walks.length} Overlapping Routes
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px;">`;
+            walks.forEach(w => {
+                const catName = w.activity || 'Walk';
+                const cat = (typeof WALK_CATEGORIES !== 'undefined') ? WALK_CATEGORIES.find(c => c.name === catName) : null;
+                const icon = cat ? cat.icon : '🥾';
+                html += `<div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.05); padding:4px 6px; border-radius:6px; border:1px solid var(--border);">
+                    <div style="width:8px; height:8px; border-radius:50%; background:${getWalkColor(w)}; flex-shrink:0;"></div>
+                    <span style="font-size:12px;">${icon}</span>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-size:11px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text);">${w.name}</div>
+                        <div style="font-size:9px; opacity:0.6;">${w.dist || 0} km • ${catName}</div>
+                    </div>
+                </div>`;
+            });
+            html += `</div></div>`;
+            return html;
+        }
+
+        function showOverlappingWalksPopup(walks, latlng) {
+            let html = `<div class="overlapping-pins-popup">`;
+            html += `<h4><span>🔀 Select Route</span> <span>(${walks.length})</span></h4>`;
+
+            walks.forEach(w => {
+                const catName = w.activity || 'Walk';
+                const cat = (typeof WALK_CATEGORIES !== 'undefined') ? WALK_CATEGORIES.find(c => c.name === catName) : null;
+                const icon = cat ? cat.icon : '🥾';
+                const color = getWalkColor(w);
+                html += `
+                    <div class="overlapping-pin-item" onclick="window.selectWalkFromPopup(${w.id})">
+                        <div class="overlapping-pin-item-left">
+                            <div class="overlapping-pin-item-color" style="background: ${color}; box-shadow: 0 0 6px ${color};"></div>
+                            <span style="font-size:13px; flex-shrink:0;">${icon}</span>
+                            <span class="overlapping-pin-item-name">${w.name}</span>
+                        </div>
+                        <span class="overlapping-pin-item-dist">${w.dist || 0} km</span>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+
+            L.popup({ className: 'custom-overlapping-popup', closeButton: true })
+                .setLatLng(latlng)
+                .setContent(html)
+                .openOn(map);
+        }
+
+        window.selectWalkFromPopup = (walkId) => {
+            map.closePopup();
+            if (window.activeExpeditionDayForMapClick) {
+                addTimelineItemDirect(window.activeExpeditionDayForMapClick, 'walk', walkId);
+                return;
+            }
+            const w = storage.walks.find(walk => walk.id === walkId);
+            if (w) {
+                const layer = mapItems.getLayers().find(l => l instanceof L.Polyline && l.walkId === walkId);
+                if (layer) {
+                    const isMobile = document.body.classList.contains('mobile-mode');
+                    const sidebarW = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar')) || 400;
+                    const leftPad = isMobile ? 20 : (sidebarW + 30);
+                    const bottomPad = isMobile ? (window.innerHeight / 2) : 40;
+                    map.flyToBounds(layer.getBounds(), { paddingTopLeft: [leftPad, 20], paddingBottomRight: [20, bottomPad], duration: 0.8 });
+                    showDetails(w, true, layer);
+                } else {
+                    showDetails(w, true);
+                }
+            }
+        };
+
+        function getPolylineHoverTooltipHTML(w, latlng) {
+            if (latlng) {
+                const overlapping = getOverlappingWalksAtLatLng(latlng, 25);
+                if (overlapping.length > 1) {
+                    return generateMultiWalkTooltipHTML(overlapping);
+                }
+            }
+            return generateTooltipHTML(w);
+        }
+
         function addWalk(w) {
-            const isActive = (w.id === activeSelectionId && document.body.classList.contains('viewing-walk'));
+            const isActive = (w.id === activeSelectionId);
             const polyClassName = isActive ? 'walk-poly active-walk' : 'walk-poly';
-            const poly = L.polyline(w.path, { color: w.color || '#2563eb', weight: 5, zIndex: 500, className: polyClassName }).addTo(mapItems);
+            const polyColor = getWalkColor(w);
+            const snappedPath = getSnappedWalkPath(w);
+            const poly = L.polyline(snappedPath, { color: polyColor, weight: 3, zIndex: 500, className: polyClassName }).addTo(mapItems);
             poly.walkId = w.id;
-            poly.on('mouseover', () => {
-                if (poly.walkId !== activeSelectionId) {
-                    poly.setStyle({ weight: 8 });
+            setTimeout(() => { if (poly._path) poly._path.style.color = polyColor; }, 0);
+
+            poly.on('mousemove', (e) => {
+                window.lastMouseLatLng = e.latlng;
+                if (!document.body.classList.contains('mobile-mode') && poly.getTooltip() && poly.isTooltipOpen()) {
+                    poly.setTooltipContent(getPolylineHoverTooltipHTML(w, e.latlng));
                 }
             });
-            poly.on('mouseout', () => {
-                if (poly.walkId !== activeSelectionId) {
-                    poly.setStyle({ weight: 5 });
-                }
-            });
+
             poly.on('click', (e) => {
                 L.DomEvent.stopPropagation(e);
-                if (currentMode === 'expedition' && window.activeExpeditionDayForMapClick) {
+                const overlapping = getOverlappingWalksAtLatLng(e.latlng, 25);
+                if (overlapping.length > 1) {
+                    showOverlappingWalksPopup(overlapping, e.latlng);
+                    return;
+                }
+                if (window.activeExpeditionDayForMapClick) {
                     addTimelineItemDirect(window.activeExpeditionDayForMapClick, 'walk', w.id);
                     return;
                 }
@@ -7876,7 +8663,10 @@
             });
 
             if (!document.body.classList.contains('mobile-mode')) {
-                poly.bindTooltip(() => generateTooltipHTML(w), { sticky: true, className: 'map-card-tooltip' });
+                poly.bindTooltip((layer) => {
+                    const hoverLatLng = window.lastMouseLatLng || (poly.getLatLngs() ? poly.getLatLngs()[0] : null);
+                    return getPolylineHoverTooltipHTML(w, hoverLatLng);
+                }, { sticky: true, className: 'map-card-tooltip' });
             }
         }
 
@@ -7959,9 +8749,13 @@
             });
         };
         function refreshMapItems() {
+            if (typeof mapItems !== 'undefined' && mapItems) mapItems.clearLayers();
+            if (storage && storage.pins) storage.pins.forEach(addPin);
+            if (storage && storage.walks) storage.walks.forEach(addWalk);
             updateHighlights();
             updateMyLogList();
             if (typeof sync3DWalks === 'function') sync3DWalks();
+            if (typeof sync3DPins === 'function') sync3DPins();
         }
 
         function updateMapOpacities() {
@@ -7969,7 +8763,16 @@
             if (isViewingExpedition()) {
                 mapItems.getLayers().forEach(layer => {
                     if (layer instanceof L.Marker && layer.pinId) layer.setOpacity(1.0);
-                    else if (layer instanceof L.Polyline && layer.walkId) layer.setStyle({ opacity: 1.0, weight: 5 });
+                    else if (layer instanceof L.Polyline && layer.walkId) {
+                        const isActive = (layer.walkId === activeSelectionId);
+                        const w = storage.walks.find(x => x.id === layer.walkId);
+                        const col = getWalkColor(w);
+                        layer.setStyle({ color: col, opacity: 1.0, weight: 5 });
+                        if (layer._path) {
+                            if (isActive) layer._path.classList.add('active-walk');
+                            else layer._path.classList.remove('active-walk');
+                        }
+                    }
                 });
                 return;
             }
@@ -7984,17 +8787,19 @@
                         layer.setOpacity(1.0);
                     }
                 } else if (layer instanceof L.Polyline && layer.walkId) {
-                    if (hasSelection) {
-                        if (layer.walkId === activeSelectionId) {
-                            const w = storage.walks.find(x => x.id === layer.walkId);
-                            const op = (w && w.opacity !== undefined) ? w.opacity : 0.8;
-                            const wt = (w && w.weight !== undefined) ? w.weight : 6;
-                            layer.setStyle({ opacity: op, weight: wt });
-                        } else {
-                            layer.setStyle({ opacity: 0.15, weight: 2 });
-                        }
+                    const w = storage.walks.find(x => x.id === layer.walkId);
+                    const col = getWalkColor(w);
+                    if (hasSelection && layer.walkId === activeSelectionId) {
+                        const op = (w && w.opacity !== undefined) ? w.opacity : 0.95;
+                        const wt = (w && w.weight !== undefined) ? w.weight : 6;
+                        layer.setStyle({ color: col, opacity: op, weight: wt });
+                        if (layer._path) layer._path.classList.add('active-walk');
                     } else {
-                        layer.setStyle({ opacity: 1.0, weight: 5 });
+                        const isUnselectedInDetails = hasSelection && layer.walkId !== activeSelectionId;
+                        const op = isUnselectedInDetails ? 0.2 : 0.95;
+                        const wt = isUnselectedInDetails ? 3 : 5;
+                        layer.setStyle({ color: col, opacity: op, weight: wt });
+                        if (layer._path) layer._path.classList.remove('active-walk');
                     }
                 }
             });
@@ -8362,12 +9167,13 @@
 
             mapItems.getLayers().forEach(l => {
                 if (l instanceof L.Polyline && l.walkId) {
+                    const w = storage.walks.find(walk => walk.id === l.walkId);
+                    const isActive = (l.walkId === activeSelectionId);
+                    const col = isActive ? ((w && w.color) ? w.color : '#2563eb') : '#3b82f6';
+                    l.setStyle({ color: col });
                     if (l._path) {
-                        if (l.walkId === activeSelectionId) {
-                            l._path.classList.add('active-walk');
-                        } else {
-                            l._path.classList.remove('active-walk');
-                        }
+                        if (isActive) l._path.classList.add('active-walk');
+                        else l._path.classList.remove('active-walk');
                     }
                 }
             });
@@ -8707,7 +9513,7 @@
                             <div class="timeline-day-block" style="position:relative;">
                                 <div style="position:absolute; left:-23px; top:2px; width:12px; height:12px; border-radius:50%; background:var(--primary); border:2px solid var(--bg); box-sizing:border-box;"></div>
                                 <div style="font-weight: 800; font-size: 13px; margin-bottom: 8px; color: var(--text); display:flex; justify-content:space-between; align-items:center;">
-                                    <span>Day ${day.day}</span>
+                                    <span>${day.title || `Day ${day.day}`}</span>
                                     ${dayDist > 0 ? `<span style="font-size:11px; opacity:0.6; font-weight:600;">${dayDist.toFixed(1)} km</span>` : ''}
                                 </div>
                                 <div style="display:flex; flex-direction:column; gap:8px;">
@@ -8747,6 +9553,7 @@
             nodeHandles.forEach(h => map.removeLayer(h));
             resetSidebarScroll();
             updateMapOpacities();
+            if (typeof triggerClustering === 'function') triggerClustering();
         }
 
         function refreshSlideshow(item) {
@@ -9325,21 +10132,32 @@
                     const expDescEl = document.getElementById('editExpeditionDesc');
                     const expVisEl = document.getElementById('editExpeditionVisibility');
                     const expLogEl = document.getElementById('editExpeditionLogStatus');
-                    if (expNameEl) expNameEl.value = item.name || '';
-                    if (expDescEl) expDescEl.value = item.desc || '';
-                    if (expVisEl) {
-                        const vis = item.visibility || (item.isPublic ? 'public' : 'private');
-                        expVisEl.value = vis;
-                    }
-                    if (expLogEl) {
-                        if (item.bucketList) expLogEl.value = 'bucket';
-                        else if (item.visited) expLogEl.value = 'visited';
-                        else expLogEl.value = item.logStatus || 'none';
+                    if (expeditionFormBackup) {
+                        if (expNameEl) expNameEl.value = expeditionFormBackup.name;
+                        if (expDescEl) expDescEl.value = expeditionFormBackup.desc;
+                        if (expVisEl) expVisEl.value = expeditionFormBackup.visibility;
+                        if (expLogEl) expLogEl.value = expeditionFormBackup.logStatus;
+                        expeditionFormBackup = null;
+                    } else {
+                        if (expNameEl) expNameEl.value = item.name || '';
+                        if (expDescEl) expDescEl.value = item.desc || '';
+                        if (expVisEl) {
+                            const vis = item.visibility || (item.isPublic ? 'public' : 'private');
+                            expVisEl.value = vis;
+                        }
+                        if (expLogEl) {
+                            if (item.bucketList) expLogEl.value = 'bucket';
+                            else if (item.visited) expLogEl.value = 'visited';
+                            else expLogEl.value = item.logStatus || 'none';
+                        }
                     }
                 }
             }
 
             if (!isEditing) {
+                if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                    document.activeElement.blur();
+                }
                 // Read and sync values from the form inputs at save time
                 if (isExpedition) {
                     // For expeditions, read from the expedition-specific name/desc fields
@@ -11036,7 +11854,7 @@
         function closeElevation() { document.getElementById('elevation-dock').classList.remove('active'); if (document.body.classList.contains('mobile-mode')) { document.getElementById('sidebar').classList.remove('hidden-sheet'); } if (chartInstance) { chartInstance.destroy(); chartInstance = null; } if (elevationAbortController) { elevationAbortController.abort(); elevationAbortController = null; } const btn = document.getElementById('toggleGraphBtn') || document.querySelector('.hud-btn.elev-toggle') || document.getElementById('drawGraphBtn'); if (btn) btn.innerHTML = '📈 Show Height Graph'; }
 
         function saveData() {
-            localStorage.setItem('geojournal_v11', JSON.stringify({ theme: storage.theme, mapStyle: storage.mapStyle, isMobile: storage.isMobile, units: storage.units, speeds: storage.speeds }));
+            localStorage.setItem('geojournal_v11', JSON.stringify({ theme: storage.theme, mapStyle: storage.mapStyle, isMobile: storage.isMobile, units: storage.units, speeds: storage.speeds, useColors: storage.useColors }));
         }
 
         async function deleteAction() {
@@ -11813,6 +12631,7 @@
             renderLogList(createdItems, savedList, "No created items.", 'uploads');
             renderLogList(loggedItems, loggedList, "No logged items.", 'logbook');
             renderLogList(bucketItems, bucketListEl, "Your bucket list is empty.", 'bucket');
+            if (typeof triggerClustering === 'function') triggerClustering();
         }
 
         function renderLogList(all, list, emptyMsg, listType) {
@@ -12165,14 +12984,20 @@
                     if (!activePinIds.has(p.id)) return;
 
                     const catName = getCategoryName(p.color);
+                    const pinColor = getPinColor(p);
+                    const pinGlow = `0 0 8px ${pinColor}, 0 0 16px ${pinColor}, 0 3px 6px rgba(0,0,0,0.4)`;
                     let html = '';
 
                     if (catName === 'Parking') {
-                        html = `<div class="special-pin" style="width: 20px; height: 20px; background: ${p.color || '#2563eb'}; border-radius: 4px; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">P</div>`;
+                        html = `<div class="special-pin" style="width: 20px; height: 20px; background: ${pinColor}; border-radius: 4px; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 12px; box-shadow: ${pinGlow};">P</div>`;
                     } else if (catName === 'Camping') {
-                        html = `<div class="special-pin" style="width: 22px; height: 22px; background: ${p.color || '#22c55e'}; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"><img src="Images/Tent.png" style="width: 14px; height: 14px; object-fit: contain; pointer-events: none;"></div>`;
+                        html = `<div class="special-pin" style="width: 22px; height: 22px; background: ${pinColor}; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; box-shadow: ${pinGlow};"><img src="Images/Tent.png" style="width: 14px; height: 14px; object-fit: contain; pointer-events: none;"></div>`;
+                    } else if (catName === 'Amenities') {
+                        const pinType = PIN_TYPES.find(t => isSameColor(t.color, p.color));
+                        const emoji = pinType ? pinType.icon : '🚻';
+                        html = `<div class="special-pin" style="width: 22px; height: 22px; background: ${pinColor}; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-size: 13px; box-shadow: ${pinGlow};">${emoji}</div>`;
                     } else {
-                        html = `<div class="pin-wrapper"><div class="pin-shape" style="background:${p.color || '#2563eb'}"></div></div>`;
+                        html = `<div class="pin-wrapper"><div class="pin-shape" style="background:${pinColor}; box-shadow: ${pinGlow};"></div></div>`;
                     }
 
                     const elWrapper = document.createElement('div');
